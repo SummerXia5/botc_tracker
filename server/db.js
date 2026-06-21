@@ -7,6 +7,7 @@
 
 import Database from 'better-sqlite3';
 import path from 'path';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 
 // Resolve __dirname for ES modules
@@ -14,6 +15,12 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const DB_PATH = process.env.DATABASE_PATH || path.join(__dirname, 'botc.db');
+
+// Ensure the directory exists (critical for cloud deployments with persistent disks)
+const dbDir = path.dirname(DB_PATH);
+if (!fs.existsSync(dbDir)) {
+  fs.mkdirSync(dbDir, { recursive: true });
+}
 
 // Open (or create) the database file
 const db = new Database(DB_PATH);
