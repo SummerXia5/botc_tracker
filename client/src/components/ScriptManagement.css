@@ -1,0 +1,401 @@
+/* ============================================
+   ScriptManagement — Light Theme
+   Script CRUD panel, mirrors PlayerManagement
+   ============================================ */
+
+.script-mgmt {
+  margin-bottom: var(--space-2xl);
+}
+
+.script-mgmt-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: var(--space-md);
+}
+
+.script-mgmt-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+}
+
+.script-mgmt-subtitle {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-top: 2px;
+}
+
+.script-mgmt-count {
+  font-size: 0.85rem;
+  color: var(--text-tertiary);
+}
+
+/* ---- Add / Import button ---- */
+.script-mgmt-add-btn {
+  display: block;
+  width: 100%;
+  padding: 12px;
+  background: var(--bg-card);
+  border: 1px dashed rgba(26, 25, 24, 0.15);
+  border-radius: var(--radius-lg);
+  color: var(--text-tertiary);
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 200ms;
+  margin-bottom: var(--space-md);
+  font-family: 'Inter', sans-serif;
+}
+
+.script-mgmt-add-btn:hover {
+  border-color: var(--accent-red);
+  color: var(--accent-red);
+  background: var(--accent-red-subtle);
+}
+
+/* ---- Import form ---- */
+.script-mgmt-import-form {
+  background: var(--bg-card);
+  border: var(--border-medium);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  margin-bottom: var(--space-md);
+  animation: slideUp 200ms ease;
+}
+
+.script-mgmt-import-methods {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.script-mgmt-file-btn {
+  padding: 8px 16px;
+  background: var(--bg-primary);
+  border: 1px dashed rgba(26, 25, 24, 0.2);
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 200ms;
+  font-family: 'Inter', sans-serif;
+  white-space: nowrap;
+}
+
+.script-mgmt-file-btn:hover {
+  border-color: var(--accent-red);
+  color: var(--accent-red);
+  background: var(--accent-red-subtle);
+}
+
+.script-mgmt-or {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.script-mgmt-form-field {
+  margin-bottom: 14px;
+}
+
+.script-mgmt-form-field label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-tertiary);
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.script-mgmt-form-field input,
+.script-mgmt-form-field textarea {
+  width: 100%;
+  padding: 8px 12px;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  border: var(--border-medium);
+  border-radius: var(--radius-sm);
+  font-size: 0.9rem;
+  font-family: 'Inter', sans-serif;
+  outline: none;
+  transition: border-color 200ms;
+  resize: vertical;
+}
+
+.script-mgmt-form-field input:focus,
+.script-mgmt-form-field textarea:focus {
+  border-color: rgba(212, 69, 58, 0.4);
+}
+
+.script-mgmt-form-field textarea {
+  font-size: 0.8rem;
+  line-height: 1.5;
+  min-height: 80px;
+}
+
+.script-mgmt-parse-btn {
+  display: block;
+  width: 100%;
+  padding: 8px 16px;
+  background: var(--bg-surface);
+  border: var(--border-medium);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 200ms;
+  margin-bottom: 14px;
+  font-family: 'Inter', sans-serif;
+}
+
+.script-mgmt-parse-btn:hover {
+  border-color: rgba(212, 69, 58, 0.4);
+  color: var(--accent-red);
+}
+
+/* ---- Preview ---- */
+.script-mgmt-preview {
+  background: var(--bg-surface);
+  border: var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 14px;
+  margin-bottom: 14px;
+  animation: slideUp 150ms ease;
+}
+
+.script-mgmt-preview-header {
+  margin-bottom: 10px;
+}
+
+.script-mgmt-preview-label {
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--accent-green);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.script-mgmt-preview .script-mgmt-form-field {
+  margin-bottom: 10px;
+}
+
+.script-mgmt-preview .script-mgmt-form-field input {
+  background: var(--bg-card);
+}
+
+.script-mgmt-preview-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.script-mgmt-preview-chars {
+  font-size: 0.78rem;
+  color: var(--text-tertiary);
+  font-weight: 500;
+}
+
+.script-mgmt-import-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.script-mgmt-btn-primary {
+  background: var(--accent-red);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-full);
+  padding: 8px 20px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 200ms;
+  font-family: 'Inter', sans-serif;
+}
+
+.script-mgmt-btn-primary:hover {
+  background: var(--accent-red-light);
+}
+
+.script-mgmt-btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.script-mgmt-btn-ghost {
+  background: transparent;
+  color: var(--text-secondary);
+  border: var(--border-medium);
+  border-radius: var(--radius-full);
+  padding: 8px 20px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 200ms;
+  font-family: 'Inter', sans-serif;
+}
+
+.script-mgmt-btn-ghost:hover {
+  border-color: rgba(26, 25, 24, 0.2);
+  color: var(--text-primary);
+}
+
+/* ---- Script list ---- */
+.script-mgmt-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  background: rgba(26, 25, 24, 0.06);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  border: var(--border-subtle);
+}
+
+.script-mgmt-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  background: var(--bg-card);
+  transition: background 150ms;
+}
+
+.script-mgmt-row:hover {
+  background: var(--bg-hover);
+}
+
+.script-mgmt-row-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  flex: 1;
+}
+
+.script-mgmt-info {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  min-width: 0;
+}
+
+.script-mgmt-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.script-mgmt-chars {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.script-mgmt-official-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  font-size: 0.68rem;
+  font-weight: 500;
+  color: var(--accent-blue);
+  background: var(--accent-blue-subtle);
+  border-radius: var(--radius-full);
+  white-space: nowrap;
+  flex-shrink: 0;
+  letter-spacing: 0.02em;
+}
+
+/* ---- Row actions ---- */
+.script-mgmt-row-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.script-mgmt-action-btn {
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  color: var(--text-tertiary);
+  cursor: pointer;
+  transition: all 150ms;
+  font-family: 'Inter', sans-serif;
+  background: transparent;
+  border: none;
+}
+
+.script-mgmt-action-btn:hover {
+  color: var(--text-primary);
+  background: var(--bg-surface);
+}
+
+.script-mgmt-action-danger {
+  color: var(--accent-red);
+}
+
+.script-mgmt-action-danger:hover {
+  background: var(--accent-red-subtle);
+  color: var(--accent-red);
+}
+
+.script-mgmt-confirm-delete {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.script-mgmt-confirm-text {
+  font-size: 0.72rem;
+  color: var(--accent-red);
+  font-weight: 500;
+}
+
+/* ---- Empty state ---- */
+.script-mgmt-empty {
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  padding: var(--space-xl);
+}
+
+/* ---- Responsive ---- */
+@media (max-width: 520px) {
+  .script-mgmt-import-methods {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .script-mgmt-or {
+    text-align: center;
+  }
+
+  .script-mgmt-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .script-mgmt-row-actions {
+    align-self: flex-end;
+  }
+
+  .script-mgmt-info {
+    flex-direction: column;
+    gap: 2px;
+  }
+}

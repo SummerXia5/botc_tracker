@@ -1,0 +1,16 @@
+{
+  "name": "botc-tracker",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Blood on the Clocktower Friday Night Tracker",
+  "scripts": {
+    "install:all": "cd server && npm install && cd ../client && npm install",
+    "build": "cd client && npm run build",
+    "start": "cd server && node server.js",
+    "dev:server": "cd server && node server.js",
+    "dev:client": "cd client && npx vite --host"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

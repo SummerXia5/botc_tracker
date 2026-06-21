@@ -1,0 +1,398 @@
+/* ============================================
+   RecordGameModal — Light Theme
+   Multi-step form, refined step indicator
+   ============================================ */
+
+.record-modal {
+  width: 100%;
+  max-width: 560px;
+  padding: 28px;
+}
+
+.record-header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.record-header h2 {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+  margin-bottom: 4px;
+}
+
+.record-subtitle {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 400;
+}
+
+/* ---- Step Progress ---- */
+.step-progress {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 28px;
+  padding: 0 16px;
+  position: relative;
+}
+
+.step-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  z-index: 1;
+}
+
+.step-circle {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: var(--bg-surface);
+  border: 1.5px solid rgba(26, 25, 24, 0.1);
+  color: var(--text-muted);
+  transition: all 250ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.step-active .step-circle {
+  background: var(--accent-green-subtle);
+  border-color: var(--accent-green);
+  color: var(--accent-green);
+}
+
+.step-current .step-circle {
+  background: var(--accent-red);
+  border-color: var(--accent-red);
+  color: #FFFFFF;
+  width: 32px;
+  height: 32px;
+  margin-top: -2px;
+}
+
+.step-label {
+  font-size: 0.65rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-align: center;
+  white-space: nowrap;
+}
+
+.step-active .step-label {
+  color: var(--text-secondary);
+}
+
+.step-current .step-label {
+  color: var(--text-primary);
+}
+
+.step-line {
+  position: absolute;
+  top: 14px;
+  left: 50px;
+  right: 50px;
+  height: 1px;
+  background: rgba(26, 25, 24, 0.08);
+  z-index: 0;
+}
+
+.step-line-fill {
+  height: 100%;
+  background: var(--accent-green);
+  transition: width 400ms cubic-bezier(0.16, 1, 0.3, 1);
+  border-radius: 1px;
+}
+
+/* ---- Step Content ---- */
+.step-content {
+  margin-bottom: 24px;
+  animation: fadeIn 0.25s ease;
+}
+
+.step-hint {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-bottom: 16px;
+  line-height: 1.5;
+}
+
+.step-hint strong {
+  color: var(--accent-gold);
+  font-weight: 600;
+}
+
+/* ---- Winner Toggle ---- */
+.winner-toggle {
+  display: flex;
+  gap: 8px;
+}
+
+.winner-btn {
+  flex: 1;
+  padding: 12px;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  background: var(--bg-surface);
+  border: 1px solid rgba(26, 25, 24, 0.08);
+  color: var(--text-tertiary);
+  transition: all 200ms cubic-bezier(0.16, 1, 0.3, 1);
+  text-align: center;
+  cursor: pointer;
+}
+
+.winner-btn:hover {
+  border-color: rgba(26, 25, 24, 0.15);
+  color: var(--text-secondary);
+}
+
+.winner-good.winner-active {
+  border-color: rgba(59, 122, 181, 0.4);
+  color: var(--accent-blue);
+  background: var(--accent-blue-subtle);
+}
+
+.winner-evil.winner-active {
+  border-color: rgba(212, 69, 58, 0.4);
+  color: var(--accent-red);
+  background: var(--accent-red-subtle);
+}
+
+/* ---- Player Checkboxes ---- */
+.player-checkboxes {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 6px;
+  max-height: 320px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.player-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--bg-surface);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 200ms cubic-bezier(0.16, 1, 0.3, 1);
+  font-size: 0.85rem;
+}
+
+.player-checkbox input[type="checkbox"] {
+  display: none;
+}
+
+.player-checkbox:hover {
+  background: var(--bg-hover);
+  border-color: rgba(26, 25, 24, 0.06);
+}
+
+.player-checkbox.checked {
+  border-color: rgba(212, 69, 58, 0.3);
+  background: var(--accent-red-subtle);
+}
+
+.checkbox-emoji {
+  font-size: 1.15rem;
+}
+
+.checkbox-name {
+  font-weight: 500;
+  color: var(--text-primary);
+  font-size: 0.85rem;
+}
+
+/* ---- Role Assignments ---- */
+.role-assignments {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 400px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.role-assignment-card {
+  background: var(--bg-surface);
+  border: 1px solid rgba(26, 25, 24, 0.06);
+  border-radius: 14px;
+  padding: 14px;
+}
+
+.ra-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.ra-emoji {
+  font-size: 1.15rem;
+}
+
+.ra-name {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+}
+
+.ra-role-select {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.ra-role-btn {
+  flex: 1;
+  padding: 6px 8px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  background: var(--bg-card);
+  border: 1px solid rgba(26, 25, 24, 0.08);
+  color: var(--text-tertiary);
+  transition: all 200ms cubic-bezier(0.16, 1, 0.3, 1);
+  text-align: center;
+  cursor: pointer;
+}
+
+.ra-role-btn:hover {
+  border-color: rgba(26, 25, 24, 0.15);
+  color: var(--text-secondary);
+}
+
+.ra-role-active {
+  border-style: solid;
+}
+
+.ra-toggles {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.ra-toggle {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.ra-toggle input[type="checkbox"] {
+  width: 15px;
+  height: 15px;
+  accent-color: var(--accent-red);
+  border-radius: 4px;
+}
+
+/* ---- Review ---- */
+.review-summary {
+  background: var(--bg-surface);
+  border: var(--border-subtle);
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 14px;
+}
+
+.review-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 7px 0;
+  font-size: 0.88rem;
+}
+
+.review-row:not(:last-child) {
+  border-bottom: 1px solid rgba(26, 25, 24, 0.04);
+}
+
+.review-label {
+  color: var(--text-tertiary);
+  font-weight: 400;
+  font-size: 0.82rem;
+}
+
+.review-value {
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.review-winner-good {
+  color: var(--accent-blue);
+}
+
+.review-winner-evil {
+  color: var(--accent-red);
+}
+
+.review-players {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  background: var(--bg-surface);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.review-player-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px;
+  background: var(--bg-card);
+  font-size: 0.82rem;
+}
+
+.review-player-name {
+  flex: 1;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+/* ---- Step Navigation ---- */
+.step-nav {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-top: 16px;
+  border-top: var(--border-subtle);
+}
+
+/* ---- Responsive ---- */
+@media (max-width: 600px) {
+  .record-modal {
+    padding: 24px 18px;
+  }
+
+  .step-label {
+    display: none;
+  }
+
+  .ra-role-select {
+    flex-wrap: wrap;
+  }
+
+  .ra-toggles {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .player-checkboxes {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+

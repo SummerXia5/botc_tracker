@@ -1,0 +1,98 @@
+/* ---- Hall of Fame ---- */
+.hall-of-fame-section {
+  margin-bottom: var(--space-2xl);
+  animation: slideUp var(--duration-slow) var(--ease-out) 0.1s both;
+}
+
+.section-title-note {
+  font-size: 0.82rem;
+  font-weight: 400;
+  color: var(--text-tertiary);
+  margin-left: 6px;
+}
+
+/* ---- Awards Grid ---- */
+.awards-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.award-card {
+  background: var(--bg-card);
+  border: var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  text-align: center;
+  animation: slideUp var(--duration-slow) var(--ease-out) both;
+  transition: border-color var(--duration-base) ease;
+}
+
+.award-card:hover {
+  border-color: rgba(26, 25, 24, 0.12);
+}
+
+/* MVP card — subtle gold accent */
+.award-card-mvp {
+  border-color: rgba(184, 148, 31, 0.2);
+}
+
+.award-card-mvp:hover {
+  border-color: rgba(184, 148, 31, 0.35);
+}
+
+/* ---- Award Content ---- */
+.award-emoji {
+  font-size: 1.2rem;
+  margin-bottom: 8px;
+  line-height: 1;
+}
+
+.award-title {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--accent-gold);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+
+.award-subtitle {
+  font-size: 0.68rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  letter-spacing: 0.03em;
+  margin-bottom: 10px;
+}
+
+.award-player {
+  margin-bottom: 4px;
+}
+
+.award-player-name {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.award-value {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+/* ---- Card spanning for odd count ---- */
+.award-card:last-child:nth-child(odd) {
+  grid-column: span 2;
+}
+
+/* ---- Mobile ---- */
+@media (max-width: 480px) {
+  .awards-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .award-card:last-child:nth-child(odd) {
+    grid-column: span 1;
+  }
+}

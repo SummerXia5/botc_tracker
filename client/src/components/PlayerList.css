@@ -1,0 +1,132 @@
+/* ============================================
+   PlayerList — Light Theme
+   Clean vertical stack, minimal sort tabs
+   ============================================ */
+
+.player-list-section {
+  animation: fadeInUp 0.4s var(--transition-base) both;
+}
+
+/* Header row */
+.pl-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.pl-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+}
+
+.pl-hint {
+  font-size: 0.8rem;
+  color: var(--text-tertiary);
+  font-weight: 400;
+}
+
+/* Controls */
+.pl-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+/* Sort tabs — text pills */
+.pl-sort-tabs {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.pl-sort-tab {
+  padding: 6px 14px;
+  font-size: 0.8rem;
+  font-weight: 400;
+  color: var(--text-tertiary);
+  border-radius: var(--radius-full);
+  transition: color var(--transition-fast), background var(--transition-fast);
+  white-space: nowrap;
+  line-height: 1.4;
+}
+
+.pl-sort-tab:hover {
+  color: var(--text-secondary);
+}
+
+.pl-sort-tab--active {
+  color: var(--text-primary);
+  font-weight: 600;
+  background: rgba(26, 25, 24, 0.06);
+}
+
+/* Search */
+.pl-search {
+  flex-shrink: 0;
+}
+
+.pl-search-input {
+  border: var(--border-subtle);
+  background: var(--bg-card);
+  border-radius: var(--radius-sm);
+  padding: 7px 14px;
+  font-size: 0.82rem;
+  width: 180px;
+  color: var(--text-primary);
+  transition: border-color var(--transition-fast);
+}
+
+.pl-search-input::placeholder {
+  color: var(--text-tertiary);
+}
+
+.pl-search-input:focus {
+  border-color: rgba(26, 25, 24, 0.18);
+  outline: none;
+}
+
+/* Card stack */
+.pl-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Empty state */
+.pl-empty {
+  text-align: center;
+  padding: 48px 20px;
+}
+
+.pl-empty-text {
+  color: var(--text-tertiary);
+  font-size: 0.9rem;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .pl-header {
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .pl-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .pl-sort-tabs {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .pl-search-input {
+    width: 100%;
+  }
+}

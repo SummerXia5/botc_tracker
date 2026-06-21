@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: botc-tracker
+    runtime: node
+    buildCommand: npm run install:all && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: JWT_SECRET
+        generateValue: true
+      - key: DATABASE_PATH
+        value: /var/data/botc.db
+      - key: PORT
+        value: 10000
+    disk:
+      name: botc-data
+      mountPath: /var/data
+      sizeGB: 1

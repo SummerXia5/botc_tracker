@@ -1,0 +1,58 @@
+/* ============================================
+   RadarChart — Light Theme
+   Clean SVG pentagon, warm gold, no glow
+   ============================================ */
+
+.rc-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 8px;
+}
+
+.rc-svg {
+  overflow: visible;
+}
+
+/* Data polygon — subtle scale-in */
+.rc-data {
+  animation: rcFadeIn 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+  transform-origin: center;
+}
+
+/* Vertex dots — staggered fade-in */
+.rc-dot {
+  animation: rcDotIn 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+  opacity: 0;
+}
+
+/* Labels */
+.rc-label {
+  font-family: 'Inter', sans-serif;
+  user-select: none;
+}
+
+.rc-score {
+  font-family: 'Inter', sans-serif;
+  user-select: none;
+}
+
+@keyframes rcFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes rcDotIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
