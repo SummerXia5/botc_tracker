@@ -4,7 +4,7 @@
   "private": true,
   "description": "Blood on the Clocktower Friday Night Tracker",
   "scripts": {
-    "install:all": "cd server && npm install && cd ../client && npm install",
+    "install:all": "cd server && npm install && cd ../client && npm install --include=dev",
     "build": "cd client && npm run build",
     "start": "node server/server.js",
     "dev:server": "cd server && node server.js",
