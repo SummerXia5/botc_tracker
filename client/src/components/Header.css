@@ -112,6 +112,16 @@
   background: var(--accent-red-light);
 }
 
+.btn-grimoire {
+  background: #2d2926;
+  color: #f5e6d0;
+  letter-spacing: 0.04em;
+}
+
+.btn-grimoire:hover {
+  background: #3d3936;
+}
+
 .btn-outlined {
   background: transparent;
   border: var(--border-medium);

@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useAuth } from './context/AuthContext';
-import { fetchPlayers, fetchGames, fetchGroups, fetchScripts } from './api';
+import { fetchPlayers, fetchGames, fetchGroups, fetchScripts, createGame } from './api';
 import { computePlayerStats, computeDashboardStats, computeHallOfFame } from './utils/stats';
 import Header from './components/Header';
 import GroupSelector from './components/GroupSelector';
@@ -12,6 +12,7 @@ import PlayerModal from './components/PlayerModal';
 import GameHistory from './components/GameHistory';
 import RecordGameModal from './components/RecordGameModal';
 import AddPlayerModal from './components/AddPlayerModal';
+import Grimoire from './components/Grimoire';
 import { useToast } from './components/Toast';
 import './App.css';
 
@@ -34,6 +35,7 @@ export default function App() {
   const [selectedPlayer, setSelectedPlayer] = useState(null);
   const [showRecordGame, setShowRecordGame] = useState(false);
   const [showAddPlayer, setShowAddPlayer] = useState(false);
+  const [showGrimoire, setShowGrimoire] = useState(false);
 
   // Load groups on mount
   const loadGroups = useCallback(async () => {
@@ -149,6 +151,7 @@ export default function App() {
       <Header
         onAddPlayer={() => setShowAddPlayer(true)}
         onRecordGame={() => setShowRecordGame(true)}
+        onOpenGrimoire={() => setShowGrimoire(true)}
         selectedGroup={selectedGroup}
         onBack={handleBack}
       />
@@ -196,6 +199,25 @@ export default function App() {
           onClose={() => setShowAddPlayer(false)}
           onSuccess={handleRefresh}
           groupId={selectedGroup.id}
+        />
+      )}
+
+      {showGrimoire && isAuthenticated && (
+        <Grimoire
+          players={players}
+          scripts={scripts}
+          groupId={selectedGroup.id}
+          onExportGame={async (gameData) => {
+            try {
+              await createGame({ ...gameData, group_id: selectedGroup.id });
+              toast.success('对局已记录！');
+              handleRefresh();
+              setShowGrimoire(false);
+            } catch (err) {
+              toast.error(err.message || '记录失败');
+            }
+          }}
+          onClose={() => setShowGrimoire(false)}
         />
       )}
     </div>
