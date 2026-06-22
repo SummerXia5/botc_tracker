@@ -150,6 +150,64 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
   };
 
   // ----------------------------------------------------------------
+  //  BotC role distribution by player count
+  // ----------------------------------------------------------------
+  const ROLE_DISTRIBUTION = {
+    5:  { townsfolk: 3, outsider: 0, minion: 1, demon: 1 },
+    6:  { townsfolk: 3, outsider: 1, minion: 1, demon: 1 },
+    7:  { townsfolk: 5, outsider: 0, minion: 1, demon: 1 },
+    8:  { townsfolk: 5, outsider: 1, minion: 1, demon: 1 },
+    9:  { townsfolk: 5, outsider: 2, minion: 1, demon: 1 },
+    10: { townsfolk: 7, outsider: 0, minion: 2, demon: 1 },
+    11: { townsfolk: 7, outsider: 1, minion: 2, demon: 1 },
+    12: { townsfolk: 7, outsider: 2, minion: 2, demon: 1 },
+    13: { townsfolk: 9, outsider: 0, minion: 3, demon: 1 },
+    14: { townsfolk: 9, outsider: 1, minion: 3, demon: 1 },
+    15: { townsfolk: 9, outsider: 2, minion: 3, demon: 1 },
+  };
+
+  const [showDistribution, setShowDistribution] = useState(false);
+
+  const currentDistribution = useMemo(() => {
+    const count = seats.length;
+    return ROLE_DISTRIBUTION[count] || ROLE_DISTRIBUTION[Math.min(count, 15)] || { townsfolk: 3, outsider: 0, minion: 1, demon: 1 };
+  }, [seats.length]);
+
+  // Shuffle helper
+  const shuffle = (arr) => {
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  };
+
+  const handleRandomAssign = () => {
+    if (!selectedScript || seats.length < 5) return;
+    const dist = currentDistribution;
+    const pool = [];
+
+    // Pick random characters from each type
+    for (const type of ['townsfolk', 'outsider', 'minion', 'demon']) {
+      const available = shuffle(charactersByType[type] || []);
+      const needed = dist[type] || 0;
+      for (let i = 0; i < Math.min(needed, available.length); i++) {
+        pool.push(available[i].id);
+      }
+    }
+
+    // Shuffle the entire pool and assign to seats
+    const shuffledPool = shuffle(pool);
+    setSeats(prev => prev.map((s, i) => ({
+      ...s,
+      characterId: shuffledPool[i] || null,
+    })));
+    addLog(`随机分配 ${shuffledPool.length} 个角色`);
+    setShowDistribution(false);
+  };
+
+  // ----------------------------------------------------------------
   //  Role assignment
   // ----------------------------------------------------------------
   const handleSeatClick = (index) => {
@@ -451,9 +509,22 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
             开始白天
           </button>
         )}
+        {phase === 'setup' && (
+          <>
+            <button
+              className={`action-bar-btn ${showDistribution ? 'action-active' : ''}`}
+              onClick={() => setShowDistribution(!showDistribution)}
+            >
+              分配角色
+            </button>
+            <button className="action-bar-btn" onClick={handleRandomAssign}>
+              随机分配 {seats.length} 个角色
+            </button>
+          </>
+        )}
         {phase === 'setup' && !allAssigned && (
           <span className="action-bar-hint">
-            请为所有玩家分配角色
+            还需分配 {seats.filter(s => !s.characterId).length} 个角色
           </span>
         )}
         {phase === 'day' && (
@@ -532,6 +603,74 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                   </div>
                 );
               })}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ---- Distribution Panel (character grid) ---- */}
+      {showDistribution && (
+        <div className="grimoire-panel-overlay" onClick={() => setShowDistribution(false)}>
+          <div className="grimoire-distribution-panel" onClick={e => e.stopPropagation()}>
+            <div className="role-panel-header">
+              <h3>为当前 {seats.length} 个玩家选择角色:</h3>
+              <button className="role-panel-close" onClick={() => setShowDistribution(false)}>✕</button>
+            </div>
+
+            <div className="distribution-body">
+              {/* Left: type count indicators */}
+              <div className="distribution-counts">
+                {['townsfolk', 'outsider', 'minion', 'demon'].map(type => {
+                  const needed = currentDistribution[type] || 0;
+                  const assigned = seats.filter(s => s.characterId && CHARACTERS[s.characterId]?.type === type).length;
+                  return (
+                    <div
+                      key={type}
+                      className="dist-count-pill"
+                      style={{ borderColor: TYPE_COLORS[type], color: TYPE_COLORS[type] }}
+                    >
+                      {assigned} / {needed}
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Right: character grid */}
+              <div className="distribution-grid">
+                {['townsfolk', 'outsider', 'minion', 'demon'].map(type => (
+                  (charactersByType[type] || []).map(ch => {
+                    const isAssigned = assignedCharIds.has(ch.id);
+                    return (
+                      <div
+                        key={ch.id}
+                        className={`dist-token ${isAssigned ? 'assigned' : ''}`}
+                        style={{
+                          borderColor: isAssigned ? 'rgba(100,80,50,0.2)' : TYPE_COLORS[ch.type],
+                          boxShadow: isAssigned ? 'none' : `0 0 6px ${TYPE_COLORS[ch.type]}40`,
+                        }}
+                        title={`${ch.name} (${ch.nameEn}) — ${TYPE_LABELS[ch.type]}\n${ch.ability}`}
+                      >
+                        <span className="dist-token-icon" style={{ color: isAssigned ? '#666' : TYPE_COLORS[ch.type] }}>
+                          {ch.name?.charAt(0)}
+                        </span>
+                        <span className="dist-token-name">{ch.name}</span>
+                      </div>
+                    );
+                  })
+                ))}
+              </div>
+            </div>
+
+            <div className="distribution-actions">
+              <button className="action-bar-btn action-primary" onClick={handleRandomAssign}>
+                随机分配 {seats.length} 个角色
+              </button>
+              <button className="action-bar-btn" onClick={() => {
+                setSeats(prev => prev.map(s => ({ ...s, characterId: null })));
+                addLog('已重置所有角色分配');
+              }}>
+                重置角色
+              </button>
             </div>
           </div>
         </div>
