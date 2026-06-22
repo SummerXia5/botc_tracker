@@ -41,20 +41,32 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
   //  Available scripts: merge group scripts + built-in SCRIPTS
   // ----------------------------------------------------------------
   const allScripts = useMemo(() => {
-    const builtIn = Object.values(SCRIPTS || {}).map(s => ({
-      ...s,
-      _builtIn: true,
-    }));
-    const grouped = (scripts || []).map(s => ({ ...s, _builtIn: false }));
-    // Deduplicate by name
-    const seen = new Set();
+    const builtInList = Object.values(SCRIPTS || {});
     const merged = [];
-    for (const s of [...grouped, ...builtIn]) {
-      if (!seen.has(s.name)) {
-        seen.add(s.name);
-        merged.push(s);
+    const usedBuiltIn = new Set();
+
+    // First, process API scripts — enrich with built-in characters if empty
+    for (const s of (scripts || [])) {
+      const match = builtInList.find(b =>
+        s.name.includes(b.name) || s.name.includes(b.nameEn) ||
+        b.name.includes(s.name) ||
+        s.id === b.id
+      );
+      if (match && (!s.characters || s.characters.length === 0)) {
+        merged.push({ ...s, characters: match.characters, _builtIn: true });
+        usedBuiltIn.add(match.id);
+      } else {
+        merged.push({ ...s, _builtIn: false });
       }
     }
+
+    // Add any built-in scripts not yet covered
+    for (const b of builtInList) {
+      if (!usedBuiltIn.has(b.id)) {
+        merged.push({ ...b, _builtIn: true });
+      }
+    }
+
     return merged;
   }, [scripts]);
 
@@ -305,7 +317,7 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                     checked={selectedPlayerIds.includes(p.id)}
                     onChange={() => togglePlayer(p.id)}
                   />
-                  <span className="grimoire-player-emoji">{p.emoji || '👤'}</span>
+                  <span className="grimoire-player-emoji">{p.avatar || '👤'}</span>
                   <span className="grimoire-player-name">{p.name}</span>
                 </label>
               ))}
@@ -332,11 +344,10 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
 
   return (
     <div className="grimoire">
-      {/* ---- Phase indicator ---- */}
+      {/* ---- Phase indicator (top bar) ---- */}
       <div className="grimoire-phase-bar">
-        <button className="grimoire-close-btn grimoire-close-ingame" onClick={onClose}>✕</button>
         <div className={`grimoire-phase-pill phase-${phase}`}>
-          {phase === 'setup' && '配置中'}
+          {phase === 'setup' && '⚙ 配置中'}
           {phase === 'day' && `☀ 白天 ${dayNumber}`}
           {phase === 'night' && `☽ 夜晚 ${dayNumber}`}
         </div>
@@ -345,11 +356,19 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
             投票: {voteCount} / {aliveCount}
           </div>
         )}
+        <button className="grimoire-close-btn grimoire-close-ingame" onClick={onClose} style={{ position: 'absolute', right: 12, top: 8 }}>✕</button>
       </div>
 
       {/* ---- Circular seating chart ---- */}
       <div className="grimoire-circle-container">
         <div className="grimoire-circle">
+          {/* Center decorative area */}
+          <div className="grimoire-center">
+            <div className="grimoire-center-name">{selectedScript?.name}</div>
+            <div className="grimoire-center-sub">{selectedScript?.nameEn || 'CUSTOM SCRIPT'}</div>
+            <div className="grimoire-center-count">{aliveCount} / {seats.length}</div>
+          </div>
+
           {seats.map((seat, i) => {
             const seatCount = seats.length;
             const angle = (i / seatCount) * 2 * Math.PI - Math.PI / 2;
@@ -357,42 +376,45 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
             const x = 50 + radius * Math.cos(angle);
             const y = 50 + radius * Math.sin(angle);
             const ch = seat.characterId ? CHARACTERS[seat.characterId] : null;
-            const typeColor = ch ? TYPE_COLORS[ch.type] : null;
 
             return (
               <div
                 key={seat.player.id}
                 className={[
-                  'grimoire-seat',
-                  !seat.alive && 'seat-dead',
-                  seat.nominated && 'seat-nominated',
-                  seat.hasVoted && 'seat-voted',
+                  'seat-token',
+                  !seat.alive && 'dead',
+                  ch && `type-${ch.type}`,
+                  seat.nominated && 'nominated',
                 ].filter(Boolean).join(' ')}
                 style={{ left: `${x}%`, top: `${y}%` }}
                 onClick={() => handleSeatClick(i)}
               >
-                {/* Dead shroud */}
+                {/* Dead shroud overlay */}
                 {!seat.alive && <div className="seat-shroud" />}
 
-                {/* Avatar / emoji */}
-                <span className="seat-avatar">{seat.player.emoji || '👤'}</span>
+                {/* Alive indicator dot */}
+                {seat.alive && <div className="seat-alive-dot" />}
 
-                {/* Player name */}
-                <span className="seat-player-name">{seat.player.name}</span>
-
-                {/* Role name */}
+                {/* Character content */}
                 {ch ? (
-                  <span className="seat-role-name" style={{ color: typeColor }}>
-                    {ch.name}
-                  </span>
+                  <>
+                    <span className="seat-char-icon" style={{ color: TYPE_COLORS[ch.type] }}>
+                      {ch.name?.charAt(0)}
+                    </span>
+                    <span className="seat-char-name">{ch.name}</span>
+                  </>
                 ) : (
-                  <span className="seat-role-name seat-role-unassigned">未分配</span>
+                  <span className="seat-empty">?</span>
                 )}
 
-                {/* Status */}
-                <span className={`seat-status ${seat.alive ? 'status-alive' : 'status-dead'}`}>
-                  {seat.alive ? '✔' : '☠'}
-                </span>
+                {/* Seat label bar below token */}
+                <div className="seat-label">
+                  <span className="seat-number">{i + 1}.</span>
+                  <span className="seat-player-name">{seat.player.name}</span>
+                </div>
+
+                {/* Vote marker */}
+                {seat.hasVoted && <div className="seat-vote-marker">V</div>}
 
                 {/* Day-phase action buttons */}
                 {phase === 'day' && seat.alive && (
