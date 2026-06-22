@@ -336,7 +336,7 @@
   top: 48px;
   left: 0;
   right: 0;
-  bottom: 56px;
+  bottom: 80px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -624,17 +624,18 @@
   bottom: 0;
   left: 0;
   right: 0;
-  height: 56px;
-  background: rgba(20, 22, 28, 0.95);
-  backdrop-filter: blur(8px);
-  border-top: 1px solid rgba(100, 80, 50, 0.3);
+  min-height: 64px;
+  background: rgba(15, 17, 22, 0.98);
+  backdrop-filter: blur(12px);
+  border-top: 2px solid rgba(120, 100, 60, 0.4);
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
-  padding: 0 16px;
-  z-index: 210;
+  gap: 10px;
+  padding: 10px 16px;
+  z-index: 250;
   flex-shrink: 0;
+  flex-wrap: wrap;
 }
 
 .grimoire-action-btn,
@@ -645,9 +646,9 @@
   background: rgba(60, 50, 35, 0.8);
   border: 1px solid rgba(120, 100, 60, 0.4);
   color: #c4b08a;
-  padding: 8px 16px;
-  border-radius: 6px;
-  font-size: 0.8rem;
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-size: 0.85rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 200ms ease;
@@ -662,16 +663,27 @@
 }
 
 .action-bar-btn.action-primary {
-  background: rgba(180, 60, 40, 0.8);
-  border-color: rgba(220, 80, 50, 0.5);
-  color: #f0d8c0;
-  font-weight: 600;
+  background: linear-gradient(135deg, rgba(200, 60, 40, 0.9), rgba(160, 40, 25, 0.9));
+  border: 2px solid rgba(255, 100, 60, 0.6);
+  color: #fff;
+  font-weight: 700;
+  font-size: 1rem;
+  padding: 12px 28px;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 0 16px rgba(200, 60, 40, 0.4), 0 2px 8px rgba(0, 0, 0, 0.3);
+  animation: pulseGlow 2s infinite;
+}
+
+@keyframes pulseGlow {
+  0%, 100% { box-shadow: 0 0 16px rgba(200, 60, 40, 0.4), 0 2px 8px rgba(0, 0, 0, 0.3); }
+  50% { box-shadow: 0 0 24px rgba(200, 60, 40, 0.7), 0 2px 12px rgba(0, 0, 0, 0.4); }
 }
 
 .action-bar-btn.action-primary:hover {
-  background: rgba(200, 70, 45, 0.9);
-  border-color: rgba(240, 100, 60, 0.6);
-  box-shadow: 0 2px 8px rgba(180, 60, 40, 0.3);
+  background: linear-gradient(135deg, rgba(220, 70, 45, 0.95), rgba(180, 50, 30, 0.95));
+  border-color: rgba(255, 120, 70, 0.8);
+  box-shadow: 0 0 28px rgba(220, 70, 45, 0.6), 0 4px 12px rgba(0, 0, 0, 0.4);
+  transform: scale(1.05);
 }
 
 .action-bar-btn.action-active {
@@ -691,7 +703,7 @@
 
 .action-bar-hint {
   font-size: 0.78rem;
-  color: #6a5a3a;
+  color: #8a7a5a;
   font-style: italic;
 }
 
