@@ -81,21 +81,71 @@ export function computePlayerStats(player, games) {
   const evilWins = evilGames.filter(p => p.game.winner === 'evil').length;
   const evilWinRate = evilGames.length > 0 ? evilWins / evilGames.length : 0;
 
-  // Power Score (25-100 scale)
-  const gamesBonus = Math.min(totalGames / 30, 1); // caps at 30 games
-  const rawScore =
-    winRate * 30 +
-    survivalRate * 20 +
-    correctVoteRate * 25 +
-    finalRoundRate * 15 +
+  // ============================================================
+  // Power Score (25-100 scale) — Multi-factor rating system
+  // ============================================================
+  //
+  // Base components (max 60 pts):
+  //   - Good win rate:  goodWinRate * 15   (max 15)
+  //   - Evil win rate:  evilWinRate * 15   (max 15)
+  //   - Survival rate:  survivalRate * 10  (max 10)
+  //   - Correct vote:   correctVoteRate * 10 (max 10)
+  //   - Experience:     min(totalGames/20, 1) * 10 (max 10)
+  //
+  // MVP bonus (max 15 pts):
+  //   - Each MVP = 3 pts, capped at 15
+  //
+  // Achievement bonus (max 25 pts, can go negative):
+  //   - 完美复盘 (perfect_review): +5 each
+  //   - 盘通逻辑线 (logic_chain): +4 each
+  //   - 关键操作 (clutch_play):    +3 each
+  //   - 完美伪装 (great_bluff):    +3 each
+  //   - 强势带队 (strong_lead):    +2 each
+  //   - 带偏方向 (wrong_lead):     -3 each (penalty!)
+  //
+  const gamesBonus = Math.min(totalGames / 20, 1);
+  const baseScore =
+    goodWinRate * 15 +
+    evilWinRate * 15 +
+    survivalRate * 10 +
+    correctVoteRate * 10 +
     gamesBonus * 10;
+
+  // MVP bonus
+  const mvpCount = games.filter(g => g.mvp_player_id === player.id).length;
+  const mvpBonus = Math.min(mvpCount * 3, 15);
+
+  // Achievement bonus
+  const achWeights = {
+    perfect_review: 5,
+    logic_chain: 4,
+    clutch_play: 3,
+    great_bluff: 3,
+    strong_lead: 2,
+    wrong_lead: -3,
+  };
+  let achBonus = 0;
+  // We need to compute achievements here for the score
+  // (the full achievementCounts is computed later, but we need it now)
+  for (const p of participations) {
+    let achs = [];
+    try {
+      achs = typeof p.achievements === 'string' ? JSON.parse(p.achievements) : (p.achievements || []);
+    } catch { achs = []; }
+    for (const a of achs) {
+      achBonus += (achWeights[a] || 1);
+    }
+  }
+  // Cap achievement bonus between -10 and 25
+  achBonus = Math.max(-10, Math.min(25, achBonus));
+
+  const rawScore = baseScore + mvpBonus + achBonus;
   const powerScore = Math.round(Math.max(25, Math.min(100, rawScore)));
 
   // Star rating
   const starRating = getStarRating(powerScore);
 
-  // MVP count
-  const mvpCount = games.filter(g => g.mvp_player_id === player.id).length;
+  // mvpCount already computed above in power score section
 
   // Top characters played (with per-character win rate)
   const charCounts = {};
