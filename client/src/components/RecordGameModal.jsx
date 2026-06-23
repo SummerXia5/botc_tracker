@@ -20,23 +20,43 @@ const ACHIEVEMENTS = [
   { key: 'great_bluff', label: '完美伪装', icon: '🎭', desc: '邪恶方完美伪装身份' },
 ];
 
-export default function RecordGameModal({ players, scripts, onClose, onSuccess, groupId, onRefreshPlayers }) {
+export default function RecordGameModal({ players, scripts, onClose, onSuccess, groupId, onRefreshPlayers, prefillData }) {
   // Local copy of players that can grow when quick-adding
   const [localPlayers, setLocalPlayers] = useState(players);
   const toast = useToast();
-  const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
 
+  // Prefill from Grimoire data if available
+  const hasPrefill = !!prefillData;
+  const [step, setStep] = useState(hasPrefill ? 3 : 1);
+
   // Step 1
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
-  const [script, setScript] = useState(scripts[0]?.name || '');
-  const [winner, setWinner] = useState('good');
+  const [date, setDate] = useState(prefillData?.date || new Date().toISOString().split('T')[0]);
+  const [script, setScript] = useState(prefillData?.script || scripts[0]?.name || '');
+  const [winner, setWinner] = useState(prefillData?.winner || 'good');
 
-  // Step 2
-  const [selectedPlayerIds, setSelectedPlayerIds] = useState([]);
+  // Step 2 — prefill selected player IDs from grimoire participants
+  const [selectedPlayerIds, setSelectedPlayerIds] = useState(
+    hasPrefill ? prefillData.participants.map(p => p.player_id) : []
+  );
 
-  // Step 3
-  const [participantDetails, setParticipantDetails] = useState({});
+  // Step 3 — prefill role_type and survived from grimoire
+  const [participantDetails, setParticipantDetails] = useState(() => {
+    if (!hasPrefill) return {};
+    const details = {};
+    for (const p of prefillData.participants) {
+      details[p.player_id] = {
+        role_type: p.role_type || 'townsfolk',
+        survived: p.survived !== undefined ? p.survived : true,
+        final_round: false,
+        correct_vote: false,
+        achievements: [],
+        survival_days: null,
+        player_notes: '',
+      };
+    }
+    return details;
+  });
   const [mvpPlayerId, setMvpPlayerId] = useState(null);
 
   const togglePlayer = (id) => {
@@ -128,6 +148,12 @@ export default function RecordGameModal({ players, scripts, onClose, onSuccess, 
           <h2>记录赛果</h2>
           <p className="record-subtitle">RECORD GAME</p>
         </div>
+
+        {hasPrefill && (
+          <div className="record-prefill-notice">
+            📋 已从魔典自动导入：{script} · {selectedPlayerIds.length}人 · {winner === 'good' ? '善良' : '邪恶'}胜
+          </div>
+        )}
 
         {/* Step Progress */}
         <div className="step-progress">

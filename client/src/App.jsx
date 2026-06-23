@@ -35,6 +35,7 @@ export default function App() {
   const [showRecordGame, setShowRecordGame] = useState(false);
   const [showGrimoire, setShowGrimoire] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
+  const [prefillData, setPrefillData] = useState(null);
 
   // Load groups on mount
   const loadGroups = useCallback(async () => {
@@ -213,10 +214,11 @@ export default function App() {
         <RecordGameModal
           players={players}
           scripts={scripts}
-          onClose={() => setShowRecordGame(false)}
-          onSuccess={handleRefresh}
+          onClose={() => { setShowRecordGame(false); setPrefillData(null); }}
+          onSuccess={() => { handleRefresh(); setPrefillData(null); }}
           groupId={selectedGroup.id}
           onRefreshPlayers={handleRefresh}
+          prefillData={prefillData}
         />
       )}
 
@@ -227,15 +229,12 @@ export default function App() {
           players={players}
           scripts={scripts}
           groupId={selectedGroup.id}
-          onExportGame={async (gameData) => {
-            try {
-              await createGame({ ...gameData, group_id: selectedGroup.id });
-              toast.success('对局已记录！');
-              handleRefresh();
-              setShowGrimoire(false);
-            } catch (err) {
-              toast.error(err.message || '记录失败');
-            }
+          onExportGame={(gameData) => {
+            // Close grimoire, prefill RecordGameModal, open it
+            setPrefillData(gameData);
+            setShowGrimoire(false);
+            setShowRecordGame(true);
+            toast.success('魔典数据已导入记录表，请确认后提交');
           }}
           onClose={() => setShowGrimoire(false)}
           onRefreshPlayers={handleRefresh}
