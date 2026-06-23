@@ -96,7 +96,7 @@ export default function GroupSelector({ groups, onSelectGroup, onRefresh, myGrou
               {group.description && (
                 <div className="group-card-desc">{group.description}</div>
               )}
-              {isAuthenticated && (
+              {isAuthenticated && !isStoryteller && (
                 myGroupIds.includes(group.id)
                   ? <span className="group-joined-badge">✓ 已加入</span>
                   : <button className="group-join-btn" onClick={(e) => handleJoin(e, group.id)}>加入</button>

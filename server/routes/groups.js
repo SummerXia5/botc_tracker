@@ -199,6 +199,12 @@ router.post('/:id/join', authenticateJWT, (req, res) => {
   const group = db.prepare('SELECT * FROM groups WHERE id = ?').get(groupId);
   if (!group) return res.status(404).json({ error: 'Group not found' });
 
+  // Storytellers cannot join other groups — they can only manage groups they created
+  const user = db.prepare('SELECT role FROM users WHERE id = ?').get(req.user.userId);
+  if (user && user.role === 'storyteller') {
+    return res.status(403).json({ error: '说书人不能加入其他组，只能管理自己创建的组' });
+  }
+
   const existing = db.prepare('SELECT * FROM group_members WHERE user_id = ? AND group_id = ?').get(req.user.userId, groupId);
   if (existing) return res.status(409).json({ error: '已经加入了该组' });
 
