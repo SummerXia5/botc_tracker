@@ -3,6 +3,22 @@ import { CHARACTERS, TYPE_COLORS, TYPE_LABELS, SCRIPTS } from '../data/character
 import PlayerSelector from './PlayerSelector';
 import './Grimoire.css';
 
+const REMINDER_TOKENS = [
+  { id: 'dead', label: '死亡', icon: '💀', color: '#d44' },
+  { id: 'nodeath', label: '不会死亡', icon: '🛡️', color: '#4a9' },
+  { id: 'drunk', label: '醉酒', icon: '🍺', color: '#c7a' },
+  { id: 'poisoned', label: '中毒', icon: '☠️', color: '#9a4' },
+  { id: 'noability', label: '失去能力', icon: '🔇', color: '#888' },
+  { id: 'chosen', label: '被选择', icon: '👆', color: '#48c' },
+  { id: 'mad', label: '疯狂', icon: '🤪', color: '#e84' },
+  { id: 'good', label: '善良', icon: '😇', color: '#4a9' },
+  { id: 'evil', label: '邪恶', icon: '😈', color: '#d44' },
+  { id: 'used', label: '已使用', icon: '✓', color: '#888' },
+  { id: 'red_herring', label: '红鲱鱼', icon: '🐟', color: '#d44' },
+  { id: 'grandchild', label: '孙子', icon: '👶', color: '#48c' },
+  { id: 'custom', label: '自定义', icon: '📝', color: '#c7a' },
+];
+
 /**
  * Storyteller Grimoire — the core game-running tool.
  *
@@ -36,6 +52,11 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
 
   // ---- Game log ----
   const [log, setLog] = useState([]);
+
+  // ---- Reminder tokens ----
+  const [seatReminders, setSeatReminders] = useState({}); // { seatIndex: ['dead', 'drunk', ...] }
+  const [reminderSeatIndex, setReminderSeatIndex] = useState(null); // which seat is picking reminders
+  const [showReminderPicker, setShowReminderPicker] = useState(false);
 
   // ---- Setup: player selection ----
   const [selectedPlayerIds, setSelectedPlayerIds] = useState([]);
@@ -377,6 +398,19 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
     }));
   };
 
+  const toggleReminder = (seatIdx, reminderId) => {
+    setSeatReminders(prev => {
+      const current = prev[seatIdx] || [];
+      const has = current.includes(reminderId);
+      return {
+        ...prev,
+        [seatIdx]: has
+          ? current.filter(r => r !== reminderId)
+          : [...current, reminderId],
+      };
+    });
+  };
+
   const voteCount = useMemo(() => {
     return seats.filter(s => s.hasVoted).length;
   }, [seats]);
@@ -573,6 +607,31 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
 
                 {/* Vote marker */}
                 {seat.hasVoted && <div className="seat-vote-marker">V</div>}
+
+                {/* Reminder button */}
+                <button
+                  className="seat-reminder-btn"
+                  onClick={e => { e.stopPropagation(); setReminderSeatIndex(i); setShowReminderPicker(true); }}
+                  title="添加标记"
+                >
+                  📌
+                </button>
+
+                {/* Active reminders display */}
+                {seatReminders[i]?.length > 0 && (
+                  <div className="seat-reminders">
+                    {seatReminders[i].map((rid, ri) => {
+                      const token = REMINDER_TOKENS.find(t => t.id === rid);
+                      return token ? (
+                        <span key={ri} className="seat-reminder-tag" title={token.label}
+                          style={{ background: token.color + '30', color: token.color }}
+                        >
+                          {token.icon}
+                        </span>
+                      ) : null;
+                    })}
+                  </div>
+                )}
 
                 {/* Day-phase action buttons */}
                 {phase === 'day' && seat.alive && (
@@ -793,6 +852,48 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                 全不选
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ---- Reminder Token Picker ---- */}
+      {showReminderPicker && reminderSeatIndex !== null && (
+        <div className="grimoire-panel-overlay" onClick={() => setShowReminderPicker(false)}>
+          <div className="reminder-picker" onClick={e => e.stopPropagation()}>
+            <div className="reminder-picker-header">
+              <h3>选择备忘标记 — {seats[reminderSeatIndex]?.player?.name}</h3>
+              <button className="modal-close" onClick={() => setShowReminderPicker(false)}>✕</button>
+            </div>
+            <div className="reminder-grid">
+              {REMINDER_TOKENS.map(token => {
+                const isActive = (seatReminders[reminderSeatIndex] || []).includes(token.id);
+                return (
+                  <button
+                    key={token.id}
+                    className={`reminder-token ${isActive ? 'reminder-active' : ''}`}
+                    style={{ '--token-color': token.color }}
+                    onClick={() => toggleReminder(reminderSeatIndex, token.id)}
+                  >
+                    <span className="reminder-token-icon">{token.icon}</span>
+                    <span className="reminder-token-label">{token.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+            {/* Show current reminders with remove option */}
+            {seatReminders[reminderSeatIndex]?.length > 0 && (
+              <div className="reminder-current">
+                <span>当前标记：</span>
+                {seatReminders[reminderSeatIndex].map((rid, ri) => {
+                  const token = REMINDER_TOKENS.find(t => t.id === rid);
+                  return token ? (
+                    <span key={ri} className="reminder-current-tag" onClick={() => toggleReminder(reminderSeatIndex, rid)}>
+                      {token.icon} {token.label} ✕
+                    </span>
+                  ) : null;
+                })}
+              </div>
+            )}
           </div>
         </div>
       )}
