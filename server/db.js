@@ -133,6 +133,13 @@ function initDatabase() {
   fixScript.run(troubleBrewingChars, '初来乍到%');
   fixScript.run(badMoonRisingChars, '暗流涌动%');
   fixScript.run(sectsVioletsChars, '梦中杀机%');
+
+  // Migration: add char_meta column to scripts
+  try {
+    db.prepare('ALTER TABLE scripts ADD COLUMN char_meta TEXT').run();
+  } catch (e) {
+    // Column already exists, ignore
+  }
 }
 
 // Run table creation on module load

@@ -15,7 +15,7 @@ function parseScriptJSON(jsonStr) {
   const data = JSON.parse(jsonStr);
   let name = null;
   let characters = [];
-  // charMeta maps id -> { team } for characters with type info
+  // charMeta maps id -> { name, team, image, ability } for all characters
   let charMeta = {};
 
   if (Array.isArray(data)) {
@@ -27,9 +27,17 @@ function parseScriptJSON(jsonStr) {
           name = item.name || null;
         } else if (item.id) {
           characters.push(item.id);
-          // Capture team/type if present (BotC script tool format)
-          if (item.team) {
-            charMeta[item.id] = { team: item.team };
+          // Extract all available metadata
+          const meta = {};
+          if (item.name) meta.name = item.name;
+          if (item.team) meta.team = item.team;
+          if (item.image) meta.image = item.image;
+          if (item.ability) meta.ability = item.ability;
+          if (item.edition) meta.edition = item.edition;
+          if (item.firstNight) meta.firstNight = item.firstNight;
+          if (item.otherNight) meta.otherNight = item.otherNight;
+          if (Object.keys(meta).length > 0) {
+            charMeta[item.id] = meta;
           }
         }
       }
@@ -37,7 +45,21 @@ function parseScriptJSON(jsonStr) {
   } else if (data && typeof data === 'object') {
     name = data.name || null;
     if (Array.isArray(data.characters)) {
-      characters = data.characters.map(c => typeof c === 'string' ? c : c?.id).filter(Boolean);
+      for (const c of data.characters) {
+        if (typeof c === 'string') {
+          characters.push(c);
+        } else if (c?.id) {
+          characters.push(c.id);
+          const meta = {};
+          if (c.name) meta.name = c.name;
+          if (c.team) meta.team = c.team;
+          if (c.image) meta.image = c.image;
+          if (c.ability) meta.ability = c.ability;
+          if (Object.keys(meta).length > 0) {
+            charMeta[c.id] = meta;
+          }
+        }
+      }
     }
   }
 
@@ -104,6 +126,9 @@ export default function ScriptManagement({ scripts, groupId, onRefresh }) {
         name: scriptName.trim(),
         group_id: groupId,
         characters: parsedResult.characters,
+        char_meta: Object.keys(parsedResult.charMeta).length > 0
+          ? JSON.stringify(parsedResult.charMeta)
+          : null,
       });
       toast.success(`已导入剧本: ${scriptName.trim()}`);
       resetImportForm();

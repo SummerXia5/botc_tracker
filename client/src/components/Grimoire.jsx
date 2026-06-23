@@ -79,14 +79,33 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
   const scriptCharacters = useMemo(() => {
     if (!selectedScript) return [];
     const charIds = selectedScript.characters || [];
-    return charIds
-      .map(id => CHARACTERS[id] || {
+    // Parse char_meta from script (stored as JSON string in DB)
+    let meta = {};
+    try {
+      meta = selectedScript.char_meta
+        ? (typeof selectedScript.char_meta === 'string'
+          ? JSON.parse(selectedScript.char_meta)
+          : selectedScript.char_meta)
+        : {};
+    } catch { /* ignore parse errors */ }
+
+    return charIds.map(id => {
+      // 1. Check local CHARACTERS database first
+      if (CHARACTERS[id]) return CHARACTERS[id];
+
+      // 2. Use metadata from imported script JSON
+      const m = meta[id] || {};
+      const teamMap = { townsfolk: 'townsfolk', outsider: 'outsider', minion: 'minion', demon: 'demon', fabled: 'townsfolk' };
+      return {
         id,
-        name: id.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()),
-        nameEn: id.replace(/_/g, ' '),
-        type: 'townsfolk', // default type for unknown chars
+        name: m.name || id.replace(/CustomVER$/i, '').replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()),
+        nameEn: m.name ? '' : id.replace(/CustomVER$/i, '').replace(/_/g, ' '),
+        type: teamMap[m.team] || 'townsfolk',
+        ability: m.ability || '',
+        icon: m.image || null,  // Use external image URL from script JSON
         _unknown: true,
-      });
+      };
+    });
   }, [selectedScript]);
 
   const charactersByType = useMemo(() => {

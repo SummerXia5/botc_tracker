@@ -58,7 +58,7 @@ router.post(
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const { name, group_id, characters } = req.body;
+    const { name, group_id, characters, char_meta } = req.body;
 
     // Validate that the group exists
     const groupExists = db.prepare('SELECT id FROM groups WHERE id = ?').get(group_id);
@@ -81,10 +81,11 @@ router.post(
     }
 
     const charactersJson = JSON.stringify(characters);
+    const charMetaJson = char_meta ? JSON.stringify(char_meta) : null;
 
     db.prepare(
-      'INSERT INTO scripts (id, name, group_id, characters, is_official) VALUES (?, ?, ?, ?, 0)',
-    ).run(id, name, group_id, charactersJson);
+      'INSERT INTO scripts (id, name, group_id, characters, is_official, char_meta) VALUES (?, ?, ?, ?, 0, ?)',
+    ).run(id, name, group_id, charactersJson, charMetaJson);
 
     const script = db.prepare('SELECT * FROM scripts WHERE id = ?').get(id);
     res.status(201).json({
