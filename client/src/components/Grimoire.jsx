@@ -14,7 +14,7 @@ const REMINDER_TOKENS = [
   { id: 'good', label: '善良', icon: '😇', color: '#4a9' },
   { id: 'evil', label: '邪恶', icon: '😈', color: '#d44' },
   { id: 'used', label: '已使用', icon: '✓', color: '#888' },
-  { id: 'red_herring', label: '红鲱鱼', icon: '🐟', color: '#d44' },
+  { id: 'ghost_vote', label: '投过票', icon: '👻', color: '#97c' },
   { id: 'grandchild', label: '孙子', icon: '👶', color: '#48c' },
   { id: 'custom', label: '自定义', icon: '📝', color: '#c7a' },
 ];
