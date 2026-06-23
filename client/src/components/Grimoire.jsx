@@ -614,19 +614,29 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                 {/* Vote marker */}
 
 
-                {/* Reminder tokens stacked toward center + "add" token at end (only after game starts) */}
-                {phase !== 'setup' && (() => {
+                {/* Hover "+" button to add reminders (only after game starts) */}
+                {phase !== 'setup' && (
+                  <button
+                    className="seat-reminder-btn"
+                    onClick={e => { e.stopPropagation(); setReminderSeatIndex(i); setShowReminderPicker(true); }}
+                    title="添加标记"
+                  >
+                    +
+                  </button>
+                )}
+
+                {/* Reminder tokens stacked toward center (only after game starts) */}
+                {phase !== 'setup' && (seatReminders[i]?.length > 0) && (() => {
                   const towardCenterX = -Math.cos(angle);
                   const towardCenterY = -Math.sin(angle);
-                  const reminders = seatReminders[i] || [];
                   return (
                     <div className="seat-reminders" onClick={e => e.stopPropagation()}>
-                      {reminders.map((rid, ri) => {
+                      {seatReminders[i].map((rid, ri) => {
                         const isCustom = rid.startsWith('custom:');
                         const token = isCustom ? null : REMINDER_TOKENS.find(t => t.id === rid);
                         const icon = isCustom ? '📝' : (token?.icon || '?');
                         const label = isCustom ? rid.replace('custom:', '') : (token?.label || rid);
-                        const dist = 48 + ri * 30;
+                        const dist = 60 + ri * 32;
                         const tx = towardCenterX * dist;
                         const ty = towardCenterY * dist;
                         return (
@@ -635,7 +645,7 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                             className="seat-reminder-token"
                             title={label}
                             style={{
-                              transform: `translate(${tx}px, ${ty}px)`,
+                              transform: `translate(${tx - 18}px, ${ty - 18}px)`,
                               zIndex: 10 - ri,
                             }}
                             onClick={() => { setReminderSeatIndex(i); setShowReminderPicker(true); }}
@@ -645,25 +655,6 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                           </div>
                         );
                       })}
-                      {/* "+" add token at end of stack */}
-                      {(() => {
-                        const addDist = 48 + reminders.length * 30;
-                        const atx = towardCenterX * addDist;
-                        const aty = towardCenterY * addDist;
-                        return (
-                          <div
-                            className="seat-reminder-token seat-reminder-add"
-                            title="添加标记"
-                            style={{
-                              transform: `translate(${atx}px, ${aty}px)`,
-                              zIndex: 10 - reminders.length,
-                            }}
-                            onClick={() => { setReminderSeatIndex(i); setShowReminderPicker(true); }}
-                          >
-                            <span className="reminder-token-icon">✚</span>
-                          </div>
-                        );
-                      })()}
                     </div>
                   );
                 })()}
