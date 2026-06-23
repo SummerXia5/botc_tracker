@@ -401,8 +401,8 @@
 /* ---- Individual seat token (parchment circle) ---- */
 .seat-token {
   position: absolute;
-  width: 90px;
-  height: 90px;
+  width: 110px;
+  height: 110px;
   border-radius: 50%;
   background: radial-gradient(circle, #e8dcc8 0%, #d4c4a8 60%, #c4b08a 100%);
   border: 2px solid rgba(180, 160, 120, 0.6);
@@ -414,7 +414,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 1px;
+  gap: 2px;
   transition: transform 200ms, box-shadow 200ms;
   transform: translate(-50%, -50%);
   z-index: 1;
@@ -466,8 +466,8 @@
 
 /* ---- Character icon image ---- */
 .seat-char-img {
-  width: 46px;
-  height: 46px;
+  width: 60px;
+  height: 60px;
   object-fit: contain;
   pointer-events: none;
   filter: drop-shadow(0 1px 2px rgba(0,0,0,0.15));
@@ -496,11 +496,11 @@
 
 /* ---- Character name on token ---- */
 .seat-char-name {
-  font-size: 0.6rem;
+  font-size: 0.72rem;
   font-weight: 600;
   color: #3a3020;
   text-align: center;
-  max-width: 76px;
+  max-width: 90px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1643,8 +1643,8 @@
 
 .seat-reminder-token {
   position: absolute;
-  width: 36px;
-  height: 36px;
+  width: 46px;
+  height: 46px;
   border-radius: 50%;
   background: radial-gradient(circle at 30% 25%, #6b4d8a, #3d2856 60%, #2a1a3d 100%);
   border: 2px solid rgba(160, 130, 200, 0.35);
@@ -1664,17 +1664,17 @@
 }
 
 .seat-reminder-token .reminder-token-icon {
-  font-size: 0.75rem;
+  font-size: 1rem;
   line-height: 1;
 }
 
 .seat-reminder-token .reminder-token-text {
-  font-size: 0.4rem;
+  font-size: 0.5rem;
   color: #c4b8d4;
   line-height: 1;
   margin-top: 1px;
   white-space: nowrap;
-  max-width: 32px;
+  max-width: 40px;
   overflow: hidden;
   text-overflow: ellipsis;
 }

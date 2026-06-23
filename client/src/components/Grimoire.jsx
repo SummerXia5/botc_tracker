@@ -438,6 +438,7 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
           : [...current, reminderId],
       };
     });
+    setShowReminderPicker(false);
   };
 
   const voteCount = useMemo(() => {
@@ -655,8 +656,8 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                       const icon = isCustom ? '📝' : (token?.icon || '?');
                       const label = isCustom ? rid.replace('custom:', '') : (token?.label || rid);
                       // Fan out tokens in a cascade below the seat
-                      const offsetX = (ri - (seatReminders[i].length - 1) / 2) * 28;
-                      const offsetY = 8 + ri * 4;
+                      const offsetX = (ri - (seatReminders[i].length - 1) / 2) * 34;
+                      const offsetY = 10 + ri * 5;
                       return (
                         <div
                           key={ri}
