@@ -434,7 +434,7 @@ export default function RecordGameModal({ players, scripts, onClose, onSuccess, 
                 const rt = ROLE_TYPES.find(r => r.key === d.role_type);
                 return (
                   <div key={p.id} className="review-player-row">
-                    <span>{p.emoji || '👤'}</span>
+                    <span>{p.avatar || '👤'}</span>
                     <span className="review-player-name">{p.name}</span>
                     <span style={{ color: rt?.color, fontSize: '0.78rem', fontWeight: 500 }}>{rt?.label}</span>
                     <span style={{ fontSize: '0.75rem' }}>{d.survived ? '存活' : '💀死亡票'}</span>

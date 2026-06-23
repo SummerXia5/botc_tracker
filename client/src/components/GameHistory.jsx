@@ -4,9 +4,23 @@ import './GameHistory.css';
 
 const getCharacterName = (characterId) => {
   if (!characterId) return null;
+  // Direct match
   if (CHARACTERS[characterId]) return CHARACTERS[characterId].name;
-  const stripped = characterId.replace(/CustomVER$/, '');
-  return CHARACTERS[stripped]?.name || characterId;
+  // Strip CustomVER / _custom suffix
+  const stripped = characterId.replace(/Custom(?:VER)?$/i, '').replace(/_custom$/i, '');
+  if (CHARACTERS[stripped]) return CHARACTERS[stripped].name;
+  // Try lowercase
+  const lower = stripped.toLowerCase();
+  if (CHARACTERS[lower]) return CHARACTERS[lower].name;
+  // Try with underscores
+  const underscored = lower.replace(/\s+/g, '_');
+  if (CHARACTERS[underscored]) return CHARACTERS[underscored].name;
+  // Search all CHARACTERS by nameEn match
+  const allChars = Object.values(CHARACTERS);
+  const byEn = allChars.find(c => c.nameEn?.toLowerCase() === lower || c.nameEn?.toLowerCase().replace(/\s+/g, '') === lower);
+  if (byEn) return byEn.name;
+  // Fallback: clean up the ID for display
+  return stripped.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
 };
 
 const GAMES_PER_PAGE = 10;
@@ -27,7 +41,7 @@ export default function GameHistory({ games, players }) {
 
   const getPlayerName = (playerId) => {
     const p = players.find(pl => pl.id === playerId);
-    return p ? { name: p.name, emoji: p.emoji || '👤' } : { name: '未知', emoji: '?' };
+    return p ? { name: p.name, emoji: p.avatar || '👤' } : { name: '未知', emoji: '?' };
   };
 
   const roleLabels = {
