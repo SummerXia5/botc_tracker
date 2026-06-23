@@ -306,14 +306,29 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
 
   const handleRandomAssign = () => {
     if (!selectedScript || seats.length < 5) return;
-    // Take ALL selected characters and randomly assign to seats
-    const selectedIds = [...selectedCharPool];
-    if (selectedIds.length < seats.length) {
-      // Not enough characters selected
-      return;
+    const dist = currentDistribution;
+    const pool = [];
+
+    // Pick the correct number from each type based on distribution
+    for (const type of ['townsfolk', 'outsider', 'minion', 'demon']) {
+      const available = shuffle(
+        (charactersByType[type] || []).filter(c => selectedCharPool.has(c.id))
+      );
+      const needed = dist[type] || 0;
+      for (let i = 0; i < Math.min(needed, available.length); i++) {
+        pool.push(available[i].id);
+      }
     }
-    // Shuffle and assign one per seat
-    const shuffledPool = shuffle(selectedIds).slice(0, seats.length);
+
+    if (pool.length < seats.length) {
+      // Not enough characters — silently add more from any selected
+      const remaining = [...selectedCharPool].filter(id => !pool.includes(id));
+      const extra = shuffle(remaining).slice(0, seats.length - pool.length);
+      pool.push(...extra);
+    }
+
+    // Shuffle the entire pool and assign to seats
+    const shuffledPool = shuffle(pool).slice(0, seats.length);
     setSeats(prev => prev.map((s, i) => ({
       ...s,
       characterId: shuffledPool[i] || null,
@@ -847,7 +862,7 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
 
             <div className="distribution-actions">
               <button className="action-bar-btn action-primary" onClick={handleRandomAssign}
-                disabled={selectedCharPool.size < seats.length}
+                disabled={selectedCharPool.size === 0}
               >
                 随机分配 {seats.length} 个角色
               </button>
