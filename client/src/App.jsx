@@ -43,16 +43,22 @@ export default function App() {
   const [prefillData, setPrefillData] = useState(null);
   const [myGroupIds, setMyGroupIds] = useState([]);
 
+  // Reusable function to refresh myGroupIds
+  const refreshMyGroups = useCallback(async () => {
+    if (!isAuthenticated) {
+      setMyGroupIds([]);
+      return;
+    }
+    try {
+      const data = await fetchProfile();
+      setMyGroupIds((data.memberships || []).map(m => m.group_id));
+    } catch (e) {}
+  }, [isAuthenticated]);
+
   // Fetch profile memberships on auth change
   useEffect(() => {
-    if (isAuthenticated) {
-      fetchProfile().then(data => {
-        setMyGroupIds((data.memberships || []).map(m => m.group_id));
-      }).catch(() => {});
-    } else {
-      setMyGroupIds([]);
-    }
-  }, [isAuthenticated]);
+    refreshMyGroups();
+  }, [refreshMyGroups]);
 
   // Load groups on mount
   const loadGroups = useCallback(async () => {
@@ -156,22 +162,23 @@ export default function App() {
     );
   }
 
+  // Show profile page
+  if (showProfile) {
+    return <MyProfile onBack={() => setShowProfile(false)} />;
+  }
+
   // Show group selector when no group is selected
   if (!selectedGroup) {
     return (
-      <>
-        <GroupSelector
-          groups={groups}
-          onSelectGroup={handleSelectGroup}
-          onRefresh={loadGroups}
-          isAuthenticated={isAuthenticated}
-          myGroupIds={myGroupIds}
-          onOpenProfile={() => setShowProfile(true)}
-        />
-        {showProfile && (
-          <MyProfile onClose={() => setShowProfile(false)} />
-        )}
-      </>
+      <GroupSelector
+        groups={groups}
+        onSelectGroup={handleSelectGroup}
+        onRefresh={() => { loadGroups(); refreshMyGroups(); }}
+        isAuthenticated={isAuthenticated}
+        myGroupIds={myGroupIds}
+        onOpenProfile={() => setShowProfile(true)}
+        onRefreshGroups={refreshMyGroups}
+      />
     );
   }
 
@@ -285,9 +292,7 @@ export default function App() {
         />
       )}
 
-      {showProfile && (
-        <MyProfile onClose={() => setShowProfile(false)} />
-      )}
+
 
       {showClaimPlayer && (
         <ClaimPlayerModal

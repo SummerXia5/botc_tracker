@@ -5,7 +5,7 @@ import { useToast } from './Toast';
 import LoginModal from './LoginModal';
 import './GroupSelector.css';
 
-export default function GroupSelector({ groups, onSelectGroup, onRefresh, myGroupIds = [], onOpenProfile }) {
+export default function GroupSelector({ groups, onSelectGroup, onRefresh, myGroupIds = [], onOpenProfile, onRefreshGroups }) {
   const { user, isAuthenticated, isStoryteller, logout } = useAuth();
   const toast = useToast();
   const [showCreate, setShowCreate] = useState(false);
@@ -41,6 +41,7 @@ export default function GroupSelector({ groups, onSelectGroup, onRefresh, myGrou
       await joinGroup(groupId);
       toast.success('成功加入!');
       onRefresh();
+      if (onRefreshGroups) onRefreshGroups();
     } catch (err) {
       toast.error(err.message);
     }

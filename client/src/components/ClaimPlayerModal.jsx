@@ -30,49 +30,63 @@ export default function ClaimPlayerModal({ players, onClose, onClaimed }) {
   };
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-container claim-modal" onClick={e => e.stopPropagation()}>
-        <button className="modal-close" onClick={onClose}>✕</button>
-        
-        <div className="claim-header">
-          <h2>🎮 认领玩家档案</h2>
-          <p className="claim-subtitle">在这个组中找到你自己的档案</p>
+    <div className="claim-overlay" onClick={onClose}>
+      <div className="claim-modal" onClick={e => e.stopPropagation()}>
+        <button className="claim-close" onClick={onClose}>✕</button>
+
+        {/* Decorative header */}
+        <div className="claim-hero">
+          <div className="claim-hero-glow" />
+          <div className="claim-hero-icon">🎭</div>
+          <h2 className="claim-title">选择你的身份</h2>
+          <p className="claim-subtitle">找到你在这个组中的玩家档案</p>
         </div>
 
-        <div className="claim-list">
+        <div className="claim-body">
           {availablePlayers.length === 0 ? (
-            <p className="claim-empty">没有可认领的玩家档案。{'\n'}请联系说书人添加你的档案。</p>
+            <div className="claim-empty">
+              <span className="claim-empty-icon">📋</span>
+              <p>暂无可认领的档案</p>
+              <p className="claim-empty-hint">请联系说书人添加你的玩家档案</p>
+            </div>
           ) : (
-            availablePlayers.map(player => (
-              <label
-                key={player.id}
-                className={`claim-player ${selectedId === player.id ? 'claim-player-selected' : ''}`}
-              >
-                <input
-                  type="radio"
-                  name="claim-player"
-                  checked={selectedId === player.id}
-                  onChange={() => setSelectedId(player.id)}
-                />
-                <span className="claim-player-avatar">{player.avatar || '🎮'}</span>
-                <div className="claim-player-info">
-                  <span className="claim-player-name">{player.name}</span>
-                  {player.desc && <span className="claim-player-desc">{player.desc}</span>}
+            <div className="claim-list">
+              {availablePlayers.map(player => (
+                <div
+                  key={player.id}
+                  className={`claim-card ${selectedId === player.id ? 'claim-card--selected' : ''}`}
+                  onClick={() => setSelectedId(player.id)}
+                >
+                  <div className="claim-card-check">
+                    <div className="claim-radio">
+                      {selectedId === player.id && <div className="claim-radio-dot" />}
+                    </div>
+                  </div>
+                  <div className="claim-card-avatar">{player.avatar || '🎮'}</div>
+                  <div className="claim-card-info">
+                    <span className="claim-card-name">{player.name}</span>
+                    {player.desc && <span className="claim-card-desc">{player.desc}</span>}
+                  </div>
+                  <span className="claim-card-arrow">→</span>
                 </div>
-              </label>
-            ))
+              ))}
+            </div>
           )}
         </div>
 
-        <div className="claim-actions">
+        <div className="claim-footer">
           <button
-            className="btn btn-filled btn-full"
+            className="claim-btn-confirm"
             onClick={handleClaim}
             disabled={!selectedId || claiming}
           >
-            {claiming ? '认领中...' : '确认认领'}
+            {claiming ? (
+              <><span className="claim-btn-spinner" /> 认领中...</>
+            ) : (
+              <>✓ 确认认领</>
+            )}
           </button>
-          <button className="btn btn-ghost btn-full" onClick={onClose}>
+          <button className="claim-btn-skip" onClick={onClose}>
             稍后再说
           </button>
         </div>
