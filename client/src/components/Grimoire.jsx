@@ -89,20 +89,49 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
         : {};
     } catch { /* ignore parse errors */ }
 
-    return charIds.map(id => {
-      // 1. Check local CHARACTERS database first
+    // Normalize an ID to try matching our CHARACTERS database
+    const normalizeId = (rawId) => {
+      // Strip common suffixes: CustomVER, _custom, etc.
+      let id = rawId.replace(/Custom(?:VER)?$/i, '');
+      // Check exact match
       if (CHARACTERS[id]) return CHARACTERS[id];
+      // Try lowercase
+      id = id.toLowerCase();
+      if (CHARACTERS[id]) return CHARACTERS[id];
+      // Try with underscores for multi-word (e.g. fortune_teller)
+      id = id.replace(/\s+/g, '_');
+      if (CHARACTERS[id]) return CHARACTERS[id];
+      return null;
+    };
 
-      // 2. Use metadata from imported script JSON
+    return charIds.map(id => {
+      // 1. Direct match in local CHARACTERS database
+      if (CHARACTERS[id]) return { ...CHARACTERS[id] };
+
+      // 2. Try normalized match (strip CustomVER etc.)
+      const normalized = normalizeId(id);
+
+      // 3. Get metadata from imported script JSON
       const m = meta[id] || {};
       const teamMap = { townsfolk: 'townsfolk', outsider: 'outsider', minion: 'minion', demon: 'demon', fabled: 'townsfolk' };
+
+      if (normalized) {
+        // Merge: local data + script meta image as override
+        return {
+          ...normalized,
+          id, // keep original ID for assignment tracking
+          icon: m.image || normalized.icon, // prefer script image if available
+        };
+      }
+
+      // 4. Fully custom character — use script metadata
       return {
         id,
-        name: m.name || id.replace(/CustomVER$/i, '').replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()),
-        nameEn: m.name ? '' : id.replace(/CustomVER$/i, '').replace(/_/g, ' '),
+        name: m.name || id.replace(/Custom(?:VER)?$/i, '').replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()),
+        nameEn: '',
         type: teamMap[m.team] || 'townsfolk',
         ability: m.ability || '',
-        icon: m.image || null,  // Use external image URL from script JSON
+        icon: m.image || null,
         _unknown: true,
       };
     });
