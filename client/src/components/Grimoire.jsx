@@ -730,9 +730,6 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
             >
               分配角色
             </button>
-            <button className="action-bar-btn" onClick={handleAutoPickAndAssign}>
-              🎲 随机配版
-            </button>
           </>
         )}
         {phase === 'setup' && !allAssigned && (
