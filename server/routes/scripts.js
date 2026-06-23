@@ -81,7 +81,8 @@ router.post(
     }
 
     const charactersJson = JSON.stringify(characters);
-    const charMetaJson = char_meta ? JSON.stringify(char_meta) : null;
+    // char_meta comes as a JSON string from the frontend, store directly
+    const charMetaJson = char_meta || null;
 
     db.prepare(
       'INSERT INTO scripts (id, name, group_id, characters, is_official, char_meta) VALUES (?, ?, ?, ?, 0, ?)',
