@@ -47,15 +47,15 @@ export default function Dashboard({ stats }) {
             <div className="versus-bar">
               <div
                 className="versus-fill versus-good"
-                style={{ width: animated ? `${goodPct}%` : '0%' }}
+                style={{ width: animated ? `${Math.max(Number(goodPct) > 0 ? 15 : 0, goodPct)}%` : '0%' }}
               >
-                <span className="versus-text">好人 {goodPct}%</span>
+                {Number(goodPct) > 0 && <span className="versus-text">好人 {goodPct}%</span>}
               </div>
               <div
                 className="versus-fill versus-evil"
-                style={{ width: animated ? `${evilPct}%` : '0%' }}
+                style={{ width: animated ? `${Math.max(Number(evilPct) > 0 ? 15 : 0, evilPct)}%` : '0%' }}
               >
-                <span className="versus-text">坏人 {evilPct}%</span>
+                {Number(evilPct) > 0 && <span className="versus-text">坏人 {evilPct}%</span>}
               </div>
             </div>
           </div>
