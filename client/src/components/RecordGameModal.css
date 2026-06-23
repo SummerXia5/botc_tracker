@@ -108,9 +108,9 @@
 .step-line {
   position: absolute;
   top: 14px;
-  left: 50px;
-  right: 50px;
-  height: 1px;
+  left: calc(12.5% + 14px);
+  right: calc(12.5% + 14px);
+  height: 2px;
   background: rgba(26, 25, 24, 0.08);
   z-index: 0;
 }

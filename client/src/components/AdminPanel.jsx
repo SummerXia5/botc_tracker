@@ -1,9 +1,26 @@
 import { useState, useMemo } from 'react';
 import { createPlayer, updatePlayer, deletePlayer, deleteGame, updateGame } from '../api';
-import { CHARACTERS, TYPE_LABELS } from '../data/characters';
+import { CHARACTERS, TYPE_LABELS, TYPE_COLORS } from '../data/characters';
 import { useToast } from './Toast';
 import ScriptManagement from './ScriptManagement';
 import './AdminPanel.css';
+import './RecordGameModal.css';
+
+const ROLE_TYPES = [
+  { key: 'townsfolk', label: '镇民', color: 'var(--color-townsfolk)' },
+  { key: 'outsider', label: '外来者', color: 'var(--color-outsider)' },
+  { key: 'minion', label: '爪牙', color: 'var(--color-minion)' },
+  { key: 'demon', label: '恶魔', color: 'var(--color-demon)' },
+];
+
+const ACHIEVEMENTS = [
+  { key: 'logic_chain', label: '盘通逻辑线', icon: '🧠', desc: '完美推理出逻辑链' },
+  { key: 'perfect_review', label: '完美复盘', icon: '📖', desc: '完美复盘魔典' },
+  { key: 'strong_lead', label: '强势带队', icon: '🏆', desc: '强势带队引领方向' },
+  { key: 'wrong_lead', label: '带偏方向', icon: '💀', desc: '强势带队但走偏了' },
+  { key: 'clutch_play', label: '关键操作', icon: '⚡', desc: '在关键时刻做出决定性操作' },
+  { key: 'great_bluff', label: '完美伪装', icon: '🎭', desc: '邪恶方完美伪装身份' },
+];
 
 const EMOJI_OPTIONS = [
   '😎', '🦊', '🐺', '🦁', '🐉', '🧙', '🧛', '👻', '💀', '🎃',
@@ -150,15 +167,23 @@ export default function AdminPanel({ players, games, scripts, groupId, onRefresh
     setEditGameWinner(game.winner || 'good');
     setEditGameNotes(game.notes || '');
     setEditGameMvp(game.mvp_player_id || '');
-    setEditParticipants((game.participants || []).map(p => ({
-      player_id: p.player_id,
-      player_name: p.player_name || getPlayerName(p.player_id),
-      role_type: p.role_type || 'townsfolk',
-      survived: p.survived ? true : false,
-      survival_days: p.survival_days || null,
-      character_id: p.character_id || null,
-      final_round: p.final_round ? true : false,
-    })));
+    setEditParticipants((game.participants || []).map(p => {
+      let achs = [];
+      try { achs = typeof p.achievements === 'string' ? JSON.parse(p.achievements) : (p.achievements || []); } catch { achs = []; }
+      return {
+        player_id: p.player_id,
+        player_name: p.player_name || getPlayerName(p.player_id),
+        player_avatar: p.player_avatar || '',
+        role_type: p.role_type || 'townsfolk',
+        survived: p.survived ? true : false,
+        survival_days: p.survival_days || null,
+        character_id: p.character_id || null,
+        final_round: p.final_round ? true : false,
+        correct_vote: p.correct_vote ? true : false,
+        achievements: achs,
+        player_notes: p.player_notes || '',
+      };
+    }));
   };
 
   const handleUpdateGame = async (id) => {
@@ -178,6 +203,9 @@ export default function AdminPanel({ players, games, scripts, groupId, onRefresh
           survival_days: p.survival_days,
           character_id: p.character_id,
           final_round: p.final_round,
+          correct_vote: p.correct_vote,
+          achievements: p.achievements,
+          player_notes: p.player_notes,
         })),
       });
       toast.success('对局已更新');
@@ -491,69 +519,100 @@ export default function AdminPanel({ players, games, scripts, groupId, onRefresh
                       </button>
                     </div>
 
-                    {/* Participant details */}
+                    {/* Participant details — match RecordGameModal step 3 style */}
                     {editParticipants.length > 0 && (
                       <div style={{ marginTop: 12, borderTop: '1px solid #eee', paddingTop: 10 }}>
-                        <div style={{ fontSize: '0.75rem', color: '#888', marginBottom: 6 }}>玩家详情</div>
-                        {editParticipants.map((p, pi) => (
-                          <div key={p.player_id} style={{
-                            display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap',
-                            padding: '4px 0', borderBottom: '1px solid #f0f0f0', fontSize: '0.8rem',
-                          }}>
-                            <span style={{ minWidth: 60, fontWeight: 500 }}>{p.player_name}</span>
-                            <select
-                              className="admin-input"
-                              style={{ padding: '2px 4px', fontSize: '0.75rem', width: 70 }}
-                              value={p.role_type}
-                              onChange={e => {
-                                const next = [...editParticipants];
-                                next[pi] = { ...next[pi], role_type: e.target.value };
-                                setEditParticipants(next);
-                              }}
-                            >
-                              <option value="townsfolk">镇民</option>
-                              <option value="outsider">外来者</option>
-                              <option value="minion">爪牙</option>
-                              <option value="demon">恶魔</option>
-                            </select>
-                            <label style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                              <input
-                                type="checkbox"
-                                checked={p.survived}
-                                onChange={e => {
-                                  const next = [...editParticipants];
-                                  next[pi] = { ...next[pi], survived: e.target.checked };
-                                  setEditParticipants(next);
-                                }}
-                              />
-                              存活
-                            </label>
-                            <label style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                              <input
-                                type="checkbox"
-                                checked={p.final_round}
-                                onChange={e => {
-                                  const next = [...editParticipants];
-                                  next[pi] = { ...next[pi], final_round: e.target.checked };
-                                  setEditParticipants(next);
-                                }}
-                              />
-                              决赛
-                            </label>
-                            <input
-                              type="number"
-                              className="admin-input"
-                              style={{ width: 50, padding: '2px 4px', fontSize: '0.75rem' }}
-                              placeholder="天"
-                              value={p.survival_days || ''}
-                              onChange={e => {
-                                const next = [...editParticipants];
-                                next[pi] = { ...next[pi], survival_days: e.target.value ? parseInt(e.target.value) : null };
-                                setEditParticipants(next);
-                              }}
-                            />
-                          </div>
-                        ))}
+                        <div style={{ fontSize: '0.8rem', color: '#888', marginBottom: 8 }}>玩家详情</div>
+                        <div className="ra-participants-list">
+                          {editParticipants.map((p, pi) => {
+                            const updateP = (field, value) => {
+                              const next = [...editParticipants];
+                              next[pi] = { ...next[pi], [field]: value };
+                              setEditParticipants(next);
+                            };
+                            const toggleAch = (key) => {
+                              const achs = p.achievements || [];
+                              updateP('achievements', achs.includes(key) ? achs.filter(a => a !== key) : [...achs, key]);
+                            };
+                            const isMvp = editGameMvp === p.player_id;
+                            return (
+                              <div key={p.player_id} className="ra-participant-card">
+                                <div className="ra-player-header">
+                                  <span className="ra-player-emoji">{p.player_avatar || '👤'}</span>
+                                  <span className="ra-player-name">{p.player_name}</span>
+                                  <button
+                                    type="button"
+                                    className={`ra-mvp-btn ${isMvp ? 'ra-mvp-active' : ''}`}
+                                    onClick={() => setEditGameMvp(isMvp ? '' : p.player_id)}
+                                    title="设为 MVP"
+                                  >
+                                    {isMvp ? '⭐ MVP' : '☆ MVP'}
+                                  </button>
+                                </div>
+                                <div className="ra-role-select">
+                                  {ROLE_TYPES.map(rt => (
+                                    <button
+                                      key={rt.key}
+                                      type="button"
+                                      className={`ra-role-btn ${p.role_type === rt.key ? 'ra-role-active' : ''}`}
+                                      style={p.role_type === rt.key ? { color: rt.color, borderColor: rt.color, background: `${rt.color}12` } : {}}
+                                      onClick={() => updateP('role_type', rt.key)}
+                                    >
+                                      {rt.label}
+                                    </button>
+                                  ))}
+                                </div>
+                                <div className="ra-toggles">
+                                  <label className="ra-toggle">
+                                    <input type="checkbox" checked={!(p.survived ?? true)} onChange={e => updateP('survived', !e.target.checked)} />
+                                    <span>死亡票</span>
+                                  </label>
+                                  <label className="ra-toggle">
+                                    <input type="checkbox" checked={p.final_round ?? false} onChange={e => updateP('final_round', e.target.checked)} />
+                                    <span>决赛轮票正确投</span>
+                                  </label>
+                                  <label className="ra-toggle">
+                                    <input type="checkbox" checked={p.correct_vote ?? false} onChange={e => updateP('correct_vote', e.target.checked)} />
+                                    <span>红方</span>
+                                  </label>
+                                  <div className="ra-survival-days">
+                                    <label>存活天数</label>
+                                    <input
+                                      type="number" min="0" max="20" placeholder="—"
+                                      value={p.survival_days ?? ''}
+                                      onChange={e => updateP('survival_days', e.target.value ? parseInt(e.target.value) : null)}
+                                      className="ra-days-input"
+                                    />
+                                  </div>
+                                </div>
+                                <div className="ra-achievements">
+                                  <span className="ra-ach-label">成就标签</span>
+                                  <div className="ra-ach-tags">
+                                    {ACHIEVEMENTS.map(ach => {
+                                      const isActive = (p.achievements || []).includes(ach.key);
+                                      return (
+                                        <button
+                                          key={ach.key} type="button"
+                                          className={`ra-ach-tag ${isActive ? 'ra-ach-active' : ''}`}
+                                          onClick={() => toggleAch(ach.key)}
+                                          title={ach.desc}
+                                        >
+                                          {ach.icon} {ach.label}
+                                        </button>
+                                      );
+                                    })}
+                                  </div>
+                                </div>
+                                <input
+                                  type="text" className="ra-notes-input"
+                                  placeholder="备注 (可选)..."
+                                  value={p.player_notes || ''}
+                                  onChange={e => updateP('player_notes', e.target.value)}
+                                />
+                              </div>
+                            );
+                          })}
+                        </div>
                       </div>
                     )}
                   </div>
