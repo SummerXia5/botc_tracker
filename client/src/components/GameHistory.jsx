@@ -29,6 +29,15 @@ export default function GameHistory({ games, players }) {
     demon: '恶魔',
   };
 
+  const achLabels = {
+    logic_chain: '🧠 盘通逻辑线',
+    perfect_review: '📖 完美复盘',
+    strong_lead: '🏆 强势带队',
+    wrong_lead: '💀 带偏方向',
+    clutch_play: '⚡ 关键操作',
+    great_bluff: '🎭 完美伪装',
+  };
+
   return (
     <section className="game-history-section">
       <div className="section-header">
@@ -82,29 +91,64 @@ export default function GameHistory({ games, players }) {
 
             {expandedId === game.id && game.participants && (
               <div className="game-details">
+                {/* MVP indicator */}
+                {game.mvp_player_id && (
+                  <div className="game-mvp-row">
+                    ⭐ MVP: <strong>{getPlayerName(game.mvp_player_id).name}</strong>
+                  </div>
+                )}
                 <div className="game-participants">
                   {game.participants.map((p, j) => {
                     const info = getPlayerName(p.player_id);
                     const isGood = p.role_type === 'townsfolk' || p.role_type === 'outsider';
                     const won = (isGood && game.winner === 'good') || (!isGood && game.winner === 'evil');
+                    const isMvp = game.mvp_player_id === p.player_id;
+                    const achievements = (() => {
+                      try {
+                        const raw = p.achievements;
+                        if (Array.isArray(raw)) return raw;
+                        if (typeof raw === 'string') return JSON.parse(raw);
+                        return [];
+                      } catch { return []; }
+                    })();
                     return (
-                      <div key={j} className="game-participant">
-                        <span className="gp-emoji">{info.emoji}</span>
-                        <span className="gp-name">{info.name}</span>
-                        <span
-                          className="gp-role"
-                          style={{
-                            color: `var(--color-${p.role_type})`,
-                          }}
-                        >
-                          {roleLabels[p.role_type] || p.role_type}
-                        </span>
-                        <span className="gp-survived">
-                          {p.survived ? '✓' : '✗'}
-                        </span>
-                        <span className={`gp-result ${won ? 'result-win' : 'result-lose'}`}>
-                          {won ? '胜' : '负'}
-                        </span>
+                      <div key={j} className={`game-participant ${isMvp ? 'gp-mvp' : ''}`}>
+                        <div className="gp-main-row">
+                          <span className="gp-emoji">{p.player_avatar || info.emoji}</span>
+                          <span className="gp-name">{p.player_name || info.name}</span>
+                          <span
+                            className="gp-role"
+                            style={{ color: `var(--color-${p.role_type})` }}
+                          >
+                            {roleLabels[p.role_type] || p.role_type}
+                          </span>
+                          <span className="gp-survived">
+                            {p.survived ? '✓' : '✗'}
+                          </span>
+                          {p.survival_days != null && (
+                            <span className="gp-days" title="存活天数">
+                              {p.survival_days}天
+                            </span>
+                          )}
+                          <span className={`gp-result ${won ? 'result-win' : 'result-lose'}`}>
+                            {won ? '胜' : '负'}
+                          </span>
+                          {isMvp && <span className="gp-mvp-badge">⭐</span>}
+                        </div>
+                        {(achievements.length > 0 || p.player_notes) && (
+                          <div className="gp-extra-row">
+                            {achievements.length > 0 && (
+                              <div className="gp-achievements">
+                                {achievements.map(a => (
+                                  <span key={a} className="gp-ach-tag">{achLabels[a] || a}</span>
+                                ))}
+                              </div>
+                            )}
+                            {p.player_notes && (
+                              <span className="gp-note">📝 {p.player_notes}</span>
+                            )}
+                          </div>
+                        )}
                       </div>
                     );
                   })}

@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import LoginModal from './LoginModal';
 import './Header.css';
 
-export default function Header({ onAddPlayer, onRecordGame, onOpenGrimoire, selectedGroup, onBack }) {
+export default function Header({ onAddPlayer, onRecordGame, onManageScripts, onOpenGrimoire, selectedGroup, onBack }) {
   const { user, isAuthenticated, logout } = useAuth();
   const [showLogin, setShowLogin] = useState(false);
 
@@ -40,7 +40,7 @@ export default function Header({ onAddPlayer, onRecordGame, onOpenGrimoire, sele
               <>
                 <span className="header-user">{user?.username}</span>
                 <button className="btn btn-outlined" onClick={onAddPlayer}>
-                  新玩家
+                  ⚙ 管理
                 </button>
                 <button className="btn btn-filled" onClick={onRecordGame}>
                   记录赛果

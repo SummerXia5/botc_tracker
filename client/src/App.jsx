@@ -36,6 +36,7 @@ export default function App() {
   const [showRecordGame, setShowRecordGame] = useState(false);
   const [showAddPlayer, setShowAddPlayer] = useState(false);
   const [showGrimoire, setShowGrimoire] = useState(false);
+  const [activeTab, setActiveTab] = useState('overview');
 
   // Load groups on mount
   const loadGroups = useCallback(async () => {
@@ -157,18 +158,41 @@ export default function App() {
       />
 
       <main className="app-main">
-        <Dashboard stats={dashboardStats} />
-        <HallOfFame awards={hallOfFameAwards} />
-        <PlayerList
-          players={playersWithStats}
-          onPlayerClick={setSelectedPlayer}
-        />
-        <ScriptManagement
-          scripts={scripts}
-          groupId={selectedGroup.id}
-          onRefresh={handleRefresh}
-        />
-        <GameHistory games={games} players={players} />
+        {/* Tab Navigation */}
+        <div className="app-tabs">
+          <button
+            className={`app-tab ${activeTab === 'overview' ? 'app-tab-active' : ''}`}
+            onClick={() => setActiveTab('overview')}
+          >
+            📊 数据总览
+          </button>
+          <button
+            className={`app-tab ${activeTab === 'scripts' ? 'app-tab-active' : ''}`}
+            onClick={() => setActiveTab('scripts')}
+          >
+            📜 剧本管理
+          </button>
+        </div>
+
+        {activeTab === 'overview' && (
+          <>
+            <Dashboard stats={dashboardStats} />
+            <HallOfFame awards={hallOfFameAwards} />
+            <PlayerList
+              players={playersWithStats}
+              onPlayerClick={setSelectedPlayer}
+            />
+            <GameHistory games={games} players={players} />
+          </>
+        )}
+
+        {activeTab === 'scripts' && (
+          <ScriptManagement
+            scripts={scripts}
+            groupId={selectedGroup.id}
+            onRefresh={handleRefresh}
+          />
+        )}
       </main>
 
       <footer className="app-footer">
