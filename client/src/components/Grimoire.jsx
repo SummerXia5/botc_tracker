@@ -231,8 +231,6 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
         player,
         characterId: null,
         alive: true,
-        hasVoted: false,
-        nominated: false,
       };
     });
     setSeats(newSeats);
@@ -401,35 +399,18 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
     const newDay = dayNumber + 1;
     setPhase('day');
     setDayNumber(newDay);
-    // Reset nominations/votes
-    setSeats(prev => prev.map(s => ({ ...s, nominated: false, hasVoted: false })));
     addLog(`白天 ${newDay} 开始`);
   };
 
   const handleStartNight = () => {
     setPhase('night');
-    // Reset nominations/votes
-    setSeats(prev => prev.map(s => ({ ...s, nominated: false, hasVoted: false })));
     addLog(`夜晚 ${dayNumber} 开始`);
   };
 
-  // ----------------------------------------------------------------
-  //  Nomination & voting
-  // ----------------------------------------------------------------
-  const handleNominate = (index) => {
-    setSeats(prev => prev.map((s, i) => ({
-      ...s,
-      nominated: i === index ? !s.nominated : s.nominated,
-    })));
-    const name = seats[index]?.player?.name || '';
-    addLog(`${name} 被提名`);
-  };
-
-  const handleVote = (index) => {
-    setSeats(prev => prev.map((s, i) => {
-      if (i !== index) return s;
-      return { ...s, hasVoted: !s.hasVoted };
-    }));
+  const handleStartFirstNight = () => {
+    setPhase('night');
+    setDayNumber(1);
+    addLog('夜晚 1 开始（游戏开始）');
   };
 
   const toggleReminder = (seatIdx, reminderId) => {
@@ -446,15 +427,9 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
     setShowReminderPicker(false);
   };
 
-  const voteCount = useMemo(() => {
-    return seats.filter(s => s.hasVoted).length;
-  }, [seats]);
-
   const aliveCount = useMemo(() => {
     return seats.filter(s => s.alive).length;
   }, [seats]);
-
-  const hasNomination = seats.some(s => s.nominated);
 
   // ----------------------------------------------------------------
   //  Demon bluffs
@@ -574,11 +549,7 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
           {phase === 'day' && `☀ 白天 ${dayNumber}`}
           {phase === 'night' && `☽ 夜晚 ${dayNumber}`}
         </div>
-        {phase === 'day' && hasNomination && (
-          <div className="grimoire-vote-counter">
-            投票: {voteCount} / {aliveCount}
-          </div>
-        )}
+
         <button className="grimoire-close-btn grimoire-close-ingame" onClick={onClose} style={{ position: 'absolute', right: 12, top: 8 }}>✕</button>
       </div>
 
@@ -607,7 +578,7 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                   'seat-token',
                   !seat.alive && 'dead',
                   ch && `type-${ch.type}`,
-                  seat.nominated && 'nominated',
+
                 ].filter(Boolean).join(' ')}
                 style={{ left: `${x}%`, top: `${y}%` }}
                 onClick={() => handleSeatClick(i)}
@@ -641,7 +612,7 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                 </div>
 
                 {/* Vote marker */}
-                {seat.hasVoted && <div className="seat-vote-marker">V</div>}
+
 
                 {/* Reminder tokens stacked toward center + "add" token at end (only after game starts) */}
                 {phase !== 'setup' && (() => {
@@ -697,27 +668,7 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                   );
                 })()}
 
-                {/* Day-phase action buttons */}
-                {phase === 'day' && seat.alive && (
-                  <div className="seat-actions" onClick={e => e.stopPropagation()}>
-                    <button
-                      className={`seat-action-btn ${seat.nominated ? 'action-active' : ''}`}
-                      onClick={() => handleNominate(i)}
-                      title="提名"
-                    >
-                      提名
-                    </button>
-                    {hasNomination && (
-                      <button
-                        className={`seat-action-btn seat-vote-btn ${seat.hasVoted ? 'action-active' : ''}`}
-                        onClick={() => handleVote(i)}
-                        title="投票"
-                      >
-                        票
-                      </button>
-                    )}
-                  </div>
-                )}
+
               </div>
             );
           })}
@@ -728,8 +679,8 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
       <div className="grimoire-action-bar">
         {/* Phase transition button */}
         {phase === 'setup' && allAssigned && (
-          <button className="action-bar-btn action-primary" onClick={handleStartDay}>
-            开始白天
+          <button className="action-bar-btn action-primary" onClick={handleStartFirstNight}>
+            开始游戏（夜晚）
           </button>
         )}
         {phase === 'setup' && (
