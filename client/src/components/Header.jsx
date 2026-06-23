@@ -64,7 +64,7 @@ export default function Header({ onAddPlayer, onRecordGame, onOpenGrimoire, sele
               </>
             ) : (
               <button className="btn btn-ghost" onClick={() => setShowLogin(true)}>
-                管理员登录
+                登录 / 注册
               </button>
             )}
           </div>

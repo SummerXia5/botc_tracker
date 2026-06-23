@@ -5,7 +5,7 @@ import { useToast } from './Toast';
 import LoginModal from './LoginModal';
 import './GroupSelector.css';
 
-export default function GroupSelector({ groups, onSelectGroup, onRefresh, myGroupIds = [] }) {
+export default function GroupSelector({ groups, onSelectGroup, onRefresh, myGroupIds = [], onOpenProfile }) {
   const { user, isAuthenticated, isStoryteller, logout } = useAuth();
   const toast = useToast();
   const [showCreate, setShowCreate] = useState(false);
@@ -59,7 +59,8 @@ export default function GroupSelector({ groups, onSelectGroup, onRefresh, myGrou
         <div className="header-actions">
           {isAuthenticated ? (
             <>
-              <span className="header-user">{user?.displayName || user?.username}</span>
+              <span className="header-user">{user?.display_name || user?.username}</span>
+              <button className="btn btn-ghost" onClick={onOpenProfile} title="个人主页">👤</button>
               <button className="btn btn-ghost" onClick={logout}>
                 退出
               </button>

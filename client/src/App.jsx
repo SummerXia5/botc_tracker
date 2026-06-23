@@ -141,13 +141,19 @@ export default function App() {
   // Show group selector when no group is selected
   if (!selectedGroup) {
     return (
-      <GroupSelector
-        groups={groups}
-        onSelectGroup={handleSelectGroup}
-        onRefresh={loadGroups}
-        isAuthenticated={isAuthenticated}
-        myGroupIds={myGroupIds}
-      />
+      <>
+        <GroupSelector
+          groups={groups}
+          onSelectGroup={handleSelectGroup}
+          onRefresh={loadGroups}
+          isAuthenticated={isAuthenticated}
+          myGroupIds={myGroupIds}
+          onOpenProfile={() => setShowProfile(true)}
+        />
+        {showProfile && (
+          <MyProfile onClose={() => setShowProfile(false)} />
+        )}
+      </>
     );
   }
 
