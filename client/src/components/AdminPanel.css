@@ -360,3 +360,97 @@
     margin-top: 4px;
   }
 }
+
+/* ---- Game Management ---- */
+.admin-list-count {
+  font-size: 0.75rem;
+  color: var(--text-tertiary);
+  white-space: nowrap;
+}
+
+.admin-game-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.admin-game-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  background: var(--surface-card, #fff);
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  border-radius: 8px;
+  padding: 10px 14px;
+  transition: border-color 200ms;
+}
+
+.admin-game-card:hover {
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+.admin-game-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.admin-game-main {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.admin-game-date {
+  font-size: 0.75rem;
+  color: var(--text-tertiary);
+  font-variant-numeric: tabular-nums;
+}
+
+.admin-game-script {
+  font-weight: 600;
+  font-size: 0.82rem;
+  color: var(--text-primary);
+}
+
+.admin-game-winner {
+  font-size: 0.68rem;
+  padding: 1px 8px;
+  border-radius: 6px;
+  font-weight: 600;
+}
+
+.winner-good {
+  background: rgba(46, 160, 67, 0.08);
+  color: #2ea043;
+}
+
+.winner-evil {
+  background: rgba(200, 50, 40, 0.06);
+  color: #c83228;
+}
+
+.admin-game-players {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.admin-game-player-name {
+  font-size: 0.65rem;
+  color: var(--text-tertiary);
+  background: rgba(0, 0, 0, 0.025);
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+
+.admin-game-more {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+}
+
+.admin-game-actions {
+  flex-shrink: 0;
+}

@@ -125,6 +125,12 @@ export async function createGame(gameData) {
   });
 }
 
+export async function deleteGame(id) {
+  return request(`/api/games/${encodeURIComponent(id)}`, {
+    method: 'DELETE',
+  });
+}
+
 // ---- Scripts ----
 export async function fetchScripts(groupId) {
   const data = await request(`/api/scripts?group_id=${encodeURIComponent(groupId)}`);

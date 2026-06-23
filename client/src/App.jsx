@@ -190,6 +190,7 @@ export default function App() {
         {activeTab === 'admin' && isAuthenticated && (
           <AdminPanel
             players={players}
+            games={games}
             scripts={scripts}
             groupId={selectedGroup.id}
             onRefresh={handleRefresh}

@@ -123,6 +123,16 @@ function initDatabase() {
     CREATE INDEX IF NOT EXISTS idx_players_group ON players(group_id);
     CREATE INDEX IF NOT EXISTS idx_games_group ON games(group_id);
   `);
+
+  // Fix official scripts that were seeded with empty character arrays
+  const troubleBrewingChars = JSON.stringify(['washerwoman','librarian','investigator','chef','empath','fortune_teller','undertaker','monk','ravenkeeper','virgin','slayer','soldier','mayor','butler','drunk','recluse','saint','poisoner','spy','scarlet_woman','baron','imp']);
+  const badMoonRisingChars = JSON.stringify(['grandmother','sailor','chambermaid','exorcist','innkeeper','gambler','gossip','courtier','professor','minstrel','tea_lady','pacifist','fool','tinker','moonchild','goon','lunatic','godfather','devils_advocate','assassin','mastermind','zombuul','pukka','shabaloth','po']);
+  const sectsVioletsChars = JSON.stringify(['clockmaker','dreamer','snake_charmer','mathematician','flowergirl','town_crier','oracle','savant','seamstress','philosopher','artist','juggler','sage','mutant','sweetheart','barber','klutz','evil_twin','witch','cerenovus','pit_hag','fang_gu','vigormortis','no_dashii','vortox']);
+
+  const fixScript = db.prepare("UPDATE scripts SET characters = ? WHERE name LIKE ? AND characters = '[]'");
+  fixScript.run(troubleBrewingChars, '初来乍到%');
+  fixScript.run(badMoonRisingChars, '暗流涌动%');
+  fixScript.run(sectsVioletsChars, '梦中杀机%');
 }
 
 // Run table creation on module load

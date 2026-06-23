@@ -67,17 +67,25 @@ router.post(
 
     // Seed official scripts for the new group
     const OFFICIAL_SCRIPTS = [
-      '初来乍到 (Trouble Brewing)',
-      '暗流涌动 (Bad Moon Rising)',
-      '梦中杀机 (Sects & Violets)',
-      '死亡秩序 (Deadly Penance Day)',
+      {
+        name: '初来乍到 (Trouble Brewing)',
+        characters: ['washerwoman','librarian','investigator','chef','empath','fortune_teller','undertaker','monk','ravenkeeper','virgin','slayer','soldier','mayor','butler','drunk','recluse','saint','poisoner','spy','scarlet_woman','baron','imp'],
+      },
+      {
+        name: '暗流涌动 (Bad Moon Rising)',
+        characters: ['grandmother','sailor','chambermaid','exorcist','innkeeper','gambler','gossip','courtier','professor','minstrel','tea_lady','pacifist','fool','tinker','moonchild','goon','lunatic','godfather','devils_advocate','assassin','mastermind','zombuul','pukka','shabaloth','po'],
+      },
+      {
+        name: '梦中杀机 (Sects & Violets)',
+        characters: ['clockmaker','dreamer','snake_charmer','mathematician','flowergirl','town_crier','oracle','savant','seamstress','philosopher','artist','juggler','sage','mutant','sweetheart','barber','klutz','evil_twin','witch','cerenovus','pit_hag','fang_gu','vigormortis','no_dashii','vortox'],
+      },
     ];
     const insertScript = db.prepare(
       'INSERT OR IGNORE INTO scripts (id, name, group_id, characters, is_official) VALUES (?, ?, ?, ?, 1)',
     );
-    for (const sName of OFFICIAL_SCRIPTS) {
-      const sid = sName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') + '-' + id;
-      insertScript.run(sid, sName, id, '[]');
+    for (const s of OFFICIAL_SCRIPTS) {
+      const sid = s.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') + '-' + id;
+      insertScript.run(sid, s.name, id, JSON.stringify(s.characters));
     }
 
     const group = db.prepare('SELECT * FROM groups WHERE id = ?').get(id);

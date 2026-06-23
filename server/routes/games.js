@@ -217,4 +217,32 @@ router.post(
   },
 );
 
+// ─── DELETE /api/games/:id ──────────────────────────────────────────────────────
+
+router.delete(
+  '/:id',
+  authenticateJWT,
+  param('id').trim().notEmpty(),
+  (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    const game = db.prepare('SELECT * FROM games WHERE id = ?').get(req.params.id);
+    if (!game) {
+      return res.status(404).json({ error: 'Game not found.' });
+    }
+
+    const deleteGame = db.transaction(() => {
+      db.prepare('DELETE FROM game_participants WHERE game_id = ?').run(req.params.id);
+      db.prepare('DELETE FROM games WHERE id = ?').run(req.params.id);
+    });
+
+    deleteGame();
+
+    res.json({ message: 'Game deleted successfully.' });
+  },
+);
+
 export default router;

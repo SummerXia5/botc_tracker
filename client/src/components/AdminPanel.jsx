@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { createPlayer, updatePlayer, deletePlayer } from '../api';
+import { createPlayer, updatePlayer, deletePlayer, deleteGame } from '../api';
 import { useToast } from './Toast';
 import ScriptManagement from './ScriptManagement';
 import './AdminPanel.css';
@@ -11,9 +11,9 @@ const EMOJI_OPTIONS = [
   '🏴‍☠️', '🃏', '🎲', '🔮', '💎', '🌹', '🍷', '⚔️', '🏹', '🪄',
 ];
 
-export default function AdminPanel({ players, scripts, groupId, onRefresh }) {
+export default function AdminPanel({ players, games, scripts, groupId, onRefresh }) {
   const toast = useToast();
-  const [section, setSection] = useState('players'); // 'players' | 'scripts'
+  const [section, setSection] = useState('players'); // 'players' | 'scripts' | 'games'
   const [search, setSearch] = useState('');
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
@@ -31,15 +31,30 @@ export default function AdminPanel({ players, scripts, groupId, onRefresh }) {
   const [loading, setLoading] = useState(false);
   const [confirmDeleteId, setConfirmDeleteId] = useState(null);
 
+  // Game management
+  const [gameSearch, setGameSearch] = useState('');
+  const [confirmDeleteGameId, setConfirmDeleteGameId] = useState(null);
+
   const filteredPlayers = useMemo(() => {
     if (!search.trim()) return players;
     const q = search.toLowerCase();
     return players.filter(p =>
       p.name.toLowerCase().includes(q) ||
-      (p.description || '').toLowerCase().includes(q)
+      (p.desc || '').toLowerCase().includes(q)
     );
   }, [players, search]);
 
+  const filteredGames = useMemo(() => {
+    if (!games) return [];
+    if (!gameSearch.trim()) return games;
+    const q = gameSearch.toLowerCase();
+    return games.filter(g =>
+      (g.script || '').toLowerCase().includes(q) ||
+      (g.date || '').includes(q)
+    );
+  }, [games, gameSearch]);
+
+  // ---- Player CRUD ----
   const handleAdd = async (e) => {
     e.preventDefault();
     if (!newName.trim() || loading) return;
@@ -47,8 +62,8 @@ export default function AdminPanel({ players, scripts, groupId, onRefresh }) {
     try {
       await createPlayer({
         name: newName.trim(),
-        emoji: newEmoji,
-        description: newDesc.trim(),
+        avatar: newEmoji,
+        desc: newDesc.trim(),
         group_id: groupId,
       });
       toast.success(`玩家 "${newName.trim()}" 已添加`);
@@ -67,8 +82,8 @@ export default function AdminPanel({ players, scripts, groupId, onRefresh }) {
   const startEdit = (player) => {
     setEditingId(player.id);
     setEditName(player.name);
-    setEditEmoji(player.emoji || '😎');
-    setEditDesc(player.description || '');
+    setEditEmoji(player.avatar || '😎');
+    setEditDesc(player.desc || '');
   };
 
   const handleUpdate = async (id) => {
@@ -77,8 +92,8 @@ export default function AdminPanel({ players, scripts, groupId, onRefresh }) {
     try {
       await updatePlayer(id, {
         name: editName.trim(),
-        emoji: editEmoji,
-        description: editDesc.trim(),
+        avatar: editEmoji,
+        desc: editDesc.trim(),
       });
       toast.success('已更新');
       setEditingId(null);
@@ -90,7 +105,7 @@ export default function AdminPanel({ players, scripts, groupId, onRefresh }) {
     }
   };
 
-  const handleDelete = async (id, name) => {
+  const handleDeletePlayer = async (id, name) => {
     if (loading) return;
     setLoading(true);
     try {
@@ -105,6 +120,26 @@ export default function AdminPanel({ players, scripts, groupId, onRefresh }) {
     }
   };
 
+  const handleDeleteGame = async (id) => {
+    if (loading) return;
+    setLoading(true);
+    try {
+      await deleteGame(id);
+      toast.success('对局已删除');
+      setConfirmDeleteGameId(null);
+      onRefresh?.();
+    } catch (err) {
+      toast.error(err.message || '删除失败');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getPlayerName = (id) => {
+    const p = players.find(pl => pl.id === id);
+    return p ? p.name : id;
+  };
+
   return (
     <div className="admin-panel">
       {/* Section Tabs */}
@@ -114,6 +149,12 @@ export default function AdminPanel({ players, scripts, groupId, onRefresh }) {
           onClick={() => setSection('players')}
         >
           👥 玩家管理
+        </button>
+        <button
+          className={`admin-tab ${section === 'games' ? 'admin-tab-active' : ''}`}
+          onClick={() => setSection('games')}
+        >
+          🎮 对局管理
         </button>
         <button
           className={`admin-tab ${section === 'scripts' ? 'admin-tab-active' : ''}`}
@@ -248,11 +289,11 @@ export default function AdminPanel({ players, scripts, groupId, onRefresh }) {
                 ) : (
                   /* Display Mode */
                   <div className="admin-player-info">
-                    <span className="admin-player-emoji">{player.emoji || '👤'}</span>
+                    <span className="admin-player-emoji">{player.avatar || '👤'}</span>
                     <div className="admin-player-details">
                       <span className="admin-player-name">{player.name}</span>
-                      {player.description && (
-                        <span className="admin-player-desc">{player.description}</span>
+                      {player.desc && (
+                        <span className="admin-player-desc">{player.desc}</span>
                       )}
                     </div>
                     <div className="admin-player-actions">
@@ -268,7 +309,7 @@ export default function AdminPanel({ players, scripts, groupId, onRefresh }) {
                           <span>确认删除？</span>
                           <button
                             className="admin-action-btn admin-action-danger"
-                            onClick={() => handleDelete(player.id, player.name)}
+                            onClick={() => handleDeletePlayer(player.id, player.name)}
                           >
                             是
                           </button>
@@ -297,6 +338,81 @@ export default function AdminPanel({ players, scripts, groupId, onRefresh }) {
             {filteredPlayers.length === 0 && (
               <div className="admin-empty">
                 {search ? '没有匹配的玩家' : '暂无玩家，点击上方添加'}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ---- Game Management ---- */}
+      {section === 'games' && (
+        <div className="admin-section">
+          <div className="admin-toolbar">
+            <input
+              type="text"
+              className="admin-search"
+              placeholder="🔍 搜索对局（剧本/日期）..."
+              value={gameSearch}
+              onChange={e => setGameSearch(e.target.value)}
+            />
+            <span className="admin-list-count">共 {(games || []).length} 局</span>
+          </div>
+
+          <div className="admin-game-list">
+            {filteredGames.map(game => (
+              <div key={game.id} className="admin-game-card">
+                <div className="admin-game-info">
+                  <div className="admin-game-main">
+                    <span className="admin-game-date">{game.date}</span>
+                    <span className="admin-game-script">{game.script}</span>
+                    <span className={`admin-game-winner ${game.winner === 'good' ? 'winner-good' : 'winner-evil'}`}>
+                      {game.winner === 'good' ? '善良胜' : '邪恶胜'}
+                    </span>
+                  </div>
+                  <div className="admin-game-players">
+                    {game.participants?.slice(0, 6).map((p, i) => (
+                      <span key={i} className="admin-game-player-name">
+                        {p.player_name || getPlayerName(p.player_id)}
+                      </span>
+                    ))}
+                    {game.participants?.length > 6 && (
+                      <span className="admin-game-more">+{game.participants.length - 6}</span>
+                    )}
+                  </div>
+                </div>
+                <div className="admin-game-actions">
+                  {confirmDeleteGameId === game.id ? (
+                    <div className="admin-confirm-delete">
+                      <span>确认删除？</span>
+                      <button
+                        className="admin-action-btn admin-action-danger"
+                        onClick={() => handleDeleteGame(game.id)}
+                      >
+                        是
+                      </button>
+                      <button
+                        className="admin-action-btn"
+                        onClick={() => setConfirmDeleteGameId(null)}
+                      >
+                        否
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      className="admin-action-btn admin-action-danger"
+                      onClick={() => setConfirmDeleteGameId(game.id)}
+                      title="删除对局"
+                    >
+                      🗑️
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))}
+
+            {filteredGames.length === 0 && (
+              <div className="admin-empty">
+                {gameSearch ? '没有匹配的对局' : '暂无对局记录'}
               </div>
             )}
           </div>
