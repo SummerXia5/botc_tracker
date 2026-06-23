@@ -1788,6 +1788,52 @@
   background: rgba(255,80,80,0.2);
 }
 
+.reminder-custom-input {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.reminder-custom-field {
+  flex: 1;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(120, 100, 60, 0.3);
+  background: rgba(255,255,255,0.06);
+  color: #d4c0a8;
+  font-size: 0.8rem;
+  outline: none;
+  transition: border-color 200ms;
+}
+
+.reminder-custom-field::placeholder {
+  color: rgba(200, 180, 150, 0.4);
+}
+
+.reminder-custom-field:focus {
+  border-color: rgba(180, 140, 200, 0.6);
+}
+
+.reminder-custom-add {
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1px solid rgba(120, 80, 160, 0.4);
+  background: rgba(120, 80, 160, 0.3);
+  color: #d4c0e8;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 200ms;
+}
+
+.reminder-custom-add:hover:not(:disabled) {
+  background: rgba(120, 80, 160, 0.5);
+}
+
+.reminder-custom-add:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
 @media (max-width: 520px) {
   .reminder-grid {
     grid-template-columns: repeat(3, 1fr);

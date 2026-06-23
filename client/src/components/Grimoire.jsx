@@ -54,9 +54,10 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
   const [log, setLog] = useState([]);
 
   // ---- Reminder tokens ----
-  const [seatReminders, setSeatReminders] = useState({}); // { seatIndex: ['dead', 'drunk', ...] }
-  const [reminderSeatIndex, setReminderSeatIndex] = useState(null); // which seat is picking reminders
+  const [seatReminders, setSeatReminders] = useState({}); // { seatIndex: ['dead', 'drunk', 'custom:xxx', ...] }
+  const [reminderSeatIndex, setReminderSeatIndex] = useState(null);
   const [showReminderPicker, setShowReminderPicker] = useState(false);
+  const [customReminderText, setCustomReminderText] = useState('');
 
   // ---- Setup: player selection ----
   const [selectedPlayerIds, setSelectedPlayerIds] = useState([]);
@@ -304,16 +305,14 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
     return a;
   };
 
-  const handleRandomAssign = () => {
+  // Mode 1: "随机配版" — auto-pick the right number of each type from the FULL script, then assign
+  const handleAutoPickAndAssign = () => {
     if (!selectedScript || seats.length < 5) return;
     const dist = currentDistribution;
     const pool = [];
 
-    // Pick the correct number from each type based on distribution
     for (const type of ['townsfolk', 'outsider', 'minion', 'demon']) {
-      const available = shuffle(
-        (charactersByType[type] || []).filter(c => selectedCharPool.has(c.id))
-      );
+      const available = shuffle(charactersByType[type] || []);
       const needed = dist[type] || 0;
       for (let i = 0; i < Math.min(needed, available.length); i++) {
         pool.push(available[i].id);
@@ -321,19 +320,32 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
     }
 
     if (pool.length < seats.length) {
-      // Not enough characters — silently add more from any selected
-      const remaining = [...selectedCharPool].filter(id => !pool.includes(id));
-      const extra = shuffle(remaining).slice(0, seats.length - pool.length);
-      pool.push(...extra);
+      // Fill remaining from any unassigned characters
+      const usedIds = new Set(pool);
+      const remaining = shuffle(scriptCharacters.filter(c => !usedIds.has(c.id)));
+      pool.push(...remaining.slice(0, seats.length - pool.length).map(c => c.id));
     }
 
-    // Shuffle the entire pool and assign to seats
     const shuffledPool = shuffle(pool).slice(0, seats.length);
+    // Also update the selectedCharPool to reflect what was picked
+    setSelectedCharPool(new Set(shuffledPool));
     setSeats(prev => prev.map((s, i) => ({
       ...s,
       characterId: shuffledPool[i] || null,
     })));
-    addLog(`随机分配 ${shuffledPool.length} 个角色`);
+    addLog(`随机配版并分配 ${shuffledPool.length} 个角色`);
+    setShowDistribution(false);
+  };
+
+  // Mode 2: "随机发放" — take the manually selected characters and randomly assign to seats
+  const handleDistributeSelected = () => {
+    if (selectedCharPool.size === 0 || seats.length < 5) return;
+    const selectedIds = shuffle([...selectedCharPool]).slice(0, seats.length);
+    setSeats(prev => prev.map((s, i) => ({
+      ...s,
+      characterId: selectedIds[i] || null,
+    })));
+    addLog(`随机发放 ${selectedIds.length} 个已选角色`);
     setShowDistribution(false);
   };
 
@@ -636,8 +648,10 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                 {seatReminders[i]?.length > 0 && (
                   <div className="seat-reminders" onClick={e => e.stopPropagation()}>
                     {seatReminders[i].map((rid, ri) => {
-                      const token = REMINDER_TOKENS.find(t => t.id === rid);
-                      if (!token) return null;
+                      const isCustom = rid.startsWith('custom:');
+                      const token = isCustom ? null : REMINDER_TOKENS.find(t => t.id === rid);
+                      const icon = isCustom ? '📝' : (token?.icon || '?');
+                      const label = isCustom ? rid.replace('custom:', '') : (token?.label || rid);
                       // Fan out tokens in a cascade below the seat
                       const offsetX = (ri - (seatReminders[i].length - 1) / 2) * 28;
                       const offsetY = 8 + ri * 4;
@@ -645,15 +659,15 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                         <div
                           key={ri}
                           className="seat-reminder-token"
-                          title={token.label}
+                          title={label}
                           style={{
                             transform: `translate(${offsetX}px, ${offsetY}px)`,
                             zIndex: 10 + ri,
                           }}
                           onClick={() => { setReminderSeatIndex(i); setShowReminderPicker(true); }}
                         >
-                          <span className="reminder-token-icon">{token.icon}</span>
-                          <span className="reminder-token-text">{token.label}</span>
+                          <span className="reminder-token-icon">{icon}</span>
+                          <span className="reminder-token-text">{label}</span>
                         </div>
                       );
                     })}
@@ -703,8 +717,8 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
             >
               分配角色
             </button>
-            <button className="action-bar-btn" onClick={handleRandomAssign}>
-              随机分配 {seats.length} 个角色
+            <button className="action-bar-btn" onClick={handleAutoPickAndAssign}>
+              🎲 随机配版
             </button>
           </>
         )}
@@ -861,10 +875,14 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
             </div>
 
             <div className="distribution-actions">
-              <button className="action-bar-btn action-primary" onClick={handleRandomAssign}
+              <button className="action-bar-btn action-primary" onClick={handleAutoPickAndAssign}>
+                🎲 随机配版 {seats.length} 个角色
+              </button>
+              <button className="action-bar-btn action-primary" onClick={handleDistributeSelected}
                 disabled={selectedCharPool.size === 0}
+                style={{ opacity: selectedCharPool.size === 0 ? 0.4 : 1 }}
               >
-                随机分配 {seats.length} 个角色
+                🎯 随机发放已选 ({selectedCharPool.size})
               </button>
               <button className="action-bar-btn" onClick={() => {
                 setSeats(prev => prev.map(s => ({ ...s, characterId: null })));
@@ -892,7 +910,7 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
               <button className="modal-close" onClick={() => setShowReminderPicker(false)}>✕</button>
             </div>
             <div className="reminder-grid">
-              {REMINDER_TOKENS.map(token => {
+              {REMINDER_TOKENS.filter(t => t.id !== 'custom').map(token => {
                 const isActive = (seatReminders[reminderSeatIndex] || []).includes(token.id);
                 return (
                   <button
@@ -907,17 +925,55 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                 );
               })}
             </div>
+            {/* Custom reminder input */}
+            <div className="reminder-custom-input">
+              <input
+                type="text"
+                placeholder="输入自定义标记..."
+                value={customReminderText}
+                onChange={e => setCustomReminderText(e.target.value)}
+                onKeyDown={e => {
+                  if (e.key === 'Enter' && customReminderText.trim()) {
+                    const customId = `custom:${customReminderText.trim()}`;
+                    setSeatReminders(prev => ({
+                      ...prev,
+                      [reminderSeatIndex]: [...(prev[reminderSeatIndex] || []), customId],
+                    }));
+                    setCustomReminderText('');
+                  }
+                }}
+                className="reminder-custom-field"
+              />
+              <button
+                className="reminder-custom-add"
+                disabled={!customReminderText.trim()}
+                onClick={() => {
+                  if (!customReminderText.trim()) return;
+                  const customId = `custom:${customReminderText.trim()}`;
+                  setSeatReminders(prev => ({
+                    ...prev,
+                    [reminderSeatIndex]: [...(prev[reminderSeatIndex] || []), customId],
+                  }));
+                  setCustomReminderText('');
+                }}
+              >
+                添加
+              </button>
+            </div>
             {/* Show current reminders with remove option */}
             {seatReminders[reminderSeatIndex]?.length > 0 && (
               <div className="reminder-current">
                 <span>当前标记：</span>
                 {seatReminders[reminderSeatIndex].map((rid, ri) => {
-                  const token = REMINDER_TOKENS.find(t => t.id === rid);
-                  return token ? (
+                  const isCustom = rid.startsWith('custom:');
+                  const token = isCustom ? null : REMINDER_TOKENS.find(t => t.id === rid);
+                  const label = isCustom ? rid.replace('custom:', '') : (token?.label || rid);
+                  const icon = isCustom ? '📝' : (token?.icon || '?');
+                  return (
                     <span key={ri} className="reminder-current-tag" onClick={() => toggleReminder(reminderSeatIndex, rid)}>
-                      {token.icon} {token.label} ✕
+                      {icon} {label} ✕
                     </span>
-                  ) : null;
+                  );
                 })}
               </div>
             )}
