@@ -1663,9 +1663,8 @@
 }
 
 .seat-reminder-token:hover {
-  transform: scale(1.15) !important;
-  z-index: 20 !important;
-  box-shadow: 0 4px 14px rgba(100, 60, 160, 0.6);
+  opacity: 0.7;
+  cursor: pointer;
 }
 
 .seat-reminder-token .reminder-token-icon {

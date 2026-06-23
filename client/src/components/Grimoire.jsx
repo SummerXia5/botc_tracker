@@ -304,10 +304,38 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
     return counts;
   }, [selectedCharPool, charLookup]);
 
-  const currentDistribution = useMemo(() => {
+  const baseDistribution = useMemo(() => {
     const count = seats.length;
     return ROLE_DISTRIBUTION[count] || ROLE_DISTRIBUTION[Math.min(count, 15)] || { townsfolk: 3, outsider: 0, minion: 1, demon: 1 };
   }, [seats.length]);
+
+  // Custom overrides (user can +/- each type)
+  const [distOverride, setDistOverride] = useState(null);
+
+  // Effective distribution = base + overrides
+  const currentDistribution = useMemo(() => {
+    if (!distOverride) return baseDistribution;
+    return { ...baseDistribution, ...distOverride };
+  }, [baseDistribution, distOverride]);
+
+  // Reset overrides when seat count changes
+  const adjustDist = (type, delta) => {
+    setDistOverride(prev => {
+      const current = { ...baseDistribution, ...prev };
+      const newVal = Math.max(0, (current[type] || 0) + delta);
+      // Auto-adjust townsfolk to keep total = seats.length
+      const nonTownsfolk = (type === 'outsider' ? newVal : current.outsider) +
+                           (type === 'minion' ? newVal : current.minion) +
+                           (type === 'demon' ? newVal : current.demon);
+      const autoTownsfolk = type === 'townsfolk' ? newVal : Math.max(0, seats.length - nonTownsfolk);
+      return {
+        townsfolk: autoTownsfolk,
+        outsider: type === 'outsider' ? newVal : current.outsider,
+        minion: type === 'minion' ? newVal : current.minion,
+        demon: type === 'demon' ? newVal : current.demon,
+      };
+    });
+  };
 
   // Shuffle helper
   const shuffle = (arr) => {
@@ -663,7 +691,12 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                               transform: `translate(${tx - 18}px, ${ty - 18}px)`,
                               zIndex: 10 - ri,
                             }}
-                            onClick={() => { setReminderSeatIndex(i); setShowReminderPicker(true); }}
+                            onClick={() => {
+                              setSeatReminders(prev => ({
+                                ...prev,
+                                [i]: (prev[i] || []).filter((_, idx) => idx !== ri),
+                              }));
+                            }}
                           >
                             <span className="reminder-token-icon">{icon}</span>
                             <span className="reminder-token-text">{label}</span>
@@ -817,16 +850,44 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                   const selected = selectedCountByType[type] || 0;
                   const enough = selected >= needed;
                   return (
-                    <div
-                      key={type}
-                      className={`dist-count-pill ${enough ? 'enough' : 'not-enough'}`}
-                      style={{ borderColor: TYPE_COLORS[type], color: TYPE_COLORS[type] }}
-                      title={`${TYPE_LABELS[type]}: 已选 ${selected} / 需要 ${needed}`}
-                    >
-                      {selected} / {needed}
+                    <div key={type} className="dist-count-row" style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
+                      <button
+                        className="dist-adjust-btn"
+                        onClick={() => adjustDist(type, -1)}
+                        style={{
+                          width: 22, height: 22, borderRadius: '50%', border: `1px solid ${TYPE_COLORS[type]}40`,
+                          background: 'rgba(255,255,255,0.05)', color: TYPE_COLORS[type], cursor: 'pointer',
+                          fontSize: '0.9rem', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        }}
+                      >−</button>
+                      <div
+                        className={`dist-count-pill ${enough ? 'enough' : 'not-enough'}`}
+                        style={{ borderColor: TYPE_COLORS[type], color: TYPE_COLORS[type], minWidth: 52, textAlign: 'center' }}
+                        title={`${TYPE_LABELS[type]}: 已选 ${selected} / 需要 ${needed}`}
+                      >
+                        {selected}/{needed}
+                      </div>
+                      <button
+                        className="dist-adjust-btn"
+                        onClick={() => adjustDist(type, 1)}
+                        style={{
+                          width: 22, height: 22, borderRadius: '50%', border: `1px solid ${TYPE_COLORS[type]}40`,
+                          background: 'rgba(255,255,255,0.05)', color: TYPE_COLORS[type], cursor: 'pointer',
+                          fontSize: '0.9rem', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        }}
+                      >+</button>
                     </div>
                   );
                 })}
+                {distOverride && (
+                  <button
+                    style={{
+                      marginTop: 6, fontSize: '0.65rem', color: '#888', background: 'none',
+                      border: '1px solid #555', borderRadius: 6, padding: '2px 8px', cursor: 'pointer',
+                    }}
+                    onClick={() => setDistOverride(null)}
+                  >重置</button>
+                )}
               </div>
 
               {/* Right: character grid */}
