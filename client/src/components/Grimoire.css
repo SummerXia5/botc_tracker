@@ -1643,8 +1643,8 @@
 
 .seat-reminder-token {
   position: absolute;
-  width: 46px;
-  height: 46px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   background: radial-gradient(circle at 30% 25%, #6b4d8a, #3d2856 60%, #2a1a3d 100%);
   border: 2px solid rgba(160, 130, 200, 0.35);
@@ -1677,6 +1677,24 @@
   max-width: 40px;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+/* "+" add token at end of stack */
+.seat-reminder-add {
+  background: radial-gradient(circle at 30% 25%, #5a4070, #3a2550 60%, #2a1a3d 100%) !important;
+  border: 2px dashed rgba(160, 130, 200, 0.3) !important;
+  opacity: 0.6;
+  transition: opacity 200ms, transform 150ms ease;
+}
+
+.seat-reminder-add .reminder-token-icon {
+  color: #c4a860;
+  font-size: 0.9rem;
+}
+
+.seat-token:hover .seat-reminder-add,
+.seat-reminder-add:hover {
+  opacity: 1;
 }
 
 .reminder-picker {

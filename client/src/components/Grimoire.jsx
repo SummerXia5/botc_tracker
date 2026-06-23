@@ -641,29 +641,19 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                 {/* Vote marker */}
                 {seat.hasVoted && <div className="seat-vote-marker">V</div>}
 
-                {/* Reminder button */}
-                <button
-                  className="seat-reminder-btn"
-                  onClick={e => { e.stopPropagation(); setReminderSeatIndex(i); setShowReminderPicker(true); }}
-                  title="添加标记"
-                >
-                  +
-                </button>
-
-                {/* Active reminders display — stacked toward center */}
-                {seatReminders[i]?.length > 0 && (() => {
-                  // Direction toward center (opposite of seat's outward angle)
+                {/* Reminder tokens stacked toward center + "add" token at end (only after game starts) */}
+                {phase !== 'setup' && (() => {
                   const towardCenterX = -Math.cos(angle);
                   const towardCenterY = -Math.sin(angle);
+                  const reminders = seatReminders[i] || [];
                   return (
                     <div className="seat-reminders" onClick={e => e.stopPropagation()}>
-                      {seatReminders[i].map((rid, ri) => {
+                      {reminders.map((rid, ri) => {
                         const isCustom = rid.startsWith('custom:');
                         const token = isCustom ? null : REMINDER_TOKENS.find(t => t.id === rid);
                         const icon = isCustom ? '📝' : (token?.icon || '?');
                         const label = isCustom ? rid.replace('custom:', '') : (token?.label || rid);
-                        // Stack tokens straight toward center, each 42px further
-                        const dist = 58 + ri * 44;
+                        const dist = 48 + ri * 30;
                         const tx = towardCenterX * dist;
                         const ty = towardCenterY * dist;
                         return (
@@ -682,6 +672,25 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                           </div>
                         );
                       })}
+                      {/* "+" add token at end of stack */}
+                      {(() => {
+                        const addDist = 48 + reminders.length * 30;
+                        const atx = towardCenterX * addDist;
+                        const aty = towardCenterY * addDist;
+                        return (
+                          <div
+                            className="seat-reminder-token seat-reminder-add"
+                            title="添加标记"
+                            style={{
+                              transform: `translate(${atx}px, ${aty}px)`,
+                              zIndex: 10 - reminders.length,
+                            }}
+                            onClick={() => { setReminderSeatIndex(i); setShowReminderPicker(true); }}
+                          >
+                            <span className="reminder-token-icon">✚</span>
+                          </div>
+                        );
+                      })()}
                     </div>
                   );
                 })()}
@@ -765,12 +774,14 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
         >
           恶魔伪装
         </button>
-        <button
-          className={`action-bar-btn ${showPlayerManager ? 'action-active' : ''}`}
-          onClick={() => setShowPlayerManager(!showPlayerManager)}
-        >
-          管理玩家
-        </button>
+        {phase === 'setup' && (
+          <button
+            className={`action-bar-btn ${showPlayerManager ? 'action-active' : ''}`}
+            onClick={() => setShowPlayerManager(!showPlayerManager)}
+          >
+            管理玩家
+          </button>
+        )}
         <button
           className="action-bar-btn action-end"
           onClick={() => setShowEndDialog(true)}
