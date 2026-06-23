@@ -128,7 +128,9 @@ export default function PlayerModal({ player, onClose }) {
                 return (
                   <div key={ch.id} className="pm-char-row">
                     <span className="pm-char-icon" style={{ color: typeColor }}>
-                      {charData?.icon || name?.charAt(0) || '?'}
+                      {charData?.icon && charData.icon.includes('/')
+                        ? <img src={charData.icon} alt="" style={{ width: 22, height: 22, objectFit: 'contain' }} />
+                        : (charData?.icon || name?.charAt(0) || '?')}
                     </span>
                     <span className="pm-char-name">{name}</span>
                     <span className="pm-char-count">{ch.games}局</span>
