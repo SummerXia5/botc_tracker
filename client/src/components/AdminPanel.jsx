@@ -564,16 +564,8 @@ export default function AdminPanel({ players, games, scripts, groupId, onRefresh
                                 </div>
                                 <div className="ra-toggles">
                                   <label className="ra-toggle">
-                                    <input type="checkbox" checked={!(p.survived ?? true)} onChange={e => updateP('survived', !e.target.checked)} />
-                                    <span>死亡票</span>
-                                  </label>
-                                  <label className="ra-toggle">
-                                    <input type="checkbox" checked={p.final_round ?? false} onChange={e => updateP('final_round', e.target.checked)} />
-                                    <span>决赛轮票正确投</span>
-                                  </label>
-                                  <label className="ra-toggle">
                                     <input type="checkbox" checked={p.correct_vote ?? false} onChange={e => updateP('correct_vote', e.target.checked)} />
-                                    <span>红方</span>
+                                    <span>最终投票正确</span>
                                   </label>
                                   <div className="ra-survival-days">
                                     <label>存活天数</label>
