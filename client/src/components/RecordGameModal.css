@@ -288,6 +288,32 @@
   border-style: solid;
 }
 
+.ra-character-select {
+  margin-bottom: 10px;
+}
+
+.ra-char-dropdown {
+  width: 100%;
+  padding: 7px 10px;
+  border-radius: 6px;
+  border: 1px solid rgba(26, 25, 24, 0.12);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: border-color 200ms;
+}
+
+.ra-char-dropdown:focus {
+  outline: none;
+  border-color: var(--color-townsfolk);
+}
+
+.ra-char-dropdown option {
+  background: var(--bg-page);
+  color: var(--text-primary);
+}
+
 .ra-toggles {
   display: flex;
   gap: 14px;

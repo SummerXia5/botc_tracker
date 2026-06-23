@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { createGame } from '../api';
 import { useToast } from './Toast';
 import PlayerSelector from './PlayerSelector';
+import { CHARACTERS, TYPE_COLORS } from '../data/characters';
 import './RecordGameModal.css';
 
 const ROLE_TYPES = [
@@ -137,7 +138,35 @@ export default function RecordGameModal({ players, scripts, onClose, onSuccess, 
     }
   };
 
-  const selectedPlayers = players.filter(p => selectedPlayerIds.includes(p.id));
+  const selectedPlayers = localPlayers.filter(p => selectedPlayerIds.includes(p.id));
+
+  // Build character list from the selected script
+  const scriptChars = useMemo(() => {
+    const sel = scripts.find(s => s.name === script);
+    if (!sel || !sel.characters) return [];
+    let meta = {};
+    try {
+      meta = sel.char_meta
+        ? (typeof sel.char_meta === 'string' ? JSON.parse(sel.char_meta) : sel.char_meta)
+        : {};
+    } catch { /* ignore */ }
+
+    return sel.characters.map(id => {
+      // Try exact match
+      if (CHARACTERS[id]) return CHARACTERS[id];
+      // Try stripped CustomVER
+      const stripped = id.replace(/Custom(?:VER)?$/i, '').toLowerCase();
+      if (CHARACTERS[stripped]) return { ...CHARACTERS[stripped], id };
+      // Use script metadata
+      const m = meta[id] || {};
+      return {
+        id,
+        name: m.name || id.replace(/Custom(?:VER)?$/i, '').replace(/_/g, ' '),
+        type: m.team || 'townsfolk',
+        icon: m.image || null,
+      };
+    });
+  }, [script, scripts]);
 
   return (
     <div className="modal-overlay" onClick={onClose}>
@@ -266,6 +295,34 @@ export default function RecordGameModal({ players, scripts, onClose, onSuccess, 
                         </button>
                       ))}
                     </div>
+
+                    {/* Optional: specific character */}
+                    {scriptChars.length > 0 && (
+                      <div className="ra-character-select">
+                        <select
+                          value={detail.character_id || ''}
+                          onChange={e => {
+                            const charId = e.target.value;
+                            updateDetail(p.id, 'character_id', charId || null);
+                            // Auto-set role_type from character
+                            if (charId) {
+                              const ch = scriptChars.find(c => c.id === charId);
+                              if (ch) updateDetail(p.id, 'role_type', ch.type);
+                            }
+                          }}
+                          className="ra-char-dropdown"
+                        >
+                          <option value="">选择具体角色（可选）</option>
+                          {scriptChars
+                            .filter(ch => !detail.role_type || ch.type === detail.role_type || !detail.character_id)
+                            .map(ch => (
+                              <option key={ch.id} value={ch.id}>
+                                {ch.name}{ch.nameEn ? ` (${ch.nameEn})` : ''}
+                              </option>
+                            ))}
+                        </select>
+                      </div>
+                    )}
 
                     {/* Toggles row */}
                     <div className="ra-toggles">
