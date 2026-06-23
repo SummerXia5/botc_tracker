@@ -1042,7 +1042,6 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                     setSeats(prev => [...prev, {
                       player: newPlayer, characterId: null, alive: true, hasVoted: false, nominated: false,
                     }]);
-                    onRefreshPlayers?.();
                     addLog(`创建并添加玩家 ${name}`);
                     input.value = '';
                   } catch (err) {
