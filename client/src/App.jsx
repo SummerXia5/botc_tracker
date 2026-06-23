@@ -7,11 +7,10 @@ import GroupSelector from './components/GroupSelector';
 import Dashboard from './components/Dashboard';
 import HallOfFame from './components/HallOfFame';
 import PlayerList from './components/PlayerList';
-import ScriptManagement from './components/ScriptManagement';
 import PlayerModal from './components/PlayerModal';
 import GameHistory from './components/GameHistory';
 import RecordGameModal from './components/RecordGameModal';
-import AddPlayerModal from './components/AddPlayerModal';
+import AdminPanel from './components/AdminPanel';
 import Grimoire from './components/Grimoire';
 import { useToast } from './components/Toast';
 import './App.css';
@@ -34,7 +33,6 @@ export default function App() {
   // Modals
   const [selectedPlayer, setSelectedPlayer] = useState(null);
   const [showRecordGame, setShowRecordGame] = useState(false);
-  const [showAddPlayer, setShowAddPlayer] = useState(false);
   const [showGrimoire, setShowGrimoire] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
 
@@ -150,7 +148,7 @@ export default function App() {
   return (
     <div className="app">
       <Header
-        onAddPlayer={() => setShowAddPlayer(true)}
+        onAddPlayer={() => setActiveTab('admin')}
         onRecordGame={() => setShowRecordGame(true)}
         onOpenGrimoire={() => setShowGrimoire(true)}
         selectedGroup={selectedGroup}
@@ -166,12 +164,14 @@ export default function App() {
           >
             📊 数据总览
           </button>
-          <button
-            className={`app-tab ${activeTab === 'scripts' ? 'app-tab-active' : ''}`}
-            onClick={() => setActiveTab('scripts')}
-          >
-            📜 剧本管理
-          </button>
+          {isAuthenticated && (
+            <button
+              className={`app-tab ${activeTab === 'admin' ? 'app-tab-active' : ''}`}
+              onClick={() => setActiveTab('admin')}
+            >
+              ⚙ 管理
+            </button>
+          )}
         </div>
 
         {activeTab === 'overview' && (
@@ -186,8 +186,9 @@ export default function App() {
           </>
         )}
 
-        {activeTab === 'scripts' && (
-          <ScriptManagement
+        {activeTab === 'admin' && isAuthenticated && (
+          <AdminPanel
+            players={players}
             scripts={scripts}
             groupId={selectedGroup.id}
             onRefresh={handleRefresh}
@@ -219,13 +220,7 @@ export default function App() {
         />
       )}
 
-      {showAddPlayer && isAuthenticated && (
-        <AddPlayerModal
-          onClose={() => setShowAddPlayer(false)}
-          onSuccess={handleRefresh}
-          groupId={selectedGroup.id}
-        />
-      )}
+
 
       {showGrimoire && isAuthenticated && (
         <Grimoire

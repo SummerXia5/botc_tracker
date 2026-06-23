@@ -80,8 +80,13 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
     if (!selectedScript) return [];
     const charIds = selectedScript.characters || [];
     return charIds
-      .map(id => CHARACTERS[id])
-      .filter(Boolean);
+      .map(id => CHARACTERS[id] || {
+        id,
+        name: id.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()),
+        nameEn: id.replace(/_/g, ' '),
+        type: 'townsfolk', // default type for unknown chars
+        _unknown: true,
+      });
   }, [selectedScript]);
 
   const charactersByType = useMemo(() => {

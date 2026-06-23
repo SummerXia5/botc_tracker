@@ -15,6 +15,8 @@ function parseScriptJSON(jsonStr) {
   const data = JSON.parse(jsonStr);
   let name = null;
   let characters = [];
+  // charMeta maps id -> { team } for characters with type info
+  let charMeta = {};
 
   if (Array.isArray(data)) {
     for (const item of data) {
@@ -25,6 +27,10 @@ function parseScriptJSON(jsonStr) {
           name = item.name || null;
         } else if (item.id) {
           characters.push(item.id);
+          // Capture team/type if present (BotC script tool format)
+          if (item.team) {
+            charMeta[item.id] = { team: item.team };
+          }
         }
       }
     }
@@ -35,7 +41,7 @@ function parseScriptJSON(jsonStr) {
     }
   }
 
-  return { name, characters };
+  return { name, characters, charMeta };
 }
 
 export default function ScriptManagement({ scripts, groupId, onRefresh }) {
