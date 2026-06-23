@@ -59,6 +59,9 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
   const [showReminderPicker, setShowReminderPicker] = useState(false);
   const [customReminderText, setCustomReminderText] = useState('');
 
+  // ---- Player management ----
+  const [showPlayerManager, setShowPlayerManager] = useState(false);
+
   // ---- Setup: player selection ----
   const [selectedPlayerIds, setSelectedPlayerIds] = useState([]);
 
@@ -647,35 +650,45 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                   +
                 </button>
 
-                {/* Active reminders display — circular tokens */}
-                {seatReminders[i]?.length > 0 && (
-                  <div className="seat-reminders" onClick={e => e.stopPropagation()}>
-                    {seatReminders[i].map((rid, ri) => {
-                      const isCustom = rid.startsWith('custom:');
-                      const token = isCustom ? null : REMINDER_TOKENS.find(t => t.id === rid);
-                      const icon = isCustom ? '📝' : (token?.icon || '?');
-                      const label = isCustom ? rid.replace('custom:', '') : (token?.label || rid);
-                      // Fan out tokens in a cascade below the seat
-                      const offsetX = (ri - (seatReminders[i].length - 1) / 2) * 34;
-                      const offsetY = 10 + ri * 5;
-                      return (
-                        <div
-                          key={ri}
-                          className="seat-reminder-token"
-                          title={label}
-                          style={{
-                            transform: `translate(${offsetX}px, ${offsetY}px)`,
-                            zIndex: 10 + ri,
-                          }}
-                          onClick={() => { setReminderSeatIndex(i); setShowReminderPicker(true); }}
-                        >
-                          <span className="reminder-token-icon">{icon}</span>
-                          <span className="reminder-token-text">{label}</span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
+                {/* Active reminders display — circular tokens toward center */}
+                {seatReminders[i]?.length > 0 && (() => {
+                  // Direction toward center (opposite of seat's outward angle)
+                  const towardCenterX = -Math.cos(angle);
+                  const towardCenterY = -Math.sin(angle);
+                  // Perpendicular for fanning
+                  const perpX = -towardCenterY;
+                  const perpY = towardCenterX;
+                  return (
+                    <div className="seat-reminders" onClick={e => e.stopPropagation()}>
+                      {seatReminders[i].map((rid, ri) => {
+                        const isCustom = rid.startsWith('custom:');
+                        const token = isCustom ? null : REMINDER_TOKENS.find(t => t.id === rid);
+                        const icon = isCustom ? '📝' : (token?.icon || '?');
+                        const label = isCustom ? rid.replace('custom:', '') : (token?.label || rid);
+                        // Each token moves toward center + fans out perpendicular
+                        const dist = 50 + ri * 18;
+                        const fan = (ri - (seatReminders[i].length - 1) / 2) * 22;
+                        const tx = towardCenterX * dist + perpX * fan;
+                        const ty = towardCenterY * dist + perpY * fan;
+                        return (
+                          <div
+                            key={ri}
+                            className="seat-reminder-token"
+                            title={label}
+                            style={{
+                              transform: `translate(${tx}px, ${ty}px)`,
+                              zIndex: 10 + ri,
+                            }}
+                            onClick={() => { setReminderSeatIndex(i); setShowReminderPicker(true); }}
+                          >
+                            <span className="reminder-token-icon">{icon}</span>
+                            <span className="reminder-token-text">{label}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  );
+                })()}
 
                 {/* Day-phase action buttons */}
                 {phase === 'day' && seat.alive && (
@@ -755,6 +768,12 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
           onClick={() => { setShowDemonBluffs(!showDemonBluffs); setShowNightOrder(false); }}
         >
           恶魔伪装
+        </button>
+        <button
+          className={`action-bar-btn ${showPlayerManager ? 'action-active' : ''}`}
+          onClick={() => setShowPlayerManager(!showPlayerManager)}
+        >
+          管理玩家
         </button>
         <button
           className="action-bar-btn action-end"
