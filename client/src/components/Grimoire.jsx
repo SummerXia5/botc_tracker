@@ -614,21 +614,33 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                   onClick={e => { e.stopPropagation(); setReminderSeatIndex(i); setShowReminderPicker(true); }}
                   title="添加标记"
                 >
-                  📌
+                  +
                 </button>
 
-                {/* Active reminders display */}
+                {/* Active reminders display — circular tokens */}
                 {seatReminders[i]?.length > 0 && (
-                  <div className="seat-reminders">
+                  <div className="seat-reminders" onClick={e => e.stopPropagation()}>
                     {seatReminders[i].map((rid, ri) => {
                       const token = REMINDER_TOKENS.find(t => t.id === rid);
-                      return token ? (
-                        <span key={ri} className="seat-reminder-tag" title={token.label}
-                          style={{ background: token.color + '30', color: token.color }}
+                      if (!token) return null;
+                      // Fan out tokens in a cascade below the seat
+                      const offsetX = (ri - (seatReminders[i].length - 1) / 2) * 28;
+                      const offsetY = 8 + ri * 4;
+                      return (
+                        <div
+                          key={ri}
+                          className="seat-reminder-token"
+                          title={token.label}
+                          style={{
+                            transform: `translate(${offsetX}px, ${offsetY}px)`,
+                            zIndex: 10 + ri,
+                          }}
+                          onClick={() => { setReminderSeatIndex(i); setShowReminderPicker(true); }}
                         >
-                          {token.icon}
-                        </span>
-                      ) : null;
+                          <span className="reminder-token-icon">{token.icon}</span>
+                          <span className="reminder-token-text">{token.label}</span>
+                        </div>
+                      );
                     })}
                   </div>
                 )}

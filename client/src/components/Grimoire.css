@@ -1603,44 +1603,80 @@
    ============================================ */
 .seat-reminder-btn {
   position: absolute;
-  bottom: -2px;
-  right: -2px;
-  width: 20px;
-  height: 20px;
+  bottom: -4px;
+  right: -4px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
-  border: none;
-  background: rgba(120, 80, 160, 0.8);
-  color: white;
-  font-size: 0.55rem;
+  border: 2px solid rgba(120, 80, 160, 0.6);
+  background: radial-gradient(circle at 35% 35%, #5a3d7a, #3a2550 70%);
+  color: #d4c0e8;
+  font-size: 0.85rem;
+  font-weight: 700;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  opacity: 0.6;
+  opacity: 0;
   transition: opacity 200ms;
-  z-index: 5;
+  z-index: 15;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.4);
 }
 
 .seat-token:hover .seat-reminder-btn {
   opacity: 1;
 }
 
-.seat-reminders {
-  position: absolute;
-  bottom: -18px;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  gap: 2px;
-  z-index: 4;
+/* Show the + button when there are no reminders yet */
+.seat-reminder-btn:focus {
+  opacity: 1;
 }
 
-.seat-reminder-tag {
-  font-size: 0.6rem;
-  padding: 1px 3px;
-  border-radius: 3px;
-  cursor: default;
+.seat-reminders {
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  display: flex;
+  z-index: 8;
+  pointer-events: auto;
+}
+
+.seat-reminder-token {
+  position: absolute;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 25%, #6b4d8a, #3d2856 60%, #2a1a3d 100%);
+  border: 2px solid rgba(160, 130, 200, 0.35);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08);
+  transition: transform 150ms ease;
+}
+
+.seat-reminder-token:hover {
+  transform: scale(1.15) !important;
+  z-index: 20 !important;
+  box-shadow: 0 4px 14px rgba(100, 60, 160, 0.6);
+}
+
+.seat-reminder-token .reminder-token-icon {
+  font-size: 0.75rem;
   line-height: 1;
+}
+
+.seat-reminder-token .reminder-token-text {
+  font-size: 0.4rem;
+  color: #c4b8d4;
+  line-height: 1;
+  margin-top: 1px;
+  white-space: nowrap;
+  max-width: 32px;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .reminder-picker {
@@ -1758,8 +1794,21 @@
   }
 
   .seat-reminder-btn {
-    width: 16px;
-    height: 16px;
-    font-size: 0.45rem;
+    width: 18px;
+    height: 18px;
+    font-size: 0.7rem;
+  }
+
+  .seat-reminder-token {
+    width: 28px;
+    height: 28px;
+  }
+
+  .seat-reminder-token .reminder-token-icon {
+    font-size: 0.6rem;
+  }
+
+  .seat-reminder-token .reminder-token-text {
+    font-size: 0.3rem;
   }
 }
