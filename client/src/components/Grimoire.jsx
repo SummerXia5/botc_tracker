@@ -234,11 +234,15 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
   const [showDistribution, setShowDistribution] = useState(false);
   const [selectedCharPool, setSelectedCharPool] = useState(new Set());
 
-  // Initialize pool with all characters when script changes
-  const initCharPool = useCallback(() => {
-    const all = new Set(scriptCharacters.map(c => c.id));
-    setSelectedCharPool(all);
+  // Select all characters into pool
+  const selectAllChars = useCallback(() => {
+    setSelectedCharPool(new Set(scriptCharacters.map(c => c.id)));
   }, [scriptCharacters]);
+
+  // Deselect all
+  const deselectAllChars = useCallback(() => {
+    setSelectedCharPool(new Set());
+  }, []);
 
   const toggleCharInPool = (charId) => {
     setSelectedCharPool(prev => {
@@ -252,7 +256,7 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
     });
   };
 
-  // Count selected per type
+  // Count SELECTED characters per type (characters user picked to be "in play")
   const selectedCountByType = useMemo(() => {
     const counts = { townsfolk: 0, outsider: 0, minion: 0, demon: 0 };
     for (const id of selectedCharPool) {
@@ -281,22 +285,14 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
 
   const handleRandomAssign = () => {
     if (!selectedScript || seats.length < 5) return;
-    const dist = currentDistribution;
-    const pool = [];
-
-    // Pick random characters from SELECTED pool only
-    for (const type of ['townsfolk', 'outsider', 'minion', 'demon']) {
-      const available = shuffle(
-        (charactersByType[type] || []).filter(c => selectedCharPool.has(c.id))
-      );
-      const needed = dist[type] || 0;
-      for (let i = 0; i < Math.min(needed, available.length); i++) {
-        pool.push(available[i].id);
-      }
+    // Take ALL selected characters and randomly assign to seats
+    const selectedIds = [...selectedCharPool];
+    if (selectedIds.length < seats.length) {
+      // Not enough characters selected
+      return;
     }
-
-    // Shuffle the entire pool and assign to seats
-    const shuffledPool = shuffle(pool);
+    // Shuffle and assign one per seat
+    const shuffledPool = shuffle(selectedIds).slice(0, seats.length);
     setSeats(prev => prev.map((s, i) => ({
       ...s,
       characterId: shuffledPool[i] || null,
@@ -306,7 +302,6 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
   };
 
   const handleOpenDistribution = () => {
-    if (selectedCharPool.size === 0) initCharPool();
     setShowDistribution(true);
   };
 
@@ -780,7 +775,9 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
             </div>
 
             <div className="distribution-actions">
-              <button className="action-bar-btn action-primary" onClick={handleRandomAssign}>
+              <button className="action-bar-btn action-primary" onClick={handleRandomAssign}
+                disabled={selectedCharPool.size < seats.length}
+              >
                 随机分配 {seats.length} 个角色
               </button>
               <button className="action-bar-btn" onClick={() => {
@@ -789,10 +786,10 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
               }}>
                 重置角色
               </button>
-              <button className="action-bar-btn" onClick={initCharPool}>
+              <button className="action-bar-btn" onClick={selectAllChars}>
                 全选
               </button>
-              <button className="action-bar-btn" onClick={() => setSelectedCharPool(new Set())}>
+              <button className="action-bar-btn" onClick={deselectAllChars}>
                 全不选
               </button>
             </div>
