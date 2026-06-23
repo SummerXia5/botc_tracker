@@ -272,6 +272,17 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
       if (next.has(charId)) {
         next.delete(charId);
       } else {
+        // Enforce per-type limit
+        const ch = charLookup[charId];
+        if (ch && currentDistribution[ch.type] !== undefined) {
+          const currentCount = [...next].filter(id => {
+            const c = charLookup[id];
+            return c && c.type === ch.type;
+          }).length;
+          if (currentCount >= currentDistribution[ch.type]) {
+            return prev; // Already at limit for this type
+          }
+        }
         next.add(charId);
       }
       return next;
@@ -305,42 +316,28 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
     return a;
   };
 
-  // Mode 1: "随机配版" — auto-pick the right number of each type from the FULL script, then assign
+  // Mode 1: "随机配版" — auto-pick the right number of each type, SELECT only (don't assign)
   const handleAutoPickAndAssign = () => {
     if (!selectedScript || seats.length < 5) return;
     const dist = currentDistribution;
-    const pool = [];
+    const picked = new Set();
 
     for (const type of ['townsfolk', 'outsider', 'minion', 'demon']) {
       const available = shuffle(charactersByType[type] || []);
       const needed = dist[type] || 0;
       for (let i = 0; i < Math.min(needed, available.length); i++) {
-        pool.push(available[i].id);
+        picked.add(available[i].id);
       }
     }
 
-    if (pool.length < seats.length) {
-      // Fill remaining from any unassigned characters
-      const usedIds = new Set(pool);
-      const remaining = shuffle(scriptCharacters.filter(c => !usedIds.has(c.id)));
-      pool.push(...remaining.slice(0, seats.length - pool.length).map(c => c.id));
-    }
-
-    const shuffledPool = shuffle(pool).slice(0, seats.length);
-    // Also update the selectedCharPool to reflect what was picked
-    setSelectedCharPool(new Set(shuffledPool));
-    setSeats(prev => prev.map((s, i) => ({
-      ...s,
-      characterId: shuffledPool[i] || null,
-    })));
-    addLog(`随机配版并分配 ${shuffledPool.length} 个角色`);
-    setShowDistribution(false);
+    setSelectedCharPool(picked);
+    addLog(`随机配版：已选 ${picked.size} 个角色`);
   };
 
   // Mode 2: "随机发放" — take the manually selected characters and randomly assign to seats
   const handleDistributeSelected = () => {
-    if (selectedCharPool.size === 0 || seats.length < 5) return;
-    const selectedIds = shuffle([...selectedCharPool]).slice(0, seats.length);
+    if (selectedCharPool.size !== seats.length || seats.length < 5) return;
+    const selectedIds = shuffle([...selectedCharPool]);
     setSeats(prev => prev.map((s, i) => ({
       ...s,
       characterId: selectedIds[i] || null,
@@ -876,13 +873,13 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
 
             <div className="distribution-actions">
               <button className="action-bar-btn action-primary" onClick={handleAutoPickAndAssign}>
-                🎲 随机配版 {seats.length} 个角色
+                🎲 随机配版
               </button>
               <button className="action-bar-btn action-primary" onClick={handleDistributeSelected}
-                disabled={selectedCharPool.size === 0}
-                style={{ opacity: selectedCharPool.size === 0 ? 0.4 : 1 }}
+                disabled={selectedCharPool.size !== seats.length}
+                style={{ opacity: selectedCharPool.size !== seats.length ? 0.4 : 1 }}
               >
-                🎯 随机发放已选 ({selectedCharPool.size})
+                🎯 随机发放 ({selectedCharPool.size}/{seats.length})
               </button>
               <button className="action-bar-btn" onClick={() => {
                 setSeats(prev => prev.map(s => ({ ...s, characterId: null })));
@@ -890,11 +887,8 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
               }}>
                 重置角色
               </button>
-              <button className="action-bar-btn" onClick={selectAllChars}>
-                全选
-              </button>
               <button className="action-bar-btn" onClick={deselectAllChars}>
-                全不选
+                清空选择
               </button>
             </div>
           </div>
