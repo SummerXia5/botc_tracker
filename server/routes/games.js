@@ -143,9 +143,9 @@ router.post(
     body('participants.*.survived').optional().toBoolean(),
     body('participants.*.final_round').optional().toBoolean(),
     body('participants.*.correct_vote').optional().toBoolean(),
-    body('participants.*.achievements').optional(),
-    body('participants.*.survival_days').optional().isInt({ min: 0 }),
-    body('participants.*.player_notes').optional().trim(),
+    body('participants.*.achievements').optional({ nullable: true }),
+    body('participants.*.survival_days').optional({ nullable: true }),
+    body('participants.*.player_notes').optional({ nullable: true }).trim(),
   ],
   (req, res) => {
     const errors = validationResult(req);

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { createGame } from '../api';
 import { useToast } from './Toast';
+import PlayerSelector from './PlayerSelector';
 import './RecordGameModal.css';
 
 const ROLE_TYPES = [
@@ -19,7 +20,9 @@ const ACHIEVEMENTS = [
   { key: 'great_bluff', label: '完美伪装', icon: '🎭', desc: '邪恶方完美伪装身份' },
 ];
 
-export default function RecordGameModal({ players, scripts, onClose, onSuccess, groupId }) {
+export default function RecordGameModal({ players, scripts, onClose, onSuccess, groupId, onRefreshPlayers }) {
+  // Local copy of players that can grow when quick-adding
+  const [localPlayers, setLocalPlayers] = useState(players);
   const toast = useToast();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -184,25 +187,19 @@ export default function RecordGameModal({ players, scripts, onClose, onSuccess, 
         {/* Step 2: Select Players */}
         {step === 2 && (
           <div className="step-content">
-            <p className="step-hint">
-              选择参与玩家（至少5人）· 已选 <strong>{selectedPlayerIds.length}</strong> 人
-            </p>
-            <div className="player-checkboxes">
-              {players.map(p => (
-                <label
-                  key={p.id}
-                  className={`player-checkbox ${selectedPlayerIds.includes(p.id) ? 'checked' : ''}`}
-                >
-                  <input
-                    type="checkbox"
-                    checked={selectedPlayerIds.includes(p.id)}
-                    onChange={() => togglePlayer(p.id)}
-                  />
-                  <span className="checkbox-emoji">{p.emoji || '👤'}</span>
-                  <span className="checkbox-name">{p.name}</span>
-                </label>
-              ))}
-            </div>
+            <PlayerSelector
+              players={localPlayers}
+              selectedIds={selectedPlayerIds}
+              onToggle={togglePlayer}
+              groupId={groupId}
+              label="选择参与玩家"
+              minCount={5}
+              variant="light"
+              onPlayerCreated={(newPlayer) => {
+                setLocalPlayers(prev => [...prev, newPlayer]);
+                onRefreshPlayers?.();
+              }}
+            />
           </div>
         )}
 
