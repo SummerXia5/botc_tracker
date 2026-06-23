@@ -8,6 +8,7 @@ export const TYPE_COLORS = {
   outsider: '#46a86c',
   minion: '#c94922',
   demon: '#b72a2a',
+  fabled: '#9b59b6',
 };
 
 export const TYPE_LABELS = {
@@ -15,6 +16,7 @@ export const TYPE_LABELS = {
   outsider: '外来者',
   minion: '爪牙',
   demon: '恶魔',
+  fabled: '奇遇',
 };
 
 export const CHARACTERS = {

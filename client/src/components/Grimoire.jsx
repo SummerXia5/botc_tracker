@@ -135,7 +135,7 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
 
       // 3. Get metadata from imported script JSON
       const m = meta[id] || {};
-      const teamMap = { townsfolk: 'townsfolk', outsider: 'outsider', minion: 'minion', demon: 'demon', fabled: 'townsfolk' };
+      const teamMap = { townsfolk: 'townsfolk', outsider: 'outsider', minion: 'minion', demon: 'demon', fabled: 'fabled', traveler: 'townsfolk' };
 
       if (normalized) {
         // Merge: local data + script meta image as override
@@ -169,7 +169,7 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
   }, [scriptCharacters]);
 
   const charactersByType = useMemo(() => {
-    const groups = { townsfolk: [], outsider: [], minion: [], demon: [] };
+    const groups = { townsfolk: [], outsider: [], minion: [], demon: [], fabled: [] };
     for (const ch of scriptCharacters) {
       if (groups[ch.type]) {
         groups[ch.type].push(ch);
@@ -272,9 +272,9 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
       if (next.has(charId)) {
         next.delete(charId);
       } else {
-        // Enforce per-type limit
+        // Enforce per-type limit (fabled has no limit)
         const ch = charLookup[charId];
-        if (ch && currentDistribution[ch.type] !== undefined) {
+        if (ch && ch.type !== 'fabled' && currentDistribution[ch.type] !== undefined) {
           const currentCount = [...next].filter(id => {
             const c = charLookup[id];
             return c && c.type === ch.type;
@@ -336,8 +336,13 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
 
   // Mode 2: "随机发放" — take the manually selected characters and randomly assign to seats
   const handleDistributeSelected = () => {
-    if (selectedCharPool.size !== seats.length || seats.length < 5) return;
-    const selectedIds = shuffle([...selectedCharPool]);
+    // Only non-fabled characters get assigned to seats
+    const nonFabled = [...selectedCharPool].filter(id => {
+      const ch = charLookup[id];
+      return ch && ch.type !== 'fabled';
+    });
+    if (nonFabled.length !== seats.length || seats.length < 5) return;
+    const selectedIds = shuffle(nonFabled);
     setSeats(prev => prev.map((s, i) => ({
       ...s,
       characterId: selectedIds[i] || null,
@@ -840,7 +845,7 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
 
               {/* Right: character grid */}
               <div className="distribution-grid">
-                {['townsfolk', 'outsider', 'minion', 'demon'].map(type => (
+                {['townsfolk', 'outsider', 'minion', 'demon', ...(charactersByType.fabled?.length ? ['fabled'] : [])].map(type => (
                   (charactersByType[type] || []).map(ch => {
                     const isSelected = selectedCharPool.has(ch.id);
                     const isAssigned = assignedCharIds.has(ch.id);
@@ -875,12 +880,20 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
               <button className="action-bar-btn action-primary" onClick={handleAutoPickAndAssign}>
                 🎲 随机配版
               </button>
-              <button className="action-bar-btn action-primary" onClick={handleDistributeSelected}
-                disabled={selectedCharPool.size !== seats.length}
-                style={{ opacity: selectedCharPool.size !== seats.length ? 0.4 : 1 }}
-              >
-                🎯 随机发放 ({selectedCharPool.size}/{seats.length})
-              </button>
+              {(() => {
+                const nonFabledCount = [...selectedCharPool].filter(id => {
+                  const ch = charLookup[id];
+                  return ch && ch.type !== 'fabled';
+                }).length;
+                return (
+                  <button className="action-bar-btn action-primary" onClick={handleDistributeSelected}
+                    disabled={nonFabledCount !== seats.length}
+                    style={{ opacity: nonFabledCount !== seats.length ? 0.4 : 1 }}
+                  >
+                    🎯 随机发放 ({nonFabledCount}/{seats.length})
+                  </button>
+                );
+              })()}
               <button className="action-bar-btn" onClick={() => {
                 setSeats(prev => prev.map(s => ({ ...s, characterId: null })));
                 addLog('已重置所有角色分配');
