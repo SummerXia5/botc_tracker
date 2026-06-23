@@ -193,6 +193,15 @@
   background: rgba(26, 25, 24, 0.04);
 }
 
+.gp-char {
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  padding: 1px 6px;
+  background: rgba(26, 25, 24, 0.04);
+  border-radius: 4px;
+}
+
 .gp-survived {
   font-size: 0.7rem;
 }

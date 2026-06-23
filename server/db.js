@@ -140,6 +140,11 @@ function initDatabase() {
   } catch (e) {
     // Column already exists, ignore
   }
+
+  // Migration: add character_id column to game_participants
+  try {
+    db.prepare('ALTER TABLE game_participants ADD COLUMN character_id TEXT').run();
+  } catch (e) { /* Column already exists */ }
 }
 
 // Run table creation on module load

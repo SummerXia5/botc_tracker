@@ -48,6 +48,7 @@ router.get(
       SELECT
         gp.player_id,
         gp.role_type,
+        gp.character_id,
         gp.survived,
         gp.final_round,
         gp.correct_vote,
@@ -96,6 +97,7 @@ router.get(
         gp.id            AS participant_id,
         gp.player_id,
         gp.role_type,
+        gp.character_id,
         gp.survived,
         gp.final_round,
         gp.correct_vote,
@@ -146,6 +148,7 @@ router.post(
     body('participants.*.achievements').optional({ nullable: true }),
     body('participants.*.survival_days').optional({ nullable: true }),
     body('participants.*.player_notes').optional({ nullable: true }).trim(),
+    body('participants.*.character_id').optional({ nullable: true }).trim(),
   ],
   (req, res) => {
     const errors = validationResult(req);
@@ -183,8 +186,8 @@ router.post(
       `).run(gameId, date, script, winner, storyline || null, mvp_player_id || null, notes || null, req.user.userId, group_id);
 
       const insertPart = db.prepare(`
-        INSERT INTO game_participants (game_id, player_id, role_type, survived, final_round, correct_vote, achievements, survival_days, player_notes)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO game_participants (game_id, player_id, role_type, survived, final_round, correct_vote, achievements, survival_days, player_notes, character_id)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `);
 
       for (const p of participants) {
@@ -198,6 +201,7 @@ router.post(
           JSON.stringify(p.achievements || []),
           p.survival_days ?? null,
           p.player_notes || null,
+          p.character_id || null,
         );
       }
     });
@@ -214,6 +218,39 @@ router.post(
     `).all(gameId);
 
     res.status(201).json({ game: { ...game, participants: gameParts } });
+  },
+);
+
+// ─── PUT /api/games/:id ─────────────────────────────────────────────────────────
+
+router.put(
+  '/:id',
+  authenticateJWT,
+  param('id').trim().notEmpty(),
+  (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    const game = db.prepare('SELECT * FROM games WHERE id = ?').get(req.params.id);
+    if (!game) {
+      return res.status(404).json({ error: 'Game not found.' });
+    }
+
+    const { date, script, winner, notes, mvp_player_id } = req.body;
+
+    db.prepare(`UPDATE games SET
+      date = COALESCE(?, date),
+      script = COALESCE(?, script),
+      winner = COALESCE(?, winner),
+      notes = COALESCE(?, notes),
+      mvp_player_id = COALESCE(?, mvp_player_id)
+      WHERE id = ?`
+    ).run(date || null, script || null, winner || null, notes, mvp_player_id, req.params.id);
+
+    const updated = db.prepare('SELECT * FROM games WHERE id = ?').get(req.params.id);
+    res.json({ game: updated });
   },
 );
 

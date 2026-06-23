@@ -117,6 +117,7 @@ export default function RecordGameModal({ players, scripts, onClose, onSuccess, 
           achievements: d.achievements || [],
           survival_days: d.survival_days ?? null,
           player_notes: d.player_notes || null,
+          character_id: d.character_id || null,
         };
       });
 

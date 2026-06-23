@@ -1,5 +1,13 @@
 import { useState, useMemo } from 'react';
+import { CHARACTERS } from '../data/characters';
 import './GameHistory.css';
+
+const getCharacterName = (characterId) => {
+  if (!characterId) return null;
+  if (CHARACTERS[characterId]) return CHARACTERS[characterId].name;
+  const stripped = characterId.replace(/CustomVER$/, '');
+  return CHARACTERS[stripped]?.name || characterId;
+};
 
 const GAMES_PER_PAGE = 10;
 
@@ -122,6 +130,11 @@ export default function GameHistory({ games, players }) {
                           >
                             {roleLabels[p.role_type] || p.role_type}
                           </span>
+                          {p.character_id && (
+                            <span className="gp-char" title={p.character_id}>
+                              {getCharacterName(p.character_id)}
+                            </span>
+                          )}
                           <span className="gp-survived">
                             {p.survived ? '✓' : '✗'}
                           </span>

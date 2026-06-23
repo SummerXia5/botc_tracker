@@ -131,6 +131,13 @@ export async function deleteGame(id) {
   });
 }
 
+export async function updateGame(id, data) {
+  return request(`/api/games/${encodeURIComponent(id)}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  });
+}
+
 // ---- Scripts ----
 export async function fetchScripts(groupId) {
   const data = await request(`/api/scripts?group_id=${encodeURIComponent(groupId)}`);

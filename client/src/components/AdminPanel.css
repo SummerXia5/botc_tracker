@@ -453,4 +453,44 @@
 
 .admin-game-actions {
   flex-shrink: 0;
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.admin-edit-form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.admin-edit-row {
+  display: flex;
+  gap: 8px;
+}
+
+.admin-edit-row .admin-input {
+  flex: 1;
+}
+
+.admin-input-full {
+  width: 100%;
+  resize: vertical;
+}
+
+.admin-winner-toggle {
+  display: flex;
+  gap: 4px;
+}
+
+.admin-btn-sm {
+  padding: 5px 12px;
+  font-size: 0.75rem;
+}
+
+.admin-edit-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
 }

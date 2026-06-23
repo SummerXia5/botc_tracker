@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { createPlayer, updatePlayer, deletePlayer, deleteGame } from '../api';
+import { createPlayer, updatePlayer, deletePlayer, deleteGame, updateGame } from '../api';
 import { useToast } from './Toast';
 import ScriptManagement from './ScriptManagement';
 import './AdminPanel.css';
@@ -34,6 +34,12 @@ export default function AdminPanel({ players, games, scripts, groupId, onRefresh
   // Game management
   const [gameSearch, setGameSearch] = useState('');
   const [confirmDeleteGameId, setConfirmDeleteGameId] = useState(null);
+  const [editingGameId, setEditingGameId] = useState(null);
+  const [editGameDate, setEditGameDate] = useState('');
+  const [editGameScript, setEditGameScript] = useState('');
+  const [editGameWinner, setEditGameWinner] = useState('good');
+  const [editGameNotes, setEditGameNotes] = useState('');
+  const [editGameMvp, setEditGameMvp] = useState('');
 
   const filteredPlayers = useMemo(() => {
     if (!search.trim()) return players;
@@ -130,6 +136,36 @@ export default function AdminPanel({ players, games, scripts, groupId, onRefresh
       onRefresh?.();
     } catch (err) {
       toast.error(err.message || '删除失败');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const startEditGame = (game) => {
+    setEditingGameId(game.id);
+    setEditGameDate(game.date || '');
+    setEditGameScript(game.script || '');
+    setEditGameWinner(game.winner || 'good');
+    setEditGameNotes(game.notes || '');
+    setEditGameMvp(game.mvp_player_id || '');
+  };
+
+  const handleUpdateGame = async (id) => {
+    if (loading) return;
+    setLoading(true);
+    try {
+      await updateGame(id, {
+        date: editGameDate || undefined,
+        script: editGameScript || undefined,
+        winner: editGameWinner || undefined,
+        notes: editGameNotes,
+        mvp_player_id: editGameMvp || undefined,
+      });
+      toast.success('对局已更新');
+      setEditingGameId(null);
+      onRefresh?.();
+    } catch (err) {
+      toast.error(err.message || '更新失败');
     } finally {
       setLoading(false);
     }
@@ -361,52 +397,139 @@ export default function AdminPanel({ players, games, scripts, groupId, onRefresh
           <div className="admin-game-list">
             {filteredGames.map(game => (
               <div key={game.id} className="admin-game-card">
-                <div className="admin-game-info">
-                  <div className="admin-game-main">
-                    <span className="admin-game-date">{game.date}</span>
-                    <span className="admin-game-script">{game.script}</span>
-                    <span className={`admin-game-winner ${game.winner === 'good' ? 'winner-good' : 'winner-evil'}`}>
-                      {game.winner === 'good' ? '善良胜' : '邪恶胜'}
-                    </span>
-                  </div>
-                  <div className="admin-game-players">
-                    {game.participants?.slice(0, 6).map((p, i) => (
-                      <span key={i} className="admin-game-player-name">
-                        {p.player_name || getPlayerName(p.player_id)}
-                      </span>
-                    ))}
-                    {game.participants?.length > 6 && (
-                      <span className="admin-game-more">+{game.participants.length - 6}</span>
-                    )}
-                  </div>
-                </div>
-                <div className="admin-game-actions">
-                  {confirmDeleteGameId === game.id ? (
-                    <div className="admin-confirm-delete">
-                      <span>确认删除？</span>
-                      <button
-                        className="admin-action-btn admin-action-danger"
-                        onClick={() => handleDeleteGame(game.id)}
+                {editingGameId === game.id ? (
+                  /* Game Edit Mode */
+                  <div className="admin-edit-form">
+                    <div className="admin-edit-row">
+                      <input
+                        type="date"
+                        className="admin-input"
+                        value={editGameDate}
+                        onChange={e => setEditGameDate(e.target.value)}
+                      />
+                      <select
+                        className="admin-input"
+                        value={editGameScript}
+                        onChange={e => setEditGameScript(e.target.value)}
                       >
-                        是
+                        <option value="">选择剧本</option>
+                        {(scripts || []).map(s => (
+                          <option key={s.id} value={s.name}>{s.name}</option>
+                        ))}
+                        {editGameScript && !(scripts || []).some(s => s.name === editGameScript) && (
+                          <option value={editGameScript}>{editGameScript}</option>
+                        )}
+                      </select>
+                    </div>
+                    <div className="admin-edit-row">
+                      <div className="admin-winner-toggle">
+                        <button
+                          type="button"
+                          className={`admin-btn admin-btn-sm ${editGameWinner === 'good' ? 'admin-btn-primary' : ''}`}
+                          onClick={() => setEditGameWinner('good')}
+                        >
+                          善良胜
+                        </button>
+                        <button
+                          type="button"
+                          className={`admin-btn admin-btn-sm ${editGameWinner === 'evil' ? 'admin-btn-primary' : ''}`}
+                          onClick={() => setEditGameWinner('evil')}
+                        >
+                          邪恶胜
+                        </button>
+                      </div>
+                      <select
+                        className="admin-input"
+                        value={editGameMvp}
+                        onChange={e => setEditGameMvp(e.target.value)}
+                      >
+                        <option value="">MVP（可选）</option>
+                        {players.map(p => (
+                          <option key={p.id} value={p.id}>{p.avatar} {p.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <textarea
+                      className="admin-input admin-input-full"
+                      placeholder="备注（可选）"
+                      value={editGameNotes}
+                      onChange={e => setEditGameNotes(e.target.value)}
+                      rows={2}
+                    />
+                    <div className="admin-edit-actions">
+                      <button
+                        className="admin-btn admin-btn-primary admin-btn-sm"
+                        onClick={() => handleUpdateGame(game.id)}
+                        disabled={loading}
+                      >
+                        保存
                       </button>
                       <button
-                        className="admin-action-btn"
-                        onClick={() => setConfirmDeleteGameId(null)}
+                        className="admin-btn admin-btn-sm"
+                        onClick={() => setEditingGameId(null)}
                       >
-                        否
+                        取消
                       </button>
                     </div>
-                  ) : (
-                    <button
-                      className="admin-action-btn admin-action-danger"
-                      onClick={() => setConfirmDeleteGameId(game.id)}
-                      title="删除对局"
-                    >
-                      🗑️
-                    </button>
-                  )}
-                </div>
+                  </div>
+                ) : (
+                  /* Game Display Mode */
+                  <>
+                    <div className="admin-game-info">
+                      <div className="admin-game-main">
+                        <span className="admin-game-date">{game.date}</span>
+                        <span className="admin-game-script">{game.script}</span>
+                        <span className={`admin-game-winner ${game.winner === 'good' ? 'winner-good' : 'winner-evil'}`}>
+                          {game.winner === 'good' ? '善良胜' : '邪恶胜'}
+                        </span>
+                      </div>
+                      <div className="admin-game-players">
+                        {game.participants?.slice(0, 6).map((p, i) => (
+                          <span key={i} className="admin-game-player-name">
+                            {p.player_name || getPlayerName(p.player_id)}
+                          </span>
+                        ))}
+                        {game.participants?.length > 6 && (
+                          <span className="admin-game-more">+{game.participants.length - 6}</span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="admin-game-actions">
+                      <button
+                        className="admin-action-btn"
+                        onClick={() => startEditGame(game)}
+                        title="编辑对局"
+                      >
+                        ✏️
+                      </button>
+                      {confirmDeleteGameId === game.id ? (
+                        <div className="admin-confirm-delete">
+                          <span>确认删除？</span>
+                          <button
+                            className="admin-action-btn admin-action-danger"
+                            onClick={() => handleDeleteGame(game.id)}
+                          >
+                            是
+                          </button>
+                          <button
+                            className="admin-action-btn"
+                            onClick={() => setConfirmDeleteGameId(null)}
+                          >
+                            否
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          className="admin-action-btn admin-action-danger"
+                          onClick={() => setConfirmDeleteGameId(game.id)}
+                          title="删除对局"
+                        >
+                          🗑️
+                        </button>
+                      )}
+                    </div>
+                  </>
+                )}
               </div>
             ))}
 

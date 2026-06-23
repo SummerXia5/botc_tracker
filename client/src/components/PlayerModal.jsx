@@ -1,6 +1,15 @@
 import RadarChart from './RadarChart';
 import { getRadarDimensions, getPowerTier, ROLE_INFO } from '../utils/stats';
+import { CHARACTERS } from '../data/characters';
 import './PlayerModal.css';
+
+const getCharacterName = (characterId) => {
+  if (!characterId) return null;
+  if (CHARACTERS[characterId]) return CHARACTERS[characterId].name;
+  // Try stripping 'CustomVER' suffix for lookup
+  const stripped = characterId.replace(/CustomVER$/, '');
+  return CHARACTERS[stripped]?.name || characterId;
+};
 
 export default function PlayerModal({ player, onClose }) {
   if (!player) return null;
@@ -123,6 +132,11 @@ export default function PlayerModal({ player, onClose }) {
                     <span className="pm-history-role" data-role={game.role_type}>
                       {ROLE_INFO[game.role_type]?.label}
                     </span>
+                    {game.character_id && (
+                      <span className="pm-history-char">
+                        {getCharacterName(game.character_id)}
+                      </span>
+                    )}
                     <span className={`pm-history-result ${game.won ? 'pm-result--win' : 'pm-result--lose'}`}>
                       {game.won ? '胜利 WIN' : '败战'}
                     </span>
