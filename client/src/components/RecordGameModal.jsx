@@ -333,10 +333,10 @@ export default function RecordGameModal({ players, scripts, onClose, onSuccess, 
                       <label className="ra-toggle">
                         <input
                           type="checkbox"
-                          checked={detail.survived ?? true}
-                          onChange={e => updateDetail(p.id, 'survived', e.target.checked)}
+                          checked={!(detail.survived ?? true)}
+                          onChange={e => updateDetail(p.id, 'survived', !e.target.checked)}
                         />
-                        <span>存活</span>
+                        <span>死亡票</span>
                       </label>
                       <label className="ra-toggle">
                         <input
@@ -344,7 +344,7 @@ export default function RecordGameModal({ players, scripts, onClose, onSuccess, 
                           checked={detail.final_round ?? false}
                           onChange={e => updateDetail(p.id, 'final_round', e.target.checked)}
                         />
-                        <span>决赛轮</span>
+                        <span>决赛轮票正确投</span>
                       </label>
                       <label className="ra-toggle">
                         <input
@@ -352,7 +352,7 @@ export default function RecordGameModal({ players, scripts, onClose, onSuccess, 
                           checked={detail.correct_vote ?? false}
                           onChange={e => updateDetail(p.id, 'correct_vote', e.target.checked)}
                         />
-                        <span>正确投票</span>
+                        <span>红方</span>
                       </label>
                       <div className="ra-survival-days">
                         <label>存活天数</label>
@@ -437,9 +437,9 @@ export default function RecordGameModal({ players, scripts, onClose, onSuccess, 
                     <span>{p.emoji || '👤'}</span>
                     <span className="review-player-name">{p.name}</span>
                     <span style={{ color: rt?.color, fontSize: '0.78rem', fontWeight: 500 }}>{rt?.label}</span>
-                    <span style={{ fontSize: '0.75rem' }}>{d.survived ? '✓' : '✗'}</span>
-                    <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>{d.final_round ? '决赛轮' : ''}</span>
-                    <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>{d.correct_vote ? '正确投票' : ''}</span>
+                    <span style={{ fontSize: '0.75rem' }}>{d.survived ? '存活' : '💀死亡票'}</span>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>{d.final_round ? '决赛轮✓' : ''}</span>
+                    <span style={{ fontSize: '0.75rem', color: '#d44' }}>{d.correct_vote ? '红方' : ''}</span>
                   </div>
                 );
               })}
