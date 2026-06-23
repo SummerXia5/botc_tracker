@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import LoginModal from './LoginModal';
 import './Header.css';
 
-export default function Header({ onAddPlayer, onRecordGame, onManageScripts, onOpenGrimoire, selectedGroup, onBack }) {
+export default function Header({ onAddPlayer, onRecordGame, onOpenGrimoire, selectedGroup, onBack }) {
   const { user, isAuthenticated, logout } = useAuth();
   const [showLogin, setShowLogin] = useState(false);
 

@@ -333,6 +333,14 @@ export default function RecordGameModal({ players, scripts, onClose, onSuccess, 
                       <label className="ra-toggle">
                         <input
                           type="checkbox"
+                          checked={!(detail.survived ?? true)}
+                          onChange={e => updateDetail(p.id, 'survived', !e.target.checked)}
+                        />
+                        <span>死亡</span>
+                      </label>
+                      <label className="ra-toggle">
+                        <input
+                          type="checkbox"
                           checked={detail.correct_vote ?? false}
                           onChange={e => updateDetail(p.id, 'correct_vote', e.target.checked)}
                         />

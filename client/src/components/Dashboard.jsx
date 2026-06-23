@@ -1,13 +1,48 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import './Dashboard.css';
 
-export default function Dashboard({ stats }) {
+export default function Dashboard({ stats, games = [], playersWithStats = [] }) {
   const [animated, setAnimated] = useState(false);
 
   useEffect(() => {
     const timer = setTimeout(() => setAnimated(true), 100);
     return () => clearTimeout(timer);
   }, []);
+
+  // Top 3 most played scripts
+  const topScripts = useMemo(() => {
+    const counts = {};
+    for (const g of games) {
+      const name = g.script || '标准剧本';
+      counts[name] = (counts[name] || 0) + 1;
+    }
+    return Object.entries(counts)
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 3);
+  }, [games]);
+
+  // Players currently on a win streak ≥ 2
+  const hotStreakPlayers = useMemo(() => {
+    return playersWithStats
+      .filter(p => p.currentWinStreak >= 2)
+      .sort((a, b) => b.currentWinStreak - a.currentWinStreak);
+  }, [playersWithStats]);
+
+  // Unique players active in the last 30 days
+  const activePlayers30d = useMemo(() => {
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - 30);
+    const playerIds = new Set();
+    for (const g of games) {
+      if (new Date(g.date) >= cutoff && g.participants) {
+        for (const p of g.participants) {
+          playerIds.add(p.player_id);
+        }
+      }
+    }
+    return playerIds.size;
+  }, [games]);
 
   if (!stats) return null;
 
@@ -40,6 +75,15 @@ export default function Dashboard({ stats }) {
           <span className="stat-unit">AVG PLAYERS / GAME</span>
         </div>
 
+        {/* Active Players (30 days) */}
+        <div className="stat-card">
+          <span className="stat-label">👥 活跃玩家</span>
+          <span className={`stat-number ${animated ? 'animate' : ''}`}>
+            {activePlayers30d}
+          </span>
+          <span className="stat-unit">ACTIVE LAST 30 DAYS</span>
+        </div>
+
         {/* Good vs Evil */}
         <div className="stat-card stat-card-versus">
           <span className="stat-label">善恶对决</span>
@@ -70,6 +114,38 @@ export default function Dashboard({ stats }) {
             </span>
           </div>
         </div>
+
+        {/* Top Scripts */}
+        {topScripts.length > 0 && (
+          <div className="stat-card stat-card-scripts">
+            <span className="stat-label">🎲 最热剧本</span>
+            <div className="scripts-list">
+              {topScripts.map((s, i) => (
+                <div key={s.name} className="script-item">
+                  <span className="script-rank">#{i + 1}</span>
+                  <span className="script-name">{s.name}</span>
+                  <span className="script-count">{s.count}局</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Win Streaks */}
+        {hotStreakPlayers.length > 0 && (
+          <div className="stat-card stat-card-streaks">
+            <span className="stat-label">🔥 正在连胜</span>
+            <div className="streaks-list">
+              {hotStreakPlayers.map(p => (
+                <div key={p.id} className="streak-item">
+                  <span className="streak-emoji">{p.avatar || '🎮'}</span>
+                  <span className="streak-name">{p.name}</span>
+                  <span className="streak-count">{p.currentWinStreak}连胜</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Recent Games */}
         <div className="stat-card stat-card-recent">

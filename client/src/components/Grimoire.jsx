@@ -226,7 +226,7 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
   const handleStartSetup = () => {
     if (!selectedScript || selectedPlayerIds.length < 5) return;
     const newSeats = selectedPlayerIds.map(pid => {
-      const player = players.find(p => p.id === pid);
+      const player = localPlayers.find(p => p.id === pid);
       return {
         player,
         characterId: null,
@@ -259,10 +259,7 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
   const [showDistribution, setShowDistribution] = useState(false);
   const [selectedCharPool, setSelectedCharPool] = useState(new Set());
 
-  // Select all characters into pool
-  const selectAllChars = useCallback(() => {
-    setSelectedCharPool(new Set(scriptCharacters.map(c => c.id)));
-  }, [scriptCharacters]);
+
 
   // Deselect all
   const deselectAllChars = useCallback(() => {
@@ -1027,7 +1024,7 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                         }}
                         onClick={() => {
                           setSeats(prev => [...prev, {
-                            player: p, characterId: null, alive: true, hasVoted: false, nominated: false,
+                            player: p, characterId: null, alive: true,
                           }]);
                           addLog(`添加玩家 ${p.name}`);
                         }}
@@ -1055,7 +1052,7 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                     const newPlayer = result.player;
                     setLocalPlayers(prev => [...prev, newPlayer]);
                     setSeats(prev => [...prev, {
-                      player: newPlayer, characterId: null, alive: true, hasVoted: false, nominated: false,
+                      player: newPlayer, characterId: null, alive: true,
                     }]);
                     addLog(`创建并添加玩家 ${name}`);
                     input.value = '';

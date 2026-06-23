@@ -225,6 +225,93 @@
   font-size: 0.85rem;
 }
 
+/* ---- Top Scripts ---- */
+.stat-card-scripts {
+  grid-column: span 2;
+  align-items: stretch;
+  text-align: left;
+}
+
+.scripts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.script-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface);
+  font-size: 0.82rem;
+}
+
+.script-rank {
+  color: var(--text-muted);
+  font-weight: 700;
+  font-size: 0.75rem;
+  min-width: 24px;
+}
+
+.script-name {
+  color: var(--text-secondary);
+  flex: 1;
+}
+
+.script-count {
+  font-weight: 600;
+  font-size: 0.75rem;
+  color: var(--text-tertiary);
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  background: var(--bg-surface);
+}
+
+/* ---- Win Streaks ---- */
+.stat-card-streaks {
+  grid-column: span 2;
+  align-items: stretch;
+  text-align: left;
+}
+
+.streaks-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.streak-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface);
+  font-size: 0.82rem;
+}
+
+.streak-emoji {
+  font-size: 1.1rem;
+  min-width: 24px;
+  text-align: center;
+}
+
+.streak-name {
+  color: var(--text-secondary);
+  flex: 1;
+}
+
+.streak-count {
+  font-weight: 600;
+  font-size: 0.75rem;
+  color: var(--accent-red);
+  padding: 2px 10px;
+  border-radius: var(--radius-full);
+  background: var(--accent-red-subtle);
+}
+
 /* ---- Mobile ---- */
 @media (max-width: 768px) {
   .dashboard-grid {
@@ -233,7 +320,9 @@
 
   .stat-card-hero,
   .stat-card-versus,
-  .stat-card-recent {
+  .stat-card-recent,
+  .stat-card-scripts,
+  .stat-card-streaks {
     grid-column: span 1;
   }
 

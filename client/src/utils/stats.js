@@ -374,6 +374,59 @@ export function computeHallOfFame(playersWithStats) {
     value: `${(finalRounder.finalRoundRate * 100).toFixed(0)}%`,
   });
 
+  // MVP King - most MVP awards
+  const mvpKing = [...eligible].sort((a, b) => (b.mvpCount || 0) - (a.mvpCount || 0))[0];
+  if (mvpKing && mvpKing.mvpCount > 0) {
+    awards.push({
+      key: 'mvp_king', emoji: '👑', title: 'MVP 之王', subtitle: 'MVP King',
+      player: mvpKing, value: `${mvpKing.mvpCount}次`,
+    });
+  }
+
+  // Win Streak King - highest max win streak
+  const streakKing = [...eligible].sort((a, b) => (b.maxWinStreak || 0) - (a.maxWinStreak || 0))[0];
+  if (streakKing && streakKing.maxWinStreak > 1) {
+    awards.push({
+      key: 'streak', emoji: '🔥', title: '连胜王者', subtitle: 'Win Streak King',
+      player: streakKing, value: `${streakKing.maxWinStreak}连胜`,
+    });
+  }
+
+  // Iron Player - most games played
+  const ironPlayer = [...eligible].sort((a, b) => b.totalGames - a.totalGames)[0];
+  awards.push({
+    key: 'iron', emoji: '🎯', title: '铁杆玩家', subtitle: 'Iron Player',
+    player: ironPlayer, value: `${ironPlayer.totalGames}局`,
+  });
+
+  // Demon King - highest demon-specific win rate (need ≥2 demon games)
+  const demonPlayers = eligible.filter(p => (p.roleStats.demon?.games || 0) >= 2);
+  if (demonPlayers.length > 0) {
+    const demonKing = [...demonPlayers].sort((a, b) => (b.roleStats.demon?.winRate || 0) - (a.roleStats.demon?.winRate || 0))[0];
+    awards.push({
+      key: 'demon_king', emoji: '😈', title: '恶魔之王', subtitle: 'Demon King',
+      player: demonKing, value: `${((demonKing.roleStats.demon?.winRate || 0) * 100).toFixed(0)}%`,
+    });
+  }
+
+  // Logic God - most logic_chain achievements
+  const logicGod = [...eligible].sort((a, b) => (b.achievementCounts?.logic_chain || 0) - (a.achievementCounts?.logic_chain || 0))[0];
+  if (logicGod && (logicGod.achievementCounts?.logic_chain || 0) > 0) {
+    awards.push({
+      key: 'logic_god', emoji: '🧠', title: '逻辑之神', subtitle: 'Logic God',
+      player: logicGod, value: `${logicGod.achievementCounts.logic_chain}次`,
+    });
+  }
+
+  // Clutch Master - most clutch_play achievements
+  const clutchMaster = [...eligible].sort((a, b) => (b.achievementCounts?.clutch_play || 0) - (a.achievementCounts?.clutch_play || 0))[0];
+  if (clutchMaster && (clutchMaster.achievementCounts?.clutch_play || 0) > 0) {
+    awards.push({
+      key: 'clutch', emoji: '⚡', title: '关键先生', subtitle: 'Clutch Master',
+      player: clutchMaster, value: `${clutchMaster.achievementCounts.clutch_play}次`,
+    });
+  }
+
   return awards;
 }
 

@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useAuth } from './context/AuthContext';
-import { fetchPlayers, fetchGames, fetchGroups, fetchScripts, createGame } from './api';
+import { fetchPlayers, fetchGames, fetchGroups, fetchScripts } from './api';
 import { computePlayerStats, computeDashboardStats, computeHallOfFame } from './utils/stats';
 import Header from './components/Header';
 import GroupSelector from './components/GroupSelector';
@@ -177,7 +177,7 @@ export default function App() {
 
         {activeTab === 'overview' && (
           <>
-            <Dashboard stats={dashboardStats} />
+            <Dashboard stats={dashboardStats} games={games} playersWithStats={playersWithStats} />
             <HallOfFame awards={hallOfFameAwards} />
             <PlayerList
               players={playersWithStats}
