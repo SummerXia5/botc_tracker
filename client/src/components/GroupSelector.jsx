@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { createGroup } from '../api';
+import { createGroup, joinGroup } from '../api';
 import { useToast } from './Toast';
 import LoginModal from './LoginModal';
 import './GroupSelector.css';
 
-export default function GroupSelector({ groups, onSelectGroup, onRefresh }) {
-  const { user, isAuthenticated, logout } = useAuth();
+export default function GroupSelector({ groups, onSelectGroup, onRefresh, myGroupIds = [] }) {
+  const { user, isAuthenticated, isStoryteller, logout } = useAuth();
   const toast = useToast();
   const [showCreate, setShowCreate] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
@@ -35,6 +35,17 @@ export default function GroupSelector({ groups, onSelectGroup, onRefresh }) {
     }
   };
 
+  const handleJoin = async (e, groupId) => {
+    e.stopPropagation();
+    try {
+      await joinGroup(groupId);
+      toast.success('成功加入!');
+      onRefresh();
+    } catch (err) {
+      toast.error(err.message);
+    }
+  };
+
   const handleCancel = () => {
     setShowCreate(false);
     setName('');
@@ -48,14 +59,14 @@ export default function GroupSelector({ groups, onSelectGroup, onRefresh }) {
         <div className="header-actions">
           {isAuthenticated ? (
             <>
-              <span className="header-user">{user?.username}</span>
+              <span className="header-user">{user?.displayName || user?.username}</span>
               <button className="btn btn-ghost" onClick={logout}>
                 退出
               </button>
             </>
           ) : (
             <button className="btn btn-ghost" onClick={() => setShowLogin(true)}>
-              管理员登录
+              登录 / 注册
             </button>
           )}
         </div>
@@ -70,7 +81,7 @@ export default function GroupSelector({ groups, onSelectGroup, onRefresh }) {
         {groups.length === 0 && !showCreate && (
           <div className="group-empty">
             暂无游戏组
-            {isAuthenticated && '，点击下方创建'}
+            {isAuthenticated && isStoryteller && '，点击下方创建'}
           </div>
         )}
 
@@ -85,11 +96,16 @@ export default function GroupSelector({ groups, onSelectGroup, onRefresh }) {
               {group.description && (
                 <div className="group-card-desc">{group.description}</div>
               )}
+              {isAuthenticated && (
+                myGroupIds.includes(group.id)
+                  ? <span className="group-joined-badge">✓ 已加入</span>
+                  : <button className="group-join-btn" onClick={(e) => handleJoin(e, group.id)}>加入</button>
+              )}
               <span className="group-card-arrow">→</span>
             </div>
           ))}
 
-          {isAuthenticated && !showCreate && (
+          {isAuthenticated && isStoryteller && !showCreate && (
             <button
               className="group-card-create"
               onClick={() => setShowCreate(true)}

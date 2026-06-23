@@ -3,9 +3,12 @@ import { useAuth } from '../context/AuthContext';
 import LoginModal from './LoginModal';
 import './Header.css';
 
-export default function Header({ onAddPlayer, onRecordGame, onOpenGrimoire, selectedGroup, onBack }) {
+export default function Header({ onAddPlayer, onRecordGame, onOpenGrimoire, selectedGroup, onBack, onOpenProfile }) {
   const { user, isAuthenticated, logout } = useAuth();
   const [showLogin, setShowLogin] = useState(false);
+
+  const isStoryteller = user?.role === 'storyteller';
+  const isGroupOwner = isStoryteller && selectedGroup?.created_by === user?.id;
 
   return (
     <>
@@ -39,16 +42,21 @@ export default function Header({ onAddPlayer, onRecordGame, onOpenGrimoire, sele
             {isAuthenticated ? (
               <>
                 <span className="header-user">{user?.username}</span>
-                <button className="btn btn-outlined" onClick={onAddPlayer}>
-                  ⚙ 管理
-                </button>
-                <button className="btn btn-filled" onClick={onRecordGame}>
-                  记录赛果
-                </button>
-                {onOpenGrimoire && (
-                  <button className="btn btn-grimoire" onClick={onOpenGrimoire}>
-                    说书人魔典 <span className="beta-badge">Beta</span>
-                  </button>
+                <button className="btn btn-ghost" onClick={onOpenProfile}>👤</button>
+                {isGroupOwner && (
+                  <>
+                    <button className="btn btn-outlined" onClick={onAddPlayer}>
+                      ⚙ 管理
+                    </button>
+                    <button className="btn btn-filled" onClick={onRecordGame}>
+                      记录赛果
+                    </button>
+                    {onOpenGrimoire && (
+                      <button className="btn btn-grimoire" onClick={onOpenGrimoire}>
+                        说书人魔典 <span className="beta-badge">Beta</span>
+                      </button>
+                    )}
+                  </>
                 )}
                 <button className="btn btn-ghost" onClick={logout}>
                   退出
@@ -67,3 +75,4 @@ export default function Header({ onAddPlayer, onRecordGame, onOpenGrimoire, sele
     </>
   );
 }
+

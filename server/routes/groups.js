@@ -1,11 +1,14 @@
 /**
  * Group routes – full CRUD for player groups.
  *
- * GET    /api/groups        – Public, returns all groups.
- * POST   /api/groups        – Protected, creates a new group.
- * GET    /api/groups/:id    – Public, get a single group.
- * PUT    /api/groups/:id    – Protected, updates a group.
- * DELETE /api/groups/:id    – Protected, deletes a group (only if no games).
+ * GET    /api/groups           – Public, returns all groups.
+ * POST   /api/groups           – Protected (storyteller only), creates a new group.
+ * GET    /api/groups/:id       – Public, get a single group.
+ * PUT    /api/groups/:id       – Protected (owner only), updates a group.
+ * DELETE /api/groups/:id       – Protected (owner only), deletes a group (only if no games).
+ * POST   /api/groups/:id/join  – Protected, join a group.
+ * DELETE /api/groups/:id/leave – Protected, leave a group.
+ * GET    /api/groups/:id/members – Public, list group members.
  */
 
 import { Router } from 'express';
@@ -42,6 +45,12 @@ router.post(
       return res.status(400).json({ errors: errors.array() });
     }
 
+    // Only storytellers can create groups
+    const user = db.prepare('SELECT role FROM users WHERE id = ?').get(req.user.userId);
+    if (!user || user.role !== 'storyteller') {
+      return res.status(403).json({ error: '只有说书人才能创建分组' });
+    }
+
     const { name, description, avatar } = req.body;
 
     // Generate a URL-safe id from the name if not explicitly provided
@@ -62,8 +71,11 @@ router.post(
     }
 
     db.prepare(
-      'INSERT INTO groups (id, name, description, avatar) VALUES (?, ?, ?, ?)',
-    ).run(id, name, description || null, avatar || null);
+      'INSERT INTO groups (id, name, description, avatar, created_by) VALUES (?, ?, ?, ?, ?)',
+    ).run(id, name, description || null, avatar || null, req.user.userId);
+
+    // Auto-add creator as group member
+    db.prepare('INSERT INTO group_members (user_id, group_id) VALUES (?, ?)').run(req.user.userId, id);
 
     // Seed official scripts for the new group
     const OFFICIAL_SCRIPTS = [
@@ -131,6 +143,11 @@ router.put(
       return res.status(404).json({ error: 'Group not found.' });
     }
 
+    // Only the group creator can update
+    if (existing.created_by !== req.user.userId) {
+      return res.status(403).json({ error: '只有组的创建者才能执行此操作' });
+    }
+
     const name = req.body.name !== undefined ? req.body.name : existing.name;
     const description = req.body.description !== undefined ? req.body.description : existing.description;
     const avatar = req.body.avatar !== undefined ? req.body.avatar : existing.avatar;
@@ -153,6 +170,11 @@ router.delete('/:id', authenticateJWT, (req, res) => {
     return res.status(404).json({ error: 'Group not found.' });
   }
 
+  // Only the group creator can delete
+  if (existing.created_by !== req.user.userId) {
+    return res.status(403).json({ error: '只有组的创建者才能执行此操作' });
+  }
+
   // Check if group has any games
   const gameCount = db.prepare(
     'SELECT COUNT(*) AS count FROM games WHERE group_id = ?',
@@ -168,6 +190,44 @@ router.delete('/:id', authenticateJWT, (req, res) => {
   db.prepare('UPDATE players SET group_id = NULL WHERE group_id = ?').run(id);
   db.prepare('DELETE FROM groups WHERE id = ?').run(id);
   res.json({ message: 'Group deleted.', id });
+});
+
+// ─── POST /api/groups/:id/join ──────────────────────────────────────────────────
+
+router.post('/:id/join', authenticateJWT, (req, res) => {
+  const groupId = req.params.id;
+  const group = db.prepare('SELECT * FROM groups WHERE id = ?').get(groupId);
+  if (!group) return res.status(404).json({ error: 'Group not found' });
+
+  const existing = db.prepare('SELECT * FROM group_members WHERE user_id = ? AND group_id = ?').get(req.user.userId, groupId);
+  if (existing) return res.status(409).json({ error: '已经加入了该组' });
+
+  db.prepare('INSERT INTO group_members (user_id, group_id) VALUES (?, ?)').run(req.user.userId, groupId);
+  res.json({ message: '成功加入' });
+});
+
+// ─── DELETE /api/groups/:id/leave ───────────────────────────────────────────────
+
+router.delete('/:id/leave', authenticateJWT, (req, res) => {
+  db.prepare('DELETE FROM group_members WHERE user_id = ? AND group_id = ?').run(req.user.userId, req.params.id);
+  // Also unclaim any player
+  db.prepare('UPDATE players SET user_id = NULL WHERE user_id = ? AND group_id = ?').run(req.user.userId, req.params.id);
+  res.json({ message: '已离开' });
+});
+
+// ─── GET /api/groups/:id/members ────────────────────────────────────────────────
+
+router.get('/:id/members', (req, res) => {
+  const members = db.prepare(`
+    SELECT gm.*, u.username, u.display_name, u.avatar as user_avatar, u.role as user_role,
+           p.name as player_name, p.id as claimed_player_id
+    FROM group_members gm
+    JOIN users u ON gm.user_id = u.id
+    LEFT JOIN players p ON p.user_id = u.id AND p.group_id = gm.group_id
+    WHERE gm.group_id = ?
+    ORDER BY gm.joined_at ASC
+  `).all(req.params.id);
+  res.json({ members });
 });
 
 export default router;

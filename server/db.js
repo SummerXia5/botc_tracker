@@ -145,6 +145,54 @@ function initDatabase() {
   try {
     db.prepare('ALTER TABLE game_participants ADD COLUMN character_id TEXT').run();
   } catch (e) { /* Column already exists */ }
+
+  // ---- Multi-user auth migrations ----
+  try {
+    db.prepare("ALTER TABLE users ADD COLUMN role TEXT DEFAULT 'player' CHECK (role IN ('storyteller', 'player'))").run();
+  } catch (e) { /* Column already exists */ }
+
+  try {
+    db.prepare('ALTER TABLE users ADD COLUMN display_name TEXT').run();
+  } catch (e) { /* Column already exists */ }
+
+  try {
+    db.prepare('ALTER TABLE users ADD COLUMN avatar TEXT').run();
+  } catch (e) { /* Column already exists */ }
+
+  try {
+    db.prepare('ALTER TABLE groups ADD COLUMN created_by INTEGER REFERENCES users(id)').run();
+  } catch (e) { /* Column already exists */ }
+
+  try {
+    db.prepare('ALTER TABLE players ADD COLUMN user_id INTEGER REFERENCES users(id)').run();
+  } catch (e) { /* Column already exists */ }
+
+  // Group members table
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS group_members (
+      id          INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id     INTEGER NOT NULL REFERENCES users(id),
+      group_id    TEXT NOT NULL REFERENCES groups(id) ON DELETE CASCADE,
+      player_id   TEXT REFERENCES players(id),
+      joined_at   TEXT DEFAULT (datetime('now')),
+      UNIQUE(user_id, group_id)
+    );
+  `);
+  try { db.exec('CREATE INDEX IF NOT EXISTS idx_gm_user ON group_members(user_id)'); } catch(e) {}
+  try { db.exec('CREATE INDEX IF NOT EXISTS idx_gm_group ON group_members(group_id)'); } catch(e) {}
+
+  // Migrate existing admin user to storyteller
+  try {
+    db.prepare("UPDATE users SET role = 'storyteller' WHERE id = (SELECT MIN(id) FROM users)").run();
+  } catch (e) {}
+
+  // Set created_by for existing groups to first user
+  try {
+    const firstUser = db.prepare('SELECT MIN(id) as id FROM users').get();
+    if (firstUser && firstUser.id) {
+      db.prepare('UPDATE groups SET created_by = ? WHERE created_by IS NULL').run(firstUser.id);
+    }
+  } catch (e) {}
 }
 
 // Run table creation on module load

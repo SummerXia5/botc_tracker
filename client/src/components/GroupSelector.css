@@ -238,3 +238,30 @@
     font-size: 1.3rem;
   }
 }
+
+/* ---- Join Button & Badge ---- */
+.group-join-btn {
+  padding: 4px 14px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--accent-red);
+  background: transparent;
+  color: var(--accent-red);
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 200ms;
+}
+
+.group-join-btn:hover {
+  background: var(--accent-red);
+  color: white;
+}
+
+.group-joined-badge {
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
+  background: rgba(76, 175, 80, 0.1);
+  color: #4CAF50;
+  font-size: 0.72rem;
+  font-weight: 600;
+}

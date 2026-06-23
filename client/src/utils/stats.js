@@ -7,14 +7,16 @@
  * Compute detailed stats for a single player from their game participations.
  * @param {object} player - Player object with id, name, emoji, description
  * @param {Array} games - Array of game objects, each with participants array
+ * @param {Array|null} playerIds - Optional array of player IDs to match (for cross-group aggregation)
  * @returns {object} Player with computed stats
  */
-export function computePlayerStats(player, games) {
+export function computePlayerStats(player, games, playerIds = null) {
+  const matchIds = playerIds || [player.id];
   const participations = [];
 
   for (const game of games) {
     if (!game.participants) continue;
-    const entry = game.participants.find(p => p.player_id === player.id);
+    const entry = game.participants.find(p => matchIds.includes(p.player_id));
     if (entry) {
       participations.push({ ...entry, game });
     }
@@ -112,7 +114,7 @@ export function computePlayerStats(player, games) {
     gamesBonus * 10;
 
   // MVP bonus
-  const mvpCount = games.filter(g => g.mvp_player_id === player.id).length;
+  const mvpCount = games.filter(g => matchIds.includes(g.mvp_player_id)).length;
   const mvpBonus = Math.min(mvpCount * 3, 15);
 
   // Achievement bonus

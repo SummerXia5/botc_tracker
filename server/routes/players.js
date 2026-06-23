@@ -1,10 +1,12 @@
 /**
- * Player routes – full CRUD.
+ * Player routes – full CRUD + claim/unclaim.
  *
- * GET    /api/players       – Public, returns all players.
- * POST   /api/players       – Protected, creates a new player.
- * PUT    /api/players/:id   – Protected, updates a player.
- * DELETE /api/players/:id   – Protected, deletes a player.
+ * GET    /api/players            – Public, returns all players.
+ * POST   /api/players            – Protected, creates a new player.
+ * PUT    /api/players/:id        – Protected, updates a player.
+ * DELETE /api/players/:id        – Protected, deletes a player.
+ * POST   /api/players/:id/claim  – Protected, claim a player profile.
+ * DELETE /api/players/:id/unclaim – Protected, unclaim a player profile.
  */
 
 import { Router } from 'express';
@@ -20,11 +22,11 @@ router.get('/', (req, res) => {
   const { group_id } = req.query;
 
   if (group_id) {
-    const players = db.prepare('SELECT * FROM players WHERE group_id = ? ORDER BY created_at ASC').all(group_id);
+    const players = db.prepare('SELECT id, name, avatar, desc, is_system, created_at, group_id, user_id FROM players WHERE group_id = ? ORDER BY created_at ASC').all(group_id);
     return res.json({ players });
   }
 
-  const players = db.prepare('SELECT * FROM players ORDER BY created_at ASC').all();
+  const players = db.prepare('SELECT id, name, avatar, desc, is_system, created_at, group_id, user_id FROM players ORDER BY created_at ASC').all();
   res.json({ players });
 });
 
@@ -148,6 +150,47 @@ router.delete('/:id', authenticateJWT, (req, res) => {
 
   db.prepare('DELETE FROM players WHERE id = ?').run(id);
   res.json({ message: 'Player deleted.', id });
+});
+
+// ─── POST /api/players/:id/claim ────────────────────────────────────────────────
+
+router.post('/:id/claim', authenticateJWT, (req, res) => {
+  const { id } = req.params;
+  const player = db.prepare('SELECT * FROM players WHERE id = ?').get(id);
+  if (!player) return res.status(404).json({ error: 'Player not found' });
+
+  // Check if already claimed by someone else
+  if (player.user_id && player.user_id !== req.user.userId) {
+    return res.status(409).json({ error: '该档案已被其他用户认领' });
+  }
+
+  // Check if user already claimed a different player in this group
+  const existing = db.prepare('SELECT * FROM players WHERE user_id = ? AND group_id = ? AND id != ?').get(req.user.userId, player.group_id, id);
+  if (existing) {
+    return res.status(409).json({ error: `你在该组已认领了 "${existing.name}"，请先解除` });
+  }
+
+  db.prepare('UPDATE players SET user_id = ? WHERE id = ?').run(req.user.userId, id);
+  // Also update group_members to link player_id
+  db.prepare('UPDATE group_members SET player_id = ? WHERE user_id = ? AND group_id = ?').run(id, req.user.userId, player.group_id);
+
+  const updated = db.prepare('SELECT * FROM players WHERE id = ?').get(id);
+  res.json({ player: updated });
+});
+
+// ─── DELETE /api/players/:id/unclaim ────────────────────────────────────────────
+
+router.delete('/:id/unclaim', authenticateJWT, (req, res) => {
+  const { id } = req.params;
+  const player = db.prepare('SELECT * FROM players WHERE id = ?').get(id);
+  if (!player) return res.status(404).json({ error: 'Player not found' });
+  if (player.user_id !== req.user.userId) {
+    return res.status(403).json({ error: '只能解除自己认领的档案' });
+  }
+
+  db.prepare('UPDATE players SET user_id = NULL WHERE id = ?').run(id);
+  db.prepare('UPDATE group_members SET player_id = NULL WHERE user_id = ? AND group_id = ?').run(req.user.userId, player.group_id);
+  res.json({ message: '已解除认领' });
 });
 
 export default router;

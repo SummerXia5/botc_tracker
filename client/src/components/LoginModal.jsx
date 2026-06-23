@@ -10,6 +10,8 @@ export default function LoginModal({ onClose }) {
   const [isRegister, setIsRegister] = useState(false);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [role, setRole] = useState('player');
+  const [displayName, setDisplayName] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
@@ -23,7 +25,7 @@ export default function LoginModal({ onClose }) {
     try {
       let data;
       if (isRegister) {
-        data = await apiRegister(username.trim(), password);
+        data = await apiRegister(username.trim(), password, role, displayName.trim() || username.trim());
         toast.success('注册成功！');
       } else {
         data = await apiLogin(username.trim(), password);
@@ -44,13 +46,39 @@ export default function LoginModal({ onClose }) {
         <button className="modal-close" onClick={onClose}>✕</button>
 
         <div className="login-header">
-          <h2>{isRegister ? '注册账号' : '管理员登录'}</h2>
+          <h2>{isRegister ? '创建账号' : '登录'}</h2>
           <p className="login-subtitle">
-            {isRegister ? 'Create Admin Account' : 'Admin Authentication'}
+            {isRegister ? 'Create Account' : 'Sign In'}
           </p>
         </div>
 
         <form className="login-form" onSubmit={handleSubmit}>
+          {isRegister && (
+            <div className="role-picker">
+              <p className="role-picker-label">我是：</p>
+              <div className="role-picker-options">
+                <button
+                  type="button"
+                  className={`role-option ${role === 'storyteller' ? 'role-option-active' : ''}`}
+                  onClick={() => setRole('storyteller')}
+                >
+                  <span className="role-icon">📖</span>
+                  <span className="role-name">说书人</span>
+                  <span className="role-desc">创建组、管理对局</span>
+                </button>
+                <button
+                  type="button"
+                  className={`role-option ${role === 'player' ? 'role-option-active' : ''}`}
+                  onClick={() => setRole('player')}
+                >
+                  <span className="role-icon">🎮</span>
+                  <span className="role-name">玩家</span>
+                  <span className="role-desc">加入组、查看数据</span>
+                </button>
+              </div>
+            </div>
+          )}
+
           <div className="form-field">
             <label>用户名</label>
             <input
@@ -61,6 +89,18 @@ export default function LoginModal({ onClose }) {
               autoFocus
             />
           </div>
+
+          {isRegister && (
+            <div className="form-field">
+              <label>显示名称</label>
+              <input
+                type="text"
+                value={displayName}
+                onChange={e => setDisplayName(e.target.value)}
+                placeholder="Display Name（选填，默认同用户名）"
+              />
+            </div>
+          )}
 
           <div className="form-field">
             <label>密码</label>

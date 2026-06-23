@@ -51,10 +51,10 @@ export async function login(username, password) {
   });
 }
 
-export async function register(username, password) {
+export async function register(username, password, role, displayName) {
   return request('/api/auth/register', {
     method: 'POST',
-    body: JSON.stringify({ username, password }),
+    body: JSON.stringify({ username, password, role, display_name: displayName }),
   });
 }
 
@@ -84,6 +84,23 @@ export async function deleteGroup(id) {
   });
 }
 
+export async function joinGroup(groupId) {
+  return request(`/api/groups/${encodeURIComponent(groupId)}/join`, {
+    method: 'POST',
+  });
+}
+
+export async function leaveGroup(groupId) {
+  return request(`/api/groups/${encodeURIComponent(groupId)}/leave`, {
+    method: 'DELETE',
+  });
+}
+
+export async function fetchGroupMembers(groupId) {
+  const data = await request(`/api/groups/${encodeURIComponent(groupId)}/members`);
+  return data.members || [];
+}
+
 // ---- Players ----
 export async function fetchPlayers(groupId) {
   const params = groupId ? `?group_id=${encodeURIComponent(groupId)}` : '';
@@ -109,6 +126,14 @@ export async function deletePlayer(id) {
   return request(`/api/players/${encodeURIComponent(id)}`, {
     method: 'DELETE',
   });
+}
+
+export async function claimPlayer(playerId) {
+  return request(`/api/players/${encodeURIComponent(playerId)}/claim`, { method: 'POST' });
+}
+
+export async function unclaimPlayer(playerId) {
+  return request(`/api/players/${encodeURIComponent(playerId)}/unclaim`, { method: 'DELETE' });
 }
 
 // ---- Games ----
@@ -155,4 +180,9 @@ export async function deleteScript(id) {
   return request(`/api/scripts/${encodeURIComponent(id)}`, {
     method: 'DELETE',
   });
+}
+
+// ---- Profile ----
+export async function fetchProfile() {
+  return request('/api/auth/profile');
 }

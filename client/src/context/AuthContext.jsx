@@ -25,9 +25,11 @@ export function AuthProvider({ children }) {
   };
 
   const isAuthenticated = !!token;
+  const isStoryteller = user?.role === 'storyteller';
+  const isPlayer = user?.role === 'player';
 
   return (
-    <AuthContext.Provider value={{ user, token, isAuthenticated, login, logout }}>
+    <AuthContext.Provider value={{ user, token, isAuthenticated, isStoryteller, isPlayer, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

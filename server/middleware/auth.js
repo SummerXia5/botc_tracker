@@ -10,6 +10,7 @@
  */
 
 import jwt from 'jsonwebtoken';
+import db from '../db.js';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret';
 
@@ -28,6 +29,7 @@ export function authenticateJWT(req, res, next) {
     req.user = {
       userId: decoded.userId,
       username: decoded.username,
+      role: decoded.role,
     };
     next();
   } catch (err) {
@@ -36,4 +38,16 @@ export function authenticateJWT(req, res, next) {
     }
     return res.status(401).json({ error: 'Invalid token.' });
   }
+}
+
+export function requireGroupOwner(req, res, next) {
+  const groupId = req.params.group_id || req.body.group_id || req.params.id;
+  if (!groupId) return res.status(400).json({ error: 'group_id required' });
+
+  const group = db.prepare('SELECT created_by FROM groups WHERE id = ?').get(groupId);
+  if (!group) return res.status(404).json({ error: 'Group not found' });
+  if (group.created_by !== req.user.userId) {
+    return res.status(403).json({ error: '只有组的创建者才能执行此操作' });
+  }
+  next();
 }

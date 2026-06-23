@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useAuth } from './context/AuthContext';
-import { fetchPlayers, fetchGames, fetchGroups, fetchScripts } from './api';
+import { fetchPlayers, fetchGames, fetchGroups, fetchScripts, fetchProfile } from './api';
 import { computePlayerStats, computeDashboardStats, computeHallOfFame } from './utils/stats';
 import Header from './components/Header';
 import GroupSelector from './components/GroupSelector';
@@ -12,12 +12,14 @@ import GameHistory from './components/GameHistory';
 import RecordGameModal from './components/RecordGameModal';
 import AdminPanel from './components/AdminPanel';
 import Grimoire from './components/Grimoire';
+import MyProfile from './components/MyProfile';
 import { useToast } from './components/Toast';
 import './App.css';
 
 export default function App() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const toast = useToast();
+  const isStoryteller = user?.role === 'storyteller';
 
   // Group state
   const [groups, setGroups] = useState([]);
@@ -34,8 +36,21 @@ export default function App() {
   const [selectedPlayer, setSelectedPlayer] = useState(null);
   const [showRecordGame, setShowRecordGame] = useState(false);
   const [showGrimoire, setShowGrimoire] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
   const [prefillData, setPrefillData] = useState(null);
+  const [myGroupIds, setMyGroupIds] = useState([]);
+
+  // Fetch profile memberships on auth change
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchProfile().then(data => {
+        setMyGroupIds((data.memberships || []).map(m => m.group_id));
+      }).catch(() => {});
+    } else {
+      setMyGroupIds([]);
+    }
+  }, [isAuthenticated]);
 
   // Load groups on mount
   const loadGroups = useCallback(async () => {
@@ -131,6 +146,7 @@ export default function App() {
         onSelectGroup={handleSelectGroup}
         onRefresh={loadGroups}
         isAuthenticated={isAuthenticated}
+        myGroupIds={myGroupIds}
       />
     );
   }
@@ -146,6 +162,8 @@ export default function App() {
     );
   }
 
+  const isGroupOwner = isStoryteller && selectedGroup?.created_by === user?.id;
+
   return (
     <div className="app">
       <Header
@@ -154,6 +172,7 @@ export default function App() {
         onOpenGrimoire={() => setShowGrimoire(true)}
         selectedGroup={selectedGroup}
         onBack={handleBack}
+        onOpenProfile={() => setShowProfile(true)}
       />
 
       <main className="app-main">
@@ -165,7 +184,7 @@ export default function App() {
           >
             📊 数据总览
           </button>
-          {isAuthenticated && (
+          {isGroupOwner && (
             <button
               className={`app-tab ${activeTab === 'admin' ? 'app-tab-active' : ''}`}
               onClick={() => setActiveTab('admin')}
@@ -187,7 +206,7 @@ export default function App() {
           </>
         )}
 
-        {activeTab === 'admin' && isAuthenticated && (
+        {activeTab === 'admin' && isGroupOwner && (
           <AdminPanel
             players={players}
             games={games}
@@ -211,7 +230,7 @@ export default function App() {
         />
       )}
 
-      {showRecordGame && isAuthenticated && (
+      {showRecordGame && isGroupOwner && (
         <RecordGameModal
           players={players}
           scripts={scripts}
@@ -225,7 +244,7 @@ export default function App() {
 
 
 
-      {showGrimoire && isAuthenticated && (
+      {showGrimoire && isGroupOwner && (
         <Grimoire
           players={players}
           scripts={scripts}
@@ -240,6 +259,10 @@ export default function App() {
           onClose={() => setShowGrimoire(false)}
           onRefreshPlayers={handleRefresh}
         />
+      )}
+
+      {showProfile && (
+        <MyProfile onClose={() => setShowProfile(false)} />
       )}
     </div>
   );
