@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { createPlayer, updatePlayer, deletePlayer, deleteGame, updateGame } from '../api';
+import { CHARACTERS, TYPE_LABELS } from '../data/characters';
 import { useToast } from './Toast';
 import ScriptManagement from './ScriptManagement';
 import './AdminPanel.css';
@@ -40,6 +41,7 @@ export default function AdminPanel({ players, games, scripts, groupId, onRefresh
   const [editGameWinner, setEditGameWinner] = useState('good');
   const [editGameNotes, setEditGameNotes] = useState('');
   const [editGameMvp, setEditGameMvp] = useState('');
+  const [editParticipants, setEditParticipants] = useState([]); // [{player_id, player_name, role_type, survived, survival_days, character_id, final_round}]
 
   const filteredPlayers = useMemo(() => {
     if (!search.trim()) return players;
@@ -148,6 +150,15 @@ export default function AdminPanel({ players, games, scripts, groupId, onRefresh
     setEditGameWinner(game.winner || 'good');
     setEditGameNotes(game.notes || '');
     setEditGameMvp(game.mvp_player_id || '');
+    setEditParticipants((game.participants || []).map(p => ({
+      player_id: p.player_id,
+      player_name: p.player_name || getPlayerName(p.player_id),
+      role_type: p.role_type || 'townsfolk',
+      survived: p.survived ? true : false,
+      survival_days: p.survival_days || null,
+      character_id: p.character_id || null,
+      final_round: p.final_round ? true : false,
+    })));
   };
 
   const handleUpdateGame = async (id) => {
@@ -160,6 +171,14 @@ export default function AdminPanel({ players, games, scripts, groupId, onRefresh
         winner: editGameWinner || undefined,
         notes: editGameNotes,
         mvp_player_id: editGameMvp || undefined,
+        participants: editParticipants.map(p => ({
+          player_id: p.player_id,
+          role_type: p.role_type,
+          survived: p.survived,
+          survival_days: p.survival_days,
+          character_id: p.character_id,
+          final_round: p.final_round,
+        })),
       });
       toast.success('对局已更新');
       setEditingGameId(null);
@@ -471,6 +490,72 @@ export default function AdminPanel({ players, games, scripts, groupId, onRefresh
                         取消
                       </button>
                     </div>
+
+                    {/* Participant details */}
+                    {editParticipants.length > 0 && (
+                      <div style={{ marginTop: 12, borderTop: '1px solid #eee', paddingTop: 10 }}>
+                        <div style={{ fontSize: '0.75rem', color: '#888', marginBottom: 6 }}>玩家详情</div>
+                        {editParticipants.map((p, pi) => (
+                          <div key={p.player_id} style={{
+                            display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap',
+                            padding: '4px 0', borderBottom: '1px solid #f0f0f0', fontSize: '0.8rem',
+                          }}>
+                            <span style={{ minWidth: 60, fontWeight: 500 }}>{p.player_name}</span>
+                            <select
+                              className="admin-input"
+                              style={{ padding: '2px 4px', fontSize: '0.75rem', width: 70 }}
+                              value={p.role_type}
+                              onChange={e => {
+                                const next = [...editParticipants];
+                                next[pi] = { ...next[pi], role_type: e.target.value };
+                                setEditParticipants(next);
+                              }}
+                            >
+                              <option value="townsfolk">镇民</option>
+                              <option value="outsider">外来者</option>
+                              <option value="minion">爪牙</option>
+                              <option value="demon">恶魔</option>
+                            </select>
+                            <label style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                              <input
+                                type="checkbox"
+                                checked={p.survived}
+                                onChange={e => {
+                                  const next = [...editParticipants];
+                                  next[pi] = { ...next[pi], survived: e.target.checked };
+                                  setEditParticipants(next);
+                                }}
+                              />
+                              存活
+                            </label>
+                            <label style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                              <input
+                                type="checkbox"
+                                checked={p.final_round}
+                                onChange={e => {
+                                  const next = [...editParticipants];
+                                  next[pi] = { ...next[pi], final_round: e.target.checked };
+                                  setEditParticipants(next);
+                                }}
+                              />
+                              决赛
+                            </label>
+                            <input
+                              type="number"
+                              className="admin-input"
+                              style={{ width: 50, padding: '2px 4px', fontSize: '0.75rem' }}
+                              placeholder="天"
+                              value={p.survival_days || ''}
+                              onChange={e => {
+                                const next = [...editParticipants];
+                                next[pi] = { ...next[pi], survival_days: e.target.value ? parseInt(e.target.value) : null };
+                                setEditParticipants(next);
+                              }}
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 ) : (
                   /* Game Display Mode */

@@ -238,7 +238,7 @@ router.put(
       return res.status(404).json({ error: 'Game not found.' });
     }
 
-    const { date, script, winner, notes, mvp_player_id } = req.body;
+    const { date, script, winner, notes, mvp_player_id, participants } = req.body;
 
     db.prepare(`UPDATE games SET
       date = COALESCE(?, date),
@@ -249,8 +249,42 @@ router.put(
       WHERE id = ?`
     ).run(date || null, script || null, winner || null, notes, mvp_player_id, req.params.id);
 
+    // Update participants if provided
+    if (Array.isArray(participants)) {
+      for (const p of participants) {
+        db.prepare(`UPDATE game_participants SET
+          role_type = COALESCE(?, role_type),
+          survived = COALESCE(?, survived),
+          final_round = COALESCE(?, final_round),
+          correct_vote = COALESCE(?, correct_vote),
+          survival_days = COALESCE(?, survival_days),
+          player_notes = COALESCE(?, player_notes),
+          character_id = COALESCE(?, character_id),
+          achievements = COALESCE(?, achievements)
+          WHERE game_id = ? AND player_id = ?`
+        ).run(
+          p.role_type || null,
+          p.survived !== undefined ? (p.survived ? 1 : 0) : null,
+          p.final_round !== undefined ? (p.final_round ? 1 : 0) : null,
+          p.correct_vote !== undefined ? (p.correct_vote ? 1 : 0) : null,
+          p.survival_days !== undefined ? p.survival_days : null,
+          p.player_notes || null,
+          p.character_id || null,
+          p.achievements ? JSON.stringify(p.achievements) : null,
+          req.params.id,
+          p.player_id,
+        );
+      }
+    }
+
     const updated = db.prepare('SELECT * FROM games WHERE id = ?').get(req.params.id);
-    res.json({ game: updated });
+    const updatedParts = db.prepare(`
+      SELECT gp.*, p.name AS player_name, p.avatar AS player_avatar
+      FROM game_participants gp
+      JOIN players p ON p.id = gp.player_id
+      WHERE gp.game_id = ?
+    `).all(req.params.id);
+    res.json({ game: { ...updated, participants: updatedParts } });
   },
 );
 
