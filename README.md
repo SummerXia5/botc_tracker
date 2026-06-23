@@ -1,51 +1,60 @@
 # 🔮 血染钟楼 · 周五狂欢夜数据追踪器
 
-**FRIDAY NIGHT CLOCKTOWER ARENA — Data Tracker**
+**FRIDAY NIGHT CLOCKTOWER ARENA — Data Tracker & Storyteller Grimoire**
 
-A full-stack web application for tracking Blood on the Clocktower game sessions, player statistics, and leaderboards.
+A full-stack web application for tracking Blood on the Clocktower game sessions, running games with a digital grimoire, player statistics, and leaderboards.
 
 ## 🏗️ Architecture
 
 ```
 血染钟楼/
-├── server/          # Express.js + SQLite Backend
-│   ├── server.js    # Main entry point
-│   ├── db.js        # Database initialization
-│   ├── seed.js      # Data seeding (12 players + 45 games)
+├── server/                # Express.js + SQLite Backend
+│   ├── server.js          # Main entry point (serves built frontend in production)
+│   ├── db.js              # Database initialization & migrations
+│   ├── seed.js            # Data seeding
 │   ├── middleware/
-│   │   └── auth.js  # JWT authentication middleware
+│   │   └── auth.js        # JWT authentication middleware
 │   └── routes/
-│       ├── auth.js    # Register, Login, Me
-│       ├── players.js # CRUD players
-│       └── games.js   # CRUD games with participants
+│       ├── auth.js        # Register, Login, Me
+│       ├── players.js     # CRUD players
+│       ├── games.js       # CRUD games with participants + participant updates
+│       ├── groups.js      # Group management
+│       └── scripts.js     # Script (剧本) management
 │
-├── client/          # Vite + React Frontend
+├── client/                # Vite + React Frontend
 │   ├── src/
-│   │   ├── App.jsx           # Main orchestrator
-│   │   ├── api.js            # API client with JWT
+│   │   ├── App.jsx                 # Main orchestrator + routing
+│   │   ├── api.js                  # API client with JWT
 │   │   ├── context/
 │   │   │   └── AuthContext.jsx
-│   │   ├── components/       # 12 UI components
-│   │   │   ├── Header.jsx
-│   │   │   ├── Dashboard.jsx
-│   │   │   ├── HallOfFame.jsx
-│   │   │   ├── PlayerList.jsx
-│   │   │   ├── PlayerCard.jsx
-│   │   │   ├── PlayerModal.jsx   # With SVG Radar Chart
-│   │   │   ├── GameHistory.jsx
-│   │   │   ├── RecordGameModal.jsx
-│   │   │   ├── AddPlayerModal.jsx
-│   │   │   ├── LoginModal.jsx
-│   │   │   ├── RadarChart.jsx
-│   │   │   └── Toast.jsx
+│   │   ├── data/
+│   │   │   └── characters.js       # Character database (official BotC chars)
+│   │   ├── components/
+│   │   │   ├── Header.jsx          # Navigation + auth controls
+│   │   │   ├── Dashboard.jsx       # Summary stats + charts
+│   │   │   ├── HallOfFame.jsx      # Awards & leaderboards
+│   │   │   ├── PlayerList.jsx      # Sortable player grid
+│   │   │   ├── PlayerCard.jsx      # Individual player card
+│   │   │   ├── PlayerModal.jsx     # Player detail modal with radar chart
+│   │   │   ├── GameHistory.jsx     # Paginated game records
+│   │   │   ├── RecordGameModal.jsx # 4-step game recording wizard
+│   │   │   ├── Grimoire.jsx        # 🔮 Digital Storyteller Grimoire
+│   │   │   ├── Grimoire.css        # Grimoire styles (37KB+)
+│   │   │   ├── AdminPanel.jsx      # Admin: players, games, scripts
+│   │   │   ├── GroupSelector.jsx   # Multi-group support
+│   │   │   ├── ScriptManagement.jsx # Script import & management
+│   │   │   ├── PlayerManagement.jsx # In-grimoire player management
+│   │   │   ├── PlayerSelector.jsx  # Player picker for game recording
+│   │   │   ├── RadarChart.jsx      # SVG radar chart (5 dimensions)
+│   │   │   └── Toast.jsx           # Notification system
 │   │   └── utils/
-│   │       └── stats.js      # Stats computation engine
+│   │       └── stats.js            # Stats computation engine
 │   └── index.html
 │
 └── README.md
 ```
 
-## 🚀 Quick Start (Local Development)
+## 🚀 Quick Start
 
 ### Prerequisites
 - **Node.js** v18+ (recommend v20+)
@@ -58,10 +67,7 @@ npm install
 node server.js
 ```
 
-The server will:
-- Create SQLite database automatically
-- Seed 12 initial players and 45 mock games
-- Start listening on **http://localhost:5001**
+Backend starts on **http://localhost:5001** with auto-created SQLite database.
 
 ### 2. Start Frontend
 
@@ -71,18 +77,52 @@ npm install
 npx vite
 ```
 
-The Vite dev server starts on **http://localhost:3000** with API proxy to the backend.
+Dev server on **http://localhost:3000** with API proxy.
 
-### 3. Open the App
+### 3. First-Time Setup
 
-Visit **http://localhost:3000** in your browser.
+1. Click **管理员登录** → Register tab → Create admin account
+2. After login, unlock admin features: record games, manage players, use grimoire
 
-## 🔑 First-Time Setup
+## 🎯 Features
 
-1. Click the **管理员登录** (Admin Login) button in the header
-2. Switch to the **注册** (Register) tab
-3. Create your admin account (first registration only — subsequent registrations are blocked)
-4. After logging in, you'll see **新玩家** and **记录赛果** buttons
+### 🔮 Digital Grimoire (说书人魔典)
+- **Circle Layout**: Players arranged in a circle, mimicking the physical game
+- **Role Assignment**: Manual or random character assignment from script
+- **Character Distribution**: Configurable +/- per role type (handles Baron, etc.)
+- **Reminder Tokens**: Place/remove 备忘标记 (mad, drunk, poisoned, etc.)
+- **Custom Reminders**: Add custom text reminder tokens
+- **Game Flow**: Setup → Night 1 → Day/Night cycles
+- **Alive/Dead Toggle**: Click tokens to mark death (tracks death day)
+- **Player Management**: Add/remove players during setup
+- **Game Export**: End game → auto-fills RecordGameModal with all data
+- **Grimoire Log**: Auto-generated timestamped event log → saved as game notes
+
+### 📊 Data & Stats
+- **Dashboard**: Total games, good vs evil win rates, recent games
+- **Player Profiles**: Power scores, star ratings, role-specific win rates
+- **Radar Charts**: 5-dimension ability visualization (Logic, Acting, Survival, Final Round, Leadership)
+- **Hall of Fame**: Awards for MVP, Logic Master, Disguise Master, Survivor, Final Round Expert
+- **Game History**: Paginated records with character names, survival status, achievements
+
+### 🎮 Game Recording
+- **4-Step Wizard**: Basic info → Select players → Assign roles + stats → Review & submit
+- **Per-Player Data**: Role type, character ID, death vote status, final round vote, evil team marker
+- **Achievements**: 盘通逻辑线, 完美复盘, 强势带队, 带偏方向, 关键操作, 完美伪装
+- **Survival Tracking**: Days survived, alive at end
+- **Auto-Prefill**: Grimoire data automatically populates all fields
+
+### 🛠️ Admin Panel
+- **Player Management**: Create, edit, delete players with emoji avatars
+- **Game Management**: Full edit with participant details (same UI as RecordGameModal)
+- **Script Management**: Import custom JSON scripts, manage official scripts
+- **Group Support**: Multiple player groups for different game circles
+
+### 📜 Script System
+- **Official Scripts**: Pre-loaded BotC scripts
+- **Custom Import**: Upload JSON scripts with custom characters
+- **Character Metadata**: Name, ability, team, custom images
+- **Script-Specific Distribution**: Character pools per script
 
 ## 📡 API Endpoints
 
@@ -93,85 +133,63 @@ Visit **http://localhost:3000** in your browser.
 | GET | `/api/auth/me` | ✅ | Current user info |
 | GET | `/api/players` | ❌ | List all players |
 | POST | `/api/players` | ✅ | Create new player |
+| PUT | `/api/players/:id` | ✅ | Update player |
+| DELETE | `/api/players/:id` | ✅ | Delete player |
 | GET | `/api/games?page=1&limit=20` | ❌ | List games (paginated) |
 | GET | `/api/games/:id` | ❌ | Single game detail |
 | POST | `/api/games` | ✅ | Record new game |
+| PUT | `/api/games/:id` | ✅ | Update game + participants |
+| DELETE | `/api/games/:id` | ✅ | Delete game |
+| GET | `/api/groups` | ❌ | List groups |
+| POST | `/api/groups` | ✅ | Create group |
+| GET | `/api/scripts?group_id=` | ❌ | List scripts |
+| POST | `/api/scripts` | ✅ | Create script |
 | GET | `/api/health` | ❌ | Health check |
 
-## 🎯 Features
+## 📊 Database Schema
 
-### For Everyone (Guest)
-- 📊 **Data Dashboard** — Total games, good vs evil win rates, recent games
-- 🏆 **Hall of Fame** — Awards for MVP, Logic Master, Best Actor, Survivor, Voter
-- 👥 **Player Profiles** — Sortable player list with power scores, star ratings
-- 📈 **Radar Charts** — 5-dimension player ability visualization
-- 📜 **Game History** — Paginated game records with participant details
+- **Engine**: SQLite (via better-sqlite3)
+- **File**: `server/clocktower.db` (auto-created)
 
-### For Admins (Logged In)
-- ➕ **Add New Players** — With emoji avatar picker
-- 🎮 **Record Game Results** — 4-step wizard for match recording
-- 🔒 **JWT Authentication** — Secure 7-day tokens
+| Table | Key Columns |
+|-------|------------|
+| `users` | id, username, password_hash |
+| `groups` | id, name, description, avatar |
+| `players` | id, name, avatar, desc, group_id |
+| `games` | id, date, script, winner, mvp_player_id, notes, group_id |
+| `game_participants` | game_id, player_id, role_type, survived, final_round, correct_vote, character_id, survival_days, achievements, player_notes |
+| `scripts` | id, name, group_id, characters, char_meta, is_official |
 
 ## 🎨 Design
 
-- Premium dark theme with glassmorphism effects
-- Red/crimson + purple accent gradients
-- Gold/amber highlights for rankings
+- Dual theme: Premium parchment light mode + dark mode
+- Red/crimson accents with gold highlights
 - SVG radar charts (zero chart library dependencies)
+- Grimoire uses circular layout with cos/sin positioning
 - Smooth animations and micro-interactions
-- Mobile-first responsive design
+- Responsive design
 - Google Font "Inter" typography
 
 ## 🚢 Production Deployment
 
-### Option A: Render
+### Single Server (Recommended)
 
-1. Push code to GitHub
-2. Create a **Web Service** on [Render](https://render.com)
-3. Set:
-   - **Root Directory**: `server`
-   - **Build Command**: `npm install`
-   - **Start Command**: `node server.js`
-   - **Environment Variables**:
-     - `JWT_SECRET` = (generate a strong secret)
-     - `PORT` = `10000` (Render default)
-     - `NODE_ENV` = `production`
-     - `CORS_ORIGINS` = `https://your-frontend.onrender.com`
-4. For the frontend, create a **Static Site**:
-   - **Root Directory**: `client`
-   - **Build Command**: `npm install && npx vite build`
-   - **Publish Directory**: `dist`
-   - Set `VITE_API_URL` = `https://your-backend.onrender.com`
+The server serves the built frontend in production:
 
-### Option B: Railway
-
-1. Push to GitHub
-2. Create project on [Railway](https://railway.app)
-3. Add backend service (server directory) and set env vars
-4. Add frontend service (client directory) with build commands
-5. Railway auto-detects Node.js and handles the rest
-
-### Option C: Single Server (Serve Frontend from Express)
-
-Add to `server.js` for production:
-```js
-import path from 'path';
-if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(process.cwd(), '../client/dist')));
-  app.get('*', (req, res) => {
-    res.sendFile(path.join(process.cwd(), '../client/dist/index.html'));
-  });
-}
+```bash
+cd client && npm install && npx vite build
+cd ../server && npm install
+NODE_ENV=production JWT_SECRET=your-secret node server.js
 ```
 
-Build frontend: `cd client && npx vite build`
+### Environment Variables
 
-## 📊 Database
-
-- **Engine**: SQLite (via better-sqlite3)
-- **File**: `server/clocktower.db` (auto-created)
-- **Tables**: users, players, games, game_participants
-- **Seed Data**: 12 players + 45 deterministic mock games (mulberry32 PRNG, seed 42)
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `JWT_SECRET` | ✅ | Secret for JWT signing |
+| `PORT` | ❌ | Server port (default: 5001) |
+| `NODE_ENV` | ❌ | `production` to serve static files |
+| `CORS_ORIGINS` | ❌ | Comma-separated allowed origins |
 
 ## 📄 License
 

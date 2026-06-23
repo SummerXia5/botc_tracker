@@ -94,6 +94,62 @@ export function computePlayerStats(player, games) {
   // Star rating
   const starRating = getStarRating(powerScore);
 
+  // MVP count
+  const mvpCount = games.filter(g => g.mvp_player_id === player.id).length;
+
+  // Top characters played (with per-character win rate)
+  const charCounts = {};
+  for (const p of participations) {
+    if (!p.character_id) continue;
+    if (!charCounts[p.character_id]) charCounts[p.character_id] = { games: 0, wins: 0 };
+    charCounts[p.character_id].games++;
+    const isGood = p.role_type === 'townsfolk' || p.role_type === 'outsider';
+    const won = (isGood && p.game.winner === 'good') || (!isGood && p.game.winner === 'evil');
+    if (won) charCounts[p.character_id].wins++;
+  }
+  const topCharacters = Object.entries(charCounts)
+    .map(([id, data]) => ({ id, games: data.games, wins: data.wins, winRate: data.wins / data.games }))
+    .sort((a, b) => b.games - a.games)
+    .slice(0, 5);
+
+  // Average survival days
+  const daysEntries = participations.filter(p => p.survival_days != null && p.survival_days > 0);
+  const avgSurvivalDays = daysEntries.length > 0
+    ? (daysEntries.reduce((sum, p) => sum + p.survival_days, 0) / daysEntries.length)
+    : null;
+  const maxSurvivalDays = daysEntries.length > 0
+    ? Math.max(...daysEntries.map(p => p.survival_days))
+    : null;
+
+  // Achievement counts
+  const achievementCounts = {};
+  for (const p of participations) {
+    let achs = [];
+    try {
+      achs = typeof p.achievements === 'string' ? JSON.parse(p.achievements) : (p.achievements || []);
+    } catch { achs = []; }
+    for (const a of achs) {
+      achievementCounts[a] = (achievementCounts[a] || 0) + 1;
+    }
+  }
+
+  // Win/Loss streaks
+  const sortedByDate = [...participations].sort((a, b) => new Date(a.game.date) - new Date(b.game.date));
+  let currentStreak = 0;
+  let maxWinStreak = 0;
+  let streakType = null; // 'win' or 'lose'
+  for (const p of sortedByDate) {
+    const isGood = p.role_type === 'townsfolk' || p.role_type === 'outsider';
+    const won = (isGood && p.game.winner === 'good') || (!isGood && p.game.winner === 'evil');
+    if (won) {
+      if (streakType === 'win') { currentStreak++; } else { currentStreak = 1; streakType = 'win'; }
+      if (currentStreak > maxWinStreak) maxWinStreak = currentStreak;
+    } else {
+      if (streakType === 'lose') { currentStreak++; } else { currentStreak = 1; streakType = 'lose'; }
+    }
+  }
+  const currentWinStreak = streakType === 'win' ? currentStreak : 0;
+
   // Recent games (last 10)
   const recentGames = participations
     .sort((a, b) => new Date(b.game.date) - new Date(a.game.date))
@@ -105,6 +161,7 @@ export function computePlayerStats(player, games) {
       winner: p.game.winner,
       role_type: p.role_type,
       survived: p.survived,
+      character_id: p.character_id,
       won: (
         ((p.role_type === 'townsfolk' || p.role_type === 'outsider') && p.game.winner === 'good') ||
         ((p.role_type === 'minion' || p.role_type === 'demon') && p.game.winner === 'evil')
@@ -124,6 +181,13 @@ export function computePlayerStats(player, games) {
     goodWinRate,
     evilWinRate,
     recentGames,
+    mvpCount,
+    topCharacters,
+    avgSurvivalDays,
+    maxSurvivalDays,
+    achievementCounts,
+    currentWinStreak,
+    maxWinStreak,
   };
 }
 
