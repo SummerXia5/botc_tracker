@@ -13,6 +13,7 @@ import RecordGameModal from './components/RecordGameModal';
 import AdminPanel from './components/AdminPanel';
 import Grimoire from './components/Grimoire';
 import MyProfile from './components/MyProfile';
+import ClaimPlayerModal from './components/ClaimPlayerModal';
 import { useToast } from './components/Toast';
 import './App.css';
 
@@ -37,6 +38,7 @@ export default function App() {
   const [showRecordGame, setShowRecordGame] = useState(false);
   const [showGrimoire, setShowGrimoire] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
+  const [showClaimPlayer, setShowClaimPlayer] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
   const [prefillData, setPrefillData] = useState(null);
   const [myGroupIds, setMyGroupIds] = useState([]);
@@ -93,6 +95,22 @@ export default function App() {
       loadGroupData(selectedGroup.id);
     }
   }, [selectedGroup, loadGroupData]);
+
+  // Check if user needs to claim a player profile
+  useEffect(() => {
+    if (selectedGroup && !loading && isAuthenticated && user) {
+      // Check if user is member but hasn't claimed a player
+      const isGroupOwner = user.role === 'storyteller' && selectedGroup.created_by === user.id;
+      if (!isGroupOwner) {
+        // Player user - check if they have a claimed player in this group
+        const hasClaimed = players.some(p => p.user_id === user.id);
+        const isMember = myGroupIds.includes(selectedGroup.id);
+        if (isMember && !hasClaimed && players.length > 0) {
+          setShowClaimPlayer(true);
+        }
+      }
+    }
+  }, [selectedGroup, loading, players, isAuthenticated, user, myGroupIds]);
 
   // Computed data
   const playersWithStats = useMemo(() => {
@@ -269,6 +287,14 @@ export default function App() {
 
       {showProfile && (
         <MyProfile onClose={() => setShowProfile(false)} />
+      )}
+
+      {showClaimPlayer && (
+        <ClaimPlayerModal
+          players={players}
+          onClose={() => setShowClaimPlayer(false)}
+          onClaimed={() => { handleRefresh(); setShowClaimPlayer(false); }}
+        />
       )}
     </div>
   );

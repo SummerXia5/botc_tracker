@@ -1,16 +1,26 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { fetchProfile } from '../api';
+import { fetchProfile, updateProfile } from '../api';
 import { computePlayerStats, getRadarDimensions, getPowerTier, ROLE_INFO } from '../utils/stats';
 import RadarChart from './RadarChart';
-import { CHARACTERS } from '../data/characters';
+import { useToast } from './Toast';
 import './MyProfile.css';
 
+const AVATAR_OPTIONS = ['😈', '👻', '🧙', '🧔', '🦹', '🧚', '👹', '👺', '🎃', '🎭', '🔮', '⚔️', '🗡️', '💀', '🧠', '👑', '🌟', '🔥', '🎯', '🏆'];
+
 export default function MyProfile({ onClose }) {
-  const { user } = useAuth();
+  const { user, login, token } = useAuth();
+  const toast = useToast();
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeGroup, setActiveGroup] = useState(null);
+  
+  // Editing state
+  const [editing, setEditing] = useState(false);
+  const [editName, setEditName] = useState('');
+  const [editAvatar, setEditAvatar] = useState('');
+  const [showAvatarPicker, setShowAvatarPicker] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     loadProfile();
@@ -21,6 +31,8 @@ export default function MyProfile({ onClose }) {
     try {
       const data = await fetchProfile();
       setProfile(data);
+      setEditName(data.user?.display_name || data.user?.username || '');
+      setEditAvatar(data.user?.avatar || '😈');
       if (data.memberships?.length > 0) {
         setActiveGroup(data.memberships[0].group_id);
       }
@@ -31,22 +43,35 @@ export default function MyProfile({ onClose }) {
     }
   };
 
+  const handleSaveProfile = async () => {
+    setSaving(true);
+    try {
+      const result = await updateProfile({
+        display_name: editName.trim(),
+        avatar: editAvatar,
+      });
+      // Update AuthContext with new user data
+      login({ ...user, ...result.user }, token);
+      setProfile(prev => ({ ...prev, user: result.user }));
+      setEditing(false);
+      toast.success('个人信息已更新');
+    } catch (err) {
+      toast.error(err.message || '保存失败');
+    } finally {
+      setSaving(false);
+    }
+  };
+
   // Compute aggregate stats across all groups
   const aggregateStats = useMemo(() => {
     if (!profile || !profile.claimedPlayers?.length) return null;
-    // Create a virtual player combining all claimed players
     const virtualPlayer = {
       id: 'aggregate',
       name: user?.display_name || user?.username || 'Me',
     };
-    // Use all games from profile
     const allGames = profile.games || [];
-    // Merge participations: filter to only the user's claimed player IDs
     const myPlayerIds = profile.claimedPlayers.map(p => p.id);
-    // For computePlayerStats, we need to create a compatible format
-    // Modify games so they have participants with our player IDs
-    const stats = computePlayerStats(virtualPlayer, allGames, myPlayerIds);
-    return stats;
+    return computePlayerStats(virtualPlayer, allGames, myPlayerIds);
   }, [profile, user]);
 
   // Per-group stats
@@ -82,16 +107,58 @@ export default function MyProfile({ onClose }) {
       <div className="mp-modal" onClick={e => e.stopPropagation()}>
         <button className="pm-close" onClick={onClose}>×</button>
 
-        {/* User Header */}
+        {/* User Header - Editable */}
         <div className="mp-header">
-          <div className="mp-avatar">{profile.user?.avatar || '👤'}</div>
-          <div className="mp-user-info">
-            <h2 className="mp-name">{profile.user?.display_name || profile.user?.username}</h2>
-            <span className="mp-role-badge" data-role={profile.user?.role}>
-              {profile.user?.role === 'storyteller' ? '📖 说书人' : '🎮 玩家'}
-            </span>
-            <p className="mp-username">@{profile.user?.username}</p>
-          </div>
+          {editing ? (
+            <>
+              <div className="mp-avatar-edit" onClick={() => setShowAvatarPicker(!showAvatarPicker)}>
+                <span>{editAvatar}</span>
+                <span className="mp-avatar-edit-hint">点击换</span>
+              </div>
+              {showAvatarPicker && (
+                <div className="mp-avatar-picker">
+                  {AVATAR_OPTIONS.map(emoji => (
+                    <button
+                      key={emoji}
+                      className={`mp-avatar-option ${editAvatar === emoji ? 'mp-avatar-selected' : ''}`}
+                      onClick={() => { setEditAvatar(emoji); setShowAvatarPicker(false); }}
+                    >
+                      {emoji}
+                    </button>
+                  ))}
+                </div>
+              )}
+              <div className="mp-edit-fields">
+                <input
+                  className="mp-edit-input"
+                  value={editName}
+                  onChange={e => setEditName(e.target.value)}
+                  placeholder="显示名称"
+                  autoFocus
+                />
+                <div className="mp-edit-actions">
+                  <button className="btn btn-filled mp-save-btn" onClick={handleSaveProfile} disabled={saving}>
+                    {saving ? '保存中...' : '保存'}
+                  </button>
+                  <button className="btn btn-ghost" onClick={() => { setEditing(false); setShowAvatarPicker(false); }}>
+                    取消
+                  </button>
+                </div>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="mp-avatar">{profile.user?.avatar || '👤'}</div>
+              <div className="mp-user-info">
+                <h2 className="mp-name">{profile.user?.display_name || profile.user?.username}</h2>
+                <span className="mp-role-badge" data-role={profile.user?.role}>
+                  {profile.user?.role === 'storyteller' ? '📖 说书人' : '🎮 玩家'}
+                </span>
+                <p className="mp-username">@{profile.user?.username}</p>
+              </div>
+              <button className="btn btn-ghost mp-edit-btn" onClick={() => setEditing(true)}>✏️ 编辑</button>
+            </>
+          )}
         </div>
 
         {/* Groups */}
@@ -110,8 +177,10 @@ export default function MyProfile({ onClose }) {
                   <span className="mp-group-emoji">{m.group_avatar || '🎲'}</span>
                   <div className="mp-group-info">
                     <span className="mp-group-name">{m.group_name}</span>
-                    {claimed && (
+                    {claimed ? (
                       <span className="mp-group-player">→ {claimed.name}</span>
+                    ) : (
+                      <span className="mp-group-unclaimed">→ 未认领档案</span>
                     )}
                   </div>
                   {gs && (
@@ -154,6 +223,10 @@ export default function MyProfile({ onClose }) {
                 </span>
               </div>
             </div>
+
+            <div className="pm-radar">
+              <RadarChart dimensions={getRadarDimensions(aggregateStats)} size={220} />
+            </div>
           </div>
         )}
 
@@ -161,7 +234,6 @@ export default function MyProfile({ onClose }) {
         {activeGroup && groupStats[activeGroup] && (() => {
           const gs = groupStats[activeGroup];
           const membership = memberships.find(m => m.group_id === activeGroup);
-          const radarDims = getRadarDimensions(gs);
           const tier = getPowerTier(gs.powerScore);
           return (
             <div className="mp-section">
@@ -172,10 +244,6 @@ export default function MyProfile({ onClose }) {
                   {gs.powerScore}
                 </span>
                 <span className="mp-power-label">战力分</span>
-              </div>
-
-              <div className="pm-radar">
-                <RadarChart dimensions={radarDims} size={220} />
               </div>
 
               {/* Role stats */}
@@ -202,6 +270,23 @@ export default function MyProfile({ onClose }) {
                   );
                 })}
               </div>
+
+              {/* Top characters */}
+              {gs.topCharacters?.length > 0 && (
+                <div style={{ marginTop: 16 }}>
+                  <h4 className="mp-section-title">擅长角色</h4>
+                  {gs.topCharacters.map((c, i) => (
+                    <div key={i} className="pm-char-row">
+                      <span className="pm-char-name">{c.name || c.id}</span>
+                      <span className="pm-char-games">{c.games}局</span>
+                      <div className="pm-char-bar">
+                        <div className="pm-char-bar-fill" style={{ width: `${c.winRate * 100}%` }} />
+                      </div>
+                      <span className="pm-char-rate">{(c.winRate * 100).toFixed(0)}%</span>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           );
         })()}

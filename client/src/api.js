@@ -186,3 +186,10 @@ export async function deleteScript(id) {
 export async function fetchProfile() {
   return request('/api/auth/profile');
 }
+
+export async function updateProfile(data) {
+  return request('/api/auth/profile', {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  });
+}

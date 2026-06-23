@@ -120,6 +120,24 @@ router.get('/me', authenticateJWT, (req, res) => {
   res.json({ user });
 });
 
+// ─── PUT /api/auth/profile ──────────────────────────────────────────────────────────────────
+
+router.put('/profile', authenticateJWT, (req, res) => {
+  const { display_name, avatar } = req.body;
+  const user = db.prepare('SELECT * FROM users WHERE id = ?').get(req.user.userId);
+  if (!user) return res.status(404).json({ error: 'User not found' });
+
+  const newDisplayName = display_name !== undefined ? display_name : user.display_name;
+  const newAvatar = avatar !== undefined ? avatar : user.avatar;
+
+  db.prepare('UPDATE users SET display_name = ?, avatar = ? WHERE id = ?')
+    .run(newDisplayName, newAvatar, req.user.userId);
+
+  const updated = db.prepare('SELECT id, username, role, display_name, avatar, created_at FROM users WHERE id = ?')
+    .get(req.user.userId);
+  res.json({ user: updated });
+});
+
 // ─── GET /api/auth/profile ──────────────────────────────────────────────────────
 
 router.get('/profile', authenticateJWT, (req, res) => {

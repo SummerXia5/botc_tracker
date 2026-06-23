@@ -1,0 +1,94 @@
+.claim-modal {
+  max-width: 420px;
+}
+
+.claim-header {
+  text-align: center;
+  padding: 24px 24px 16px;
+}
+
+.claim-header h2 {
+  font-size: 1.2rem;
+  margin: 0;
+}
+
+.claim-subtitle {
+  font-size: 0.82rem;
+  color: var(--text-tertiary);
+  margin: 6px 0 0;
+}
+
+.claim-list {
+  padding: 0 24px;
+  max-height: 300px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.claim-empty {
+  text-align: center;
+  color: var(--text-tertiary);
+  padding: 24px;
+  font-size: 0.85rem;
+  white-space: pre-line;
+}
+
+.claim-player {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  border: 2px solid var(--border-subtle);
+  cursor: pointer;
+  transition: all 200ms;
+}
+
+.claim-player:hover {
+  border-color: var(--accent-red);
+}
+
+.claim-player-selected {
+  border-color: var(--accent-red);
+  background: rgba(212, 69, 58, 0.04);
+}
+
+.claim-player input[type="radio"] {
+  display: none;
+}
+
+.claim-player-avatar {
+  font-size: 1.4rem;
+  min-width: 32px;
+  text-align: center;
+}
+
+.claim-player-info {
+  flex: 1;
+}
+
+.claim-player-name {
+  font-weight: 600;
+  font-size: 0.88rem;
+  display: block;
+}
+
+.claim-player-desc {
+  font-size: 0.72rem;
+  color: var(--text-tertiary);
+  display: block;
+  margin-top: 2px;
+}
+
+.claim-actions {
+  padding: 16px 24px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.btn-full {
+  width: 100%;
+}
