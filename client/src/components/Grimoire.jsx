@@ -650,14 +650,11 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                   +
                 </button>
 
-                {/* Active reminders display — circular tokens toward center */}
+                {/* Active reminders display — stacked toward center */}
                 {seatReminders[i]?.length > 0 && (() => {
                   // Direction toward center (opposite of seat's outward angle)
                   const towardCenterX = -Math.cos(angle);
                   const towardCenterY = -Math.sin(angle);
-                  // Perpendicular for fanning
-                  const perpX = -towardCenterY;
-                  const perpY = towardCenterX;
                   return (
                     <div className="seat-reminders" onClick={e => e.stopPropagation()}>
                       {seatReminders[i].map((rid, ri) => {
@@ -665,11 +662,10 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                         const token = isCustom ? null : REMINDER_TOKENS.find(t => t.id === rid);
                         const icon = isCustom ? '📝' : (token?.icon || '?');
                         const label = isCustom ? rid.replace('custom:', '') : (token?.label || rid);
-                        // Each token moves toward center + fans out perpendicular
-                        const dist = 50 + ri * 18;
-                        const fan = (ri - (seatReminders[i].length - 1) / 2) * 22;
-                        const tx = towardCenterX * dist + perpX * fan;
-                        const ty = towardCenterY * dist + perpY * fan;
+                        // Stack tokens straight toward center, each 42px further
+                        const dist = 58 + ri * 44;
+                        const tx = towardCenterX * dist;
+                        const ty = towardCenterY * dist;
                         return (
                           <div
                             key={ri}
@@ -677,7 +673,7 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                             title={label}
                             style={{
                               transform: `translate(${tx}px, ${ty}px)`,
-                              zIndex: 10 + ri,
+                              zIndex: 10 - ri,
                             }}
                             onClick={() => { setReminderSeatIndex(i); setShowReminderPicker(true); }}
                           >
