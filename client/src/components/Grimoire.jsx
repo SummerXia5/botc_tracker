@@ -373,7 +373,11 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
       if (i !== index) return s;
       const newAlive = !s.alive;
       addLog(`${s.player.name} ${newAlive ? '复活' : '死亡'}`);
-      return { ...s, alive: newAlive, hasVoted: newAlive ? s.hasVoted : false };
+      return {
+        ...s,
+        alive: newAlive,
+        deathDay: newAlive ? null : dayNumber,
+      };
     }));
   };
 
@@ -449,15 +453,26 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
   // ----------------------------------------------------------------
   const handleEndGame = () => {
     if (!selectedWinner) return;
+    // Build grimoire log text
+    const logText = log.map(l => `[${l.time}] ${l.msg}`).join('\n');
     const gameData = {
       script: selectedScript.name,
       date: new Date().toISOString().split('T')[0],
       winner: selectedWinner,
-      participants: seats.map(s => ({
-        player_id: s.player.id,
-        role_type: (charLookup[s.characterId] || CHARACTERS[s.characterId])?.type || 'townsfolk',
-        survived: s.alive,
-      })),
+      notes: logText,
+      participants: seats.map(s => {
+        const ch = charLookup[s.characterId] || CHARACTERS[s.characterId];
+        // survival_days: if alive at end, survived all days; if dead, died on deathDay
+        const survivalDays = s.alive ? dayNumber : (s.deathDay || dayNumber);
+        return {
+          player_id: s.player.id,
+          role_type: ch?.type || 'townsfolk',
+          character_id: s.characterId || null,
+          survived: s.alive,
+          survival_days: survivalDays,
+          final_round: s.alive, // alive on last day = in final round
+        };
+      }),
     };
     onExportGame?.(gameData);
     addLog(`对局结束 · ${selectedWinner === 'good' ? '善良' : '邪恶'}阵营获胜`);

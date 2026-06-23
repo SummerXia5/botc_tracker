@@ -35,6 +35,7 @@ export default function RecordGameModal({ players, scripts, onClose, onSuccess, 
   const [date, setDate] = useState(prefillData?.date || new Date().toISOString().split('T')[0]);
   const [script, setScript] = useState(prefillData?.script || scripts[0]?.name || '');
   const [winner, setWinner] = useState(prefillData?.winner || 'good');
+  const [gameNotes, setGameNotes] = useState(prefillData?.notes || '');
 
   // Step 2 — prefill selected player IDs from grimoire participants
   const [selectedPlayerIds, setSelectedPlayerIds] = useState(
@@ -48,11 +49,12 @@ export default function RecordGameModal({ players, scripts, onClose, onSuccess, 
     for (const p of prefillData.participants) {
       details[p.player_id] = {
         role_type: p.role_type || 'townsfolk',
+        character_id: p.character_id || null,
         survived: p.survived !== undefined ? p.survived : true,
-        final_round: false,
+        final_round: p.final_round || false,
         correct_vote: false,
         achievements: [],
-        survival_days: null,
+        survival_days: p.survival_days || null,
         player_notes: '',
       };
     }
@@ -127,6 +129,7 @@ export default function RecordGameModal({ players, scripts, onClose, onSuccess, 
         winner,
         participants,
         mvp_player_id: mvpPlayerId || null,
+        notes: gameNotes || null,
         ...(groupId ? { group_id: groupId } : {}),
       });
       toast.success('对局记录成功！');
