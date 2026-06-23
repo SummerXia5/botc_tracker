@@ -167,6 +167,37 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
   };
 
   const [showDistribution, setShowDistribution] = useState(false);
+  const [selectedCharPool, setSelectedCharPool] = useState(new Set());
+
+  // Initialize pool with all characters when script changes
+  const initCharPool = useCallback(() => {
+    const all = new Set(scriptCharacters.map(c => c.id));
+    setSelectedCharPool(all);
+  }, [scriptCharacters]);
+
+  const toggleCharInPool = (charId) => {
+    setSelectedCharPool(prev => {
+      const next = new Set(prev);
+      if (next.has(charId)) {
+        next.delete(charId);
+      } else {
+        next.add(charId);
+      }
+      return next;
+    });
+  };
+
+  // Count selected per type
+  const selectedCountByType = useMemo(() => {
+    const counts = { townsfolk: 0, outsider: 0, minion: 0, demon: 0 };
+    for (const id of selectedCharPool) {
+      const ch = CHARACTERS[id];
+      if (ch && counts[ch.type] !== undefined) {
+        counts[ch.type]++;
+      }
+    }
+    return counts;
+  }, [selectedCharPool]);
 
   const currentDistribution = useMemo(() => {
     const count = seats.length;
@@ -188,9 +219,11 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
     const dist = currentDistribution;
     const pool = [];
 
-    // Pick random characters from each type
+    // Pick random characters from SELECTED pool only
     for (const type of ['townsfolk', 'outsider', 'minion', 'demon']) {
-      const available = shuffle(charactersByType[type] || []);
+      const available = shuffle(
+        (charactersByType[type] || []).filter(c => selectedCharPool.has(c.id))
+      );
       const needed = dist[type] || 0;
       for (let i = 0; i < Math.min(needed, available.length); i++) {
         pool.push(available[i].id);
@@ -205,6 +238,11 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
     })));
     addLog(`随机分配 ${shuffledPool.length} 个角色`);
     setShowDistribution(false);
+  };
+
+  const handleOpenDistribution = () => {
+    if (selectedCharPool.size === 0) initCharPool();
+    setShowDistribution(true);
   };
 
   // ----------------------------------------------------------------
@@ -330,9 +368,13 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
       <div className="grimoire">
         <div className="grimoire-setup">
           <div className="grimoire-setup-header">
-            <h2 className="grimoire-title">说书人魔典</h2>
+            <h2 className="grimoire-title">说书人魔典 <span className="grimoire-beta-tag">Beta</span></h2>
             <p className="grimoire-subtitle">STORYTELLER GRIMOIRE</p>
             <button className="grimoire-close-btn" onClick={onClose}>✕</button>
+          </div>
+
+          <div className="grimoire-beta-banner">
+            <strong>⚠ Beta 测试中</strong> — 此功能仍在开发中，部分功能可能不完善。不会影响已有的玩家数据和对局记录。
           </div>
 
           {/* Step 1: Select script */}
@@ -513,7 +555,7 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
           <>
             <button
               className={`action-bar-btn ${showDistribution ? 'action-active' : ''}`}
-              onClick={() => setShowDistribution(!showDistribution)}
+              onClick={handleOpenDistribution}
             >
               分配角色
             </button>
@@ -622,14 +664,16 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
               <div className="distribution-counts">
                 {['townsfolk', 'outsider', 'minion', 'demon'].map(type => {
                   const needed = currentDistribution[type] || 0;
-                  const assigned = seats.filter(s => s.characterId && CHARACTERS[s.characterId]?.type === type).length;
+                  const selected = selectedCountByType[type] || 0;
+                  const enough = selected >= needed;
                   return (
                     <div
                       key={type}
-                      className="dist-count-pill"
+                      className={`dist-count-pill ${enough ? 'enough' : 'not-enough'}`}
                       style={{ borderColor: TYPE_COLORS[type], color: TYPE_COLORS[type] }}
+                      title={`${TYPE_LABELS[type]}: 已选 ${selected} / 需要 ${needed}`}
                     >
-                      {assigned} / {needed}
+                      {selected} / {needed}
                     </div>
                   );
                 })}
@@ -639,21 +683,24 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
               <div className="distribution-grid">
                 {['townsfolk', 'outsider', 'minion', 'demon'].map(type => (
                   (charactersByType[type] || []).map(ch => {
+                    const isSelected = selectedCharPool.has(ch.id);
                     const isAssigned = assignedCharIds.has(ch.id);
                     return (
                       <div
                         key={ch.id}
-                        className={`dist-token ${isAssigned ? 'assigned' : ''}`}
+                        className={`dist-token ${isSelected ? 'selected' : 'deselected'} ${isAssigned ? 'assigned' : ''}`}
                         style={{
-                          borderColor: isAssigned ? 'rgba(100,80,50,0.2)' : TYPE_COLORS[ch.type],
-                          boxShadow: isAssigned ? 'none' : `0 0 6px ${TYPE_COLORS[ch.type]}40`,
+                          borderColor: isSelected ? TYPE_COLORS[ch.type] : 'rgba(100,80,50,0.2)',
+                          boxShadow: isSelected ? `0 0 8px ${TYPE_COLORS[ch.type]}50` : 'none',
                         }}
                         title={`${ch.name} (${ch.nameEn}) — ${TYPE_LABELS[ch.type]}\n${ch.ability}`}
+                        onClick={() => toggleCharInPool(ch.id)}
                       >
-                        <span className="dist-token-icon" style={{ color: isAssigned ? '#666' : TYPE_COLORS[ch.type] }}>
+                        <span className="dist-token-icon" style={{ color: isSelected ? TYPE_COLORS[ch.type] : '#666' }}>
                           {ch.name?.charAt(0)}
                         </span>
-                        <span className="dist-token-name">{ch.name}</span>
+                        <span className="dist-token-name" style={{ opacity: isSelected ? 1 : 0.4 }}>{ch.name}</span>
+                        {isAssigned && <div className="dist-token-check">✓</div>}
                       </div>
                     );
                   })
@@ -670,6 +717,12 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                 addLog('已重置所有角色分配');
               }}>
                 重置角色
+              </button>
+              <button className="action-bar-btn" onClick={initCharPool}>
+                全选
+              </button>
+              <button className="action-bar-btn" onClick={() => setSelectedCharPool(new Set())}>
+                全不选
               </button>
             </div>
           </div>

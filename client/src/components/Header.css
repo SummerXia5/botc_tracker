@@ -122,6 +122,19 @@
   background: #3d3936;
 }
 
+.beta-badge {
+  display: inline-block;
+  background: #e67e22;
+  color: #fff;
+  font-size: 0.55rem;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 6px;
+  vertical-align: super;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
 .btn-outlined {
   background: transparent;
   border: var(--border-medium);

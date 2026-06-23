@@ -10,6 +10,15 @@ const ROLE_TYPES = [
   { key: 'demon', label: '恶魔', color: 'var(--color-demon)' },
 ];
 
+const ACHIEVEMENTS = [
+  { key: 'logic_chain', label: '盘通逻辑线', icon: '🧠', desc: '完美推理出逻辑链' },
+  { key: 'perfect_review', label: '完美复盘', icon: '📖', desc: '完美复盘魔典' },
+  { key: 'strong_lead', label: '强势带队', icon: '🏆', desc: '强势带队引领方向' },
+  { key: 'wrong_lead', label: '带偏方向', icon: '💀', desc: '强势带队但走偏了' },
+  { key: 'clutch_play', label: '关键操作', icon: '⚡', desc: '在关键时刻做出决定性操作' },
+  { key: 'great_bluff', label: '完美伪装', icon: '🎭', desc: '邪恶方完美伪装身份' },
+];
+
 export default function RecordGameModal({ players, scripts, onClose, onSuccess, groupId }) {
   const toast = useToast();
   const [step, setStep] = useState(1);
@@ -25,6 +34,7 @@ export default function RecordGameModal({ players, scripts, onClose, onSuccess, 
 
   // Step 3
   const [participantDetails, setParticipantDetails] = useState({});
+  const [mvpPlayerId, setMvpPlayerId] = useState(null);
 
   const togglePlayer = (id) => {
     setSelectedPlayerIds(prev =>
@@ -39,12 +49,26 @@ export default function RecordGameModal({ players, scripts, onClose, onSuccess, 
     }));
   };
 
+  const toggleAchievement = (playerId, achKey) => {
+    setParticipantDetails(prev => {
+      const current = prev[playerId] || {};
+      const achs = current.achievements || [];
+      const next = achs.includes(achKey)
+        ? achs.filter(a => a !== achKey)
+        : [...achs, achKey];
+      return { ...prev, [playerId]: { ...current, achievements: next } };
+    });
+  };
+
   const getDetail = (playerId) => {
     return participantDetails[playerId] || {
       role_type: 'townsfolk',
       survived: true,
       final_round: false,
       correct_vote: false,
+      achievements: [],
+      survival_days: null,
+      player_notes: '',
     };
   };
 
@@ -66,10 +90,20 @@ export default function RecordGameModal({ players, scripts, onClose, onSuccess, 
           survived: d.survived ?? true,
           final_round: d.final_round ?? false,
           correct_vote: d.correct_vote ?? false,
+          achievements: d.achievements || [],
+          survival_days: d.survival_days ?? null,
+          player_notes: d.player_notes || null,
         };
       });
 
-      await createGame({ date, script, winner, participants, ...(groupId ? { group_id: groupId } : {}) });
+      await createGame({
+        date,
+        script,
+        winner,
+        participants,
+        mvp_player_id: mvpPlayerId || null,
+        ...(groupId ? { group_id: groupId } : {}),
+      });
       toast.success('对局记录成功！');
       onSuccess();
       onClose();
@@ -172,20 +206,30 @@ export default function RecordGameModal({ players, scripts, onClose, onSuccess, 
           </div>
         )}
 
-        {/* Step 3: Assign Roles */}
+        {/* Step 3: Assign Roles & Details */}
         {step === 3 && (
           <div className="step-content">
-            <p className="step-hint">为每位玩家分配角色和状态</p>
+            <p className="step-hint">为每位玩家分配角色、成就和详细状态</p>
             <div className="role-assignments">
               {selectedPlayers.map(p => {
                 const detail = getDetail(p.id);
+                const isMvp = mvpPlayerId === p.id;
                 return (
-                  <div key={p.id} className="role-assignment-card">
+                  <div key={p.id} className={`role-assignment-card ${isMvp ? 'ra-mvp' : ''}`}>
                     <div className="ra-header">
-                      <span className="ra-emoji">{p.emoji || '👤'}</span>
+                      <span className="ra-emoji">{p.avatar || '👤'}</span>
                       <span className="ra-name">{p.name}</span>
+                      <button
+                        type="button"
+                        className={`ra-mvp-btn ${isMvp ? 'ra-mvp-active' : ''}`}
+                        onClick={() => setMvpPlayerId(isMvp ? null : p.id)}
+                        title="设为 MVP"
+                      >
+                        {isMvp ? '⭐ MVP' : '☆ MVP'}
+                      </button>
                     </div>
 
+                    {/* Role type buttons */}
                     <div className="ra-role-select">
                       {ROLE_TYPES.map(rt => (
                         <button
@@ -200,6 +244,7 @@ export default function RecordGameModal({ players, scripts, onClose, onSuccess, 
                       ))}
                     </div>
 
+                    {/* Toggles row */}
                     <div className="ra-toggles">
                       <label className="ra-toggle">
                         <input
@@ -225,7 +270,49 @@ export default function RecordGameModal({ players, scripts, onClose, onSuccess, 
                         />
                         <span>正确投票</span>
                       </label>
+                      <div className="ra-survival-days">
+                        <label>存活天数</label>
+                        <input
+                          type="number"
+                          min="0"
+                          max="20"
+                          placeholder="—"
+                          value={detail.survival_days ?? ''}
+                          onChange={e => updateDetail(p.id, 'survival_days', e.target.value ? parseInt(e.target.value) : null)}
+                          className="ra-days-input"
+                        />
+                      </div>
                     </div>
+
+                    {/* Achievement tags */}
+                    <div className="ra-achievements">
+                      <span className="ra-ach-label">成就标签</span>
+                      <div className="ra-ach-tags">
+                        {ACHIEVEMENTS.map(ach => {
+                          const isActive = (detail.achievements || []).includes(ach.key);
+                          return (
+                            <button
+                              key={ach.key}
+                              type="button"
+                              className={`ra-ach-tag ${isActive ? 'ra-ach-active' : ''}`}
+                              onClick={() => toggleAchievement(p.id, ach.key)}
+                              title={ach.desc}
+                            >
+                              {ach.icon} {ach.label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Notes */}
+                    <input
+                      type="text"
+                      className="ra-notes-input"
+                      placeholder="备注 (可选)..."
+                      value={detail.player_notes || ''}
+                      onChange={e => updateDetail(p.id, 'player_notes', e.target.value)}
+                    />
                   </div>
                 );
               })}

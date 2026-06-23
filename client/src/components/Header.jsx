@@ -47,7 +47,7 @@ export default function Header({ onAddPlayer, onRecordGame, onOpenGrimoire, sele
                 </button>
                 {onOpenGrimoire && (
                   <button className="btn btn-grimoire" onClick={onOpenGrimoire}>
-                    说书人魔典
+                    说书人魔典 <span className="beta-badge">Beta</span>
                   </button>
                 )}
                 <button className="btn btn-ghost" onClick={logout}>

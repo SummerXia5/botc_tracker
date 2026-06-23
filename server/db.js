@@ -113,6 +113,11 @@ function initDatabase() {
   try { db.exec('ALTER TABLE players ADD COLUMN group_id TEXT REFERENCES groups(id)'); } catch (e) { /* column already exists */ }
   try { db.exec('ALTER TABLE games ADD COLUMN group_id TEXT REFERENCES groups(id)'); } catch (e) { /* column already exists */ }
 
+  // New participant detail columns (safe migration)
+  try { db.exec('ALTER TABLE game_participants ADD COLUMN achievements TEXT DEFAULT \'[]\''); } catch (e) { /* column already exists */ }
+  try { db.exec('ALTER TABLE game_participants ADD COLUMN survival_days INTEGER'); } catch (e) { /* column already exists */ }
+  try { db.exec('ALTER TABLE game_participants ADD COLUMN player_notes TEXT'); } catch (e) { /* column already exists */ }
+
   // Indexes on group_id (must come after ALTER TABLE adds the columns)
   db.exec(`
     CREATE INDEX IF NOT EXISTS idx_players_group ON players(group_id);

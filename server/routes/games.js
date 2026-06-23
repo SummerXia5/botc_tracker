@@ -51,6 +51,9 @@ router.get(
         gp.survived,
         gp.final_round,
         gp.correct_vote,
+        gp.achievements,
+        gp.survival_days,
+        gp.player_notes,
         p.name   AS player_name,
         p.avatar AS player_avatar
       FROM game_participants gp
@@ -96,6 +99,9 @@ router.get(
         gp.survived,
         gp.final_round,
         gp.correct_vote,
+        gp.achievements,
+        gp.survival_days,
+        gp.player_notes,
         p.name           AS player_name,
         p.avatar         AS player_avatar,
         p.desc           AS player_desc
@@ -137,6 +143,9 @@ router.post(
     body('participants.*.survived').optional().toBoolean(),
     body('participants.*.final_round').optional().toBoolean(),
     body('participants.*.correct_vote').optional().toBoolean(),
+    body('participants.*.achievements').optional(),
+    body('participants.*.survival_days').optional().isInt({ min: 0 }),
+    body('participants.*.player_notes').optional().trim(),
   ],
   (req, res) => {
     const errors = validationResult(req);
@@ -174,8 +183,8 @@ router.post(
       `).run(gameId, date, script, winner, storyline || null, mvp_player_id || null, notes || null, req.user.userId, group_id);
 
       const insertPart = db.prepare(`
-        INSERT INTO game_participants (game_id, player_id, role_type, survived, final_round, correct_vote)
-        VALUES (?, ?, ?, ?, ?, ?)
+        INSERT INTO game_participants (game_id, player_id, role_type, survived, final_round, correct_vote, achievements, survival_days, player_notes)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
       `);
 
       for (const p of participants) {
@@ -186,6 +195,9 @@ router.post(
           p.survived ? 1 : 0,
           p.final_round ? 1 : 0,
           p.correct_vote ? 1 : 0,
+          JSON.stringify(p.achievements || []),
+          p.survival_days ?? null,
+          p.player_notes || null,
         );
       }
     });
