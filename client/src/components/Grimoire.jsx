@@ -1,5 +1,6 @@
 import { useState, useMemo, useCallback } from 'react';
 import { CHARACTERS, TYPE_COLORS, TYPE_LABELS, SCRIPTS } from '../data/characters';
+import PlayerSelector from './PlayerSelector';
 import './Grimoire.css';
 
 /**
@@ -12,7 +13,9 @@ import './Grimoire.css';
  *   onExportGame — callback receiving the finished game record
  *   onClose  — callback to close the grimoire view
  */
-export default function Grimoire({ players, scripts, groupId, onExportGame, onClose }) {
+export default function Grimoire({ players, scripts, groupId, onExportGame, onClose, onRefreshPlayers }) {
+  // Local players (can grow via quick-add)
+  const [localPlayers, setLocalPlayers] = useState(players);
   // ---- Core state ----
   const [selectedScript, setSelectedScript] = useState(null);
   const [seats, setSeats] = useState([]);
@@ -403,25 +406,19 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
 
           {/* Step 2: Select players */}
           <div className="grimoire-setup-section">
-            <label className="grimoire-label">
-              选择玩家 · 已选 <strong>{selectedPlayerIds.length}</strong> 人
-            </label>
-            <div className="grimoire-player-grid">
-              {players.map(p => (
-                <label
-                  key={p.id}
-                  className={`grimoire-player-check ${selectedPlayerIds.includes(p.id) ? 'checked' : ''}`}
-                >
-                  <input
-                    type="checkbox"
-                    checked={selectedPlayerIds.includes(p.id)}
-                    onChange={() => togglePlayer(p.id)}
-                  />
-                  <span className="grimoire-player-emoji">{p.avatar || '👤'}</span>
-                  <span className="grimoire-player-name">{p.name}</span>
-                </label>
-              ))}
-            </div>
+            <PlayerSelector
+              players={localPlayers}
+              selectedIds={selectedPlayerIds}
+              onToggle={togglePlayer}
+              groupId={groupId}
+              label="选择玩家"
+              minCount={5}
+              variant="dark"
+              onPlayerCreated={(newPlayer) => {
+                setLocalPlayers(prev => [...prev, newPlayer]);
+                onRefreshPlayers?.();
+              }}
+            />
           </div>
 
           {/* Start button */}

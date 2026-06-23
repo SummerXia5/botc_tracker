@@ -191,6 +191,7 @@ export default function App() {
           onClose={() => setShowRecordGame(false)}
           onSuccess={handleRefresh}
           groupId={selectedGroup.id}
+          onRefreshPlayers={handleRefresh}
         />
       )}
 
@@ -218,6 +219,7 @@ export default function App() {
             }
           }}
           onClose={() => setShowGrimoire(false)}
+          onRefreshPlayers={handleRefresh}
         />
       )}
     </div>
