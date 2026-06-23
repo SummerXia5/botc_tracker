@@ -137,6 +137,15 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
     });
   }, [selectedScript]);
 
+  // Lookup map: charId -> character data (handles CustomVER normalized chars)
+  const charLookup = useMemo(() => {
+    const map = {};
+    for (const ch of scriptCharacters) {
+      map[ch.id] = ch;
+    }
+    return map;
+  }, [scriptCharacters]);
+
   const charactersByType = useMemo(() => {
     const groups = { townsfolk: [], outsider: [], minion: [], demon: [] };
     for (const ch of scriptCharacters) {
@@ -159,7 +168,7 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
     const isFirstNight = dayNumber === 0;
     const activeChars = seats
       .filter(s => s.characterId && s.alive)
-      .map(s => CHARACTERS[s.characterId])
+      .map(s => charLookup[s.characterId] || CHARACTERS[s.characterId])
       .filter(Boolean);
 
     return activeChars
@@ -247,13 +256,13 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
   const selectedCountByType = useMemo(() => {
     const counts = { townsfolk: 0, outsider: 0, minion: 0, demon: 0 };
     for (const id of selectedCharPool) {
-      const ch = CHARACTERS[id];
+      const ch = charLookup[id];
       if (ch && counts[ch.type] !== undefined) {
         counts[ch.type]++;
       }
     }
     return counts;
-  }, [selectedCharPool]);
+  }, [selectedCharPool, charLookup]);
 
   const currentDistribution = useMemo(() => {
     const count = seats.length;
@@ -326,7 +335,7 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
       if (i !== assigningSeatIndex) return s;
       return { ...s, characterId: charId };
     }));
-    const ch = CHARACTERS[charId];
+    const ch = charLookup[charId] || CHARACTERS[charId];
     const seatPlayer = seats[assigningSeatIndex]?.player;
     if (ch && seatPlayer) {
       addLog(`${seatPlayer.name} → ${ch.name}`);
@@ -407,7 +416,7 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
       winner: selectedWinner,
       participants: seats.map(s => ({
         player_id: s.player.id,
-        role_type: CHARACTERS[s.characterId]?.type || 'townsfolk',
+        role_type: (charLookup[s.characterId] || CHARACTERS[s.characterId])?.type || 'townsfolk',
         survived: s.alive,
       })),
     };
@@ -525,7 +534,7 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
             const radius = 38;
             const x = 50 + radius * Math.cos(angle);
             const y = 50 + radius * Math.sin(angle);
-            const ch = seat.characterId ? CHARACTERS[seat.characterId] : null;
+            const ch = seat.characterId ? (charLookup[seat.characterId] || CHARACTERS[seat.characterId]) : null;
 
             return (
               <div
@@ -834,7 +843,7 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
             <p className="side-panel-hint">选择3个不在场的好人角色作为伪装选项</p>
             <div className="bluff-slots">
               {demonBluffs.map((bluffId, bi) => {
-                const ch = bluffId ? CHARACTERS[bluffId] : null;
+                const ch = bluffId ? (charLookup[bluffId] || CHARACTERS[bluffId]) : null;
                 return (
                   <button
                     key={bi}
