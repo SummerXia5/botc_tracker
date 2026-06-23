@@ -1,6 +1,7 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useRef } from 'react';
 import { CHARACTERS, TYPE_COLORS, TYPE_LABELS, SCRIPTS } from '../data/characters';
 import PlayerSelector from './PlayerSelector';
+import { createPlayer } from '../api';
 import './Grimoire.css';
 
 const REMINDER_TOKENS = [
@@ -61,6 +62,7 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
 
   // ---- Player management ----
   const [showPlayerManager, setShowPlayerManager] = useState(false);
+  const [dragIndex, setDragIndex] = useState(null);
 
   // ---- Setup: player selection ----
   const [selectedPlayerIds, setSelectedPlayerIds] = useState([]);
@@ -930,6 +932,133 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
               <button className="action-bar-btn" onClick={deselectAllChars}>
                 清空选择
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ---- Player Manager Panel ---- */}
+      {showPlayerManager && (
+        <div className="grimoire-panel-overlay" onClick={() => setShowPlayerManager(false)}>
+          <div className="reminder-picker" style={{ maxWidth: 440 }} onClick={e => e.stopPropagation()}>
+            <div className="reminder-picker-header">
+              <h3>管理玩家 ({seats.length} 人)</h3>
+              <button className="modal-close" onClick={() => setShowPlayerManager(false)}>✕</button>
+            </div>
+
+            {/* Current players — draggable list */}
+            <div style={{ marginBottom: 14 }}>
+              <div style={{ fontSize: '0.75rem', color: '#a09080', marginBottom: 6 }}>当前玩家（拖拽调整顺序）</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                {seats.map((seat, si) => (
+                  <div
+                    key={seat.player.id}
+                    draggable
+                    onDragStart={() => setDragIndex(si)}
+                    onDragOver={e => e.preventDefault()}
+                    onDrop={() => {
+                      if (dragIndex === null || dragIndex === si) return;
+                      setSeats(prev => {
+                        const next = [...prev];
+                        const [moved] = next.splice(dragIndex, 1);
+                        next.splice(si, 0, moved);
+                        return next;
+                      });
+                      setDragIndex(null);
+                    }}
+                    onDragEnd={() => setDragIndex(null)}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: 8,
+                      padding: '6px 10px', borderRadius: 8,
+                      background: dragIndex === si ? 'rgba(120,80,200,0.2)' : 'rgba(255,255,255,0.06)',
+                      border: dragIndex === si ? '1px dashed rgba(160,130,200,0.5)' : '1px solid transparent',
+                      cursor: 'grab', fontSize: '0.85rem', color: '#d4c0a8',
+                      transition: 'background 150ms',
+                    }}
+                  >
+                    <span style={{ color: '#888', fontSize: '0.7rem', minWidth: 18 }}>☰</span>
+                    <span style={{ flex: 1 }}>{si + 1}. {seat.player.name}</span>
+                    <button
+                      style={{
+                        background: 'none', border: 'none', color: '#e06050', cursor: 'pointer',
+                        fontSize: '1rem', padding: '0 4px', lineHeight: 1,
+                      }}
+                      title="移除"
+                      onClick={e => {
+                        e.stopPropagation();
+                        setSeats(prev => prev.filter((_, idx) => idx !== si));
+                        addLog(`移除玩家 ${seat.player.name}`);
+                      }}
+                    >✕</button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Available players to add */}
+            {(() => {
+              const available = localPlayers.filter(p => !seats.some(s => s.player.id === p.id));
+              return available.length > 0 && (
+                <div style={{ marginBottom: 14 }}>
+                  <div style={{ fontSize: '0.75rem', color: '#a09080', marginBottom: 6 }}>可添加玩家</div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                    {available.map(p => (
+                      <button
+                        key={p.id}
+                        style={{
+                          padding: '4px 12px', borderRadius: 8, fontSize: '0.8rem',
+                          background: 'rgba(100,180,100,0.15)', border: '1px solid rgba(100,180,100,0.3)',
+                          color: '#a0d4a0', cursor: 'pointer',
+                        }}
+                        onClick={() => {
+                          setSeats(prev => [...prev, {
+                            player: p, characterId: null, alive: true, hasVoted: false, nominated: false,
+                          }]);
+                          addLog(`添加玩家 ${p.name}`);
+                        }}
+                      >
+                        + {p.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* Create new player */}
+            <div>
+              <div style={{ fontSize: '0.75rem', color: '#a09080', marginBottom: 6 }}>创建新玩家</div>
+              <form
+                style={{ display: 'flex', gap: 6 }}
+                onSubmit={async e => {
+                  e.preventDefault();
+                  const input = e.target.elements.newPlayerName;
+                  const name = input.value.trim();
+                  if (!name) return;
+                  try {
+                    const result = await createPlayer({ name, group_id: groupId });
+                    const newPlayer = result.player;
+                    setLocalPlayers(prev => [...prev, newPlayer]);
+                    setSeats(prev => [...prev, {
+                      player: newPlayer, characterId: null, alive: true, hasVoted: false, nominated: false,
+                    }]);
+                    onRefreshPlayers?.();
+                    addLog(`创建并添加玩家 ${name}`);
+                    input.value = '';
+                  } catch (err) {
+                    console.error('Failed to create player:', err);
+                  }
+                }}
+              >
+                <input
+                  name="newPlayerName"
+                  type="text"
+                  placeholder="输入新玩家名称..."
+                  className="reminder-custom-field"
+                  style={{ flex: 1 }}
+                />
+                <button type="submit" className="reminder-custom-add">创建并添加</button>
+              </form>
             </div>
           </div>
         </div>
