@@ -1,0 +1,220 @@
+/**
+ * Generate comprehensive BotC character database with Chinese names and icon paths.
+ * Run: node scripts/gen_characters.js > client/src/data/characters_new.js
+ */
+
+// Complete character database with Chinese names
+// Sources: Official BotC rulebook Chinese edition, community translations
+const ALL_CHARACTERS = [
+  // ============================================================================
+  // Trouble Brewing (初来乍到)
+  // ============================================================================
+  // Townsfolk
+  { id: 'washerwoman', name: '洗衣妇', nameEn: 'Washerwoman', type: 'townsfolk', edition: 'tb', ability: '在你的首个夜晚，你会得知两名玩家中的某一名是某个特定的镇民角色。' },
+  { id: 'librarian', name: '图书管理员', nameEn: 'Librarian', type: 'townsfolk', edition: 'tb', ability: '在你的首个夜晚，你会得知两名玩家中的某一名是某个特定的外来者角色，或得知没有外来者在场。' },
+  { id: 'investigator', name: '调查员', nameEn: 'Investigator', type: 'townsfolk', edition: 'tb', ability: '在你的首个夜晚，你会得知两名玩家中的某一名是某个特定的爪牙角色。' },
+  { id: 'chef', name: '厨师', nameEn: 'Chef', type: 'townsfolk', edition: 'tb', ability: '在你的首个夜晚，你会得知邪恶玩家中有多少对相邻。' },
+  { id: 'empath', name: '共情者', nameEn: 'Empath', type: 'townsfolk', edition: 'tb', ability: '每个夜晚，你会得知你的存活邻座中有多少个邪恶玩家。' },
+  { id: 'fortune_teller', name: '占卜师', nameEn: 'Fortune Teller', type: 'townsfolk', edition: 'tb', ability: '每个夜晚，你可以选择两名玩家：你会得知他们之中是否有恶魔。有一名善良的玩家会被你的能力误认为恶魔。' },
+  { id: 'undertaker', name: '送葬者', nameEn: 'Undertaker', type: 'townsfolk', edition: 'tb', ability: '每个夜晚*，你会得知今天白天被处决的玩家是什么角色。' },
+  { id: 'monk', name: '僧侣', nameEn: 'Monk', type: 'townsfolk', edition: 'tb', ability: '每个夜晚*，选择一名玩家（不包括自己）：今晚恶魔的能力对该玩家无效。' },
+  { id: 'ravenkeeper', name: '守鸦人', nameEn: 'Ravenkeeper', type: 'townsfolk', edition: 'tb', ability: '如果你在夜晚死亡，你会被唤醒并选择一名玩家：你会得知他的角色。' },
+  { id: 'virgin', name: '贞洁者', nameEn: 'Virgin', type: 'townsfolk', edition: 'tb', ability: '首个提名你的镇民会被立刻处决。' },
+  { id: 'slayer', name: '杀手', nameEn: 'Slayer', type: 'townsfolk', edition: 'tb', ability: '在游戏中仅一次，在白天，你可以公开选择一名玩家：如果该玩家是恶魔，他死亡。' },
+  { id: 'soldier', name: '士兵', nameEn: 'Soldier', type: 'townsfolk', edition: 'tb', ability: '你不会被恶魔杀死。' },
+  { id: 'mayor', name: '市长', nameEn: 'Mayor', type: 'townsfolk', edition: 'tb', ability: '如果仅剩3名玩家存活且当天没有人被处决，你的阵营获胜。如果你在夜晚将要死亡，另一名玩家可能替你死亡。' },
+  // Outsiders
+  { id: 'butler', name: '管家', nameEn: 'Butler', type: 'outsider', edition: 'tb', ability: '每个夜晚，选择一名玩家（不包括自己）：明天你只能在该玩家投票之后投票。' },
+  { id: 'drunk', name: '酒鬼', nameEn: 'Drunk', type: 'outsider', edition: 'tb', ability: '你以为自己是某个镇民角色，但其实不是。你的能力失效。' },
+  { id: 'recluse', name: '隐士', nameEn: 'Recluse', type: 'outsider', edition: 'tb', ability: '你可能被注册为邪恶角色，即使你不是。' },
+  { id: 'saint', name: '圣徒', nameEn: 'Saint', type: 'outsider', edition: 'tb', ability: '如果你被处决而死，你的阵营输掉。' },
+  // Minions
+  { id: 'poisoner', name: '投毒者', nameEn: 'Poisoner', type: 'minion', edition: 'tb', ability: '每个夜晚，选择一名玩家：该玩家今晚和明天白天中毒。' },
+  { id: 'spy', name: '间谍', nameEn: 'Spy', type: 'minion', edition: 'tb', ability: '每个夜晚，你可以查看魔典。你可能被注册为善良角色，即使你不是。' },
+  { id: 'scarlet_woman', name: '绯红女郎', nameEn: 'Scarlet Woman', type: 'minion', edition: 'tb', ability: '如果存活玩家不少于5人且恶魔死亡，你变成恶魔。' },
+  { id: 'baron', name: '男爵', nameEn: 'Baron', type: 'minion', edition: 'tb', ability: '场上多出两名外来者。' },
+  // Demons
+  { id: 'imp', name: '小恶魔', nameEn: 'Imp', type: 'demon', edition: 'tb', ability: '每个夜晚*，选择一名玩家：该玩家死亡。如果你以此杀死了自己，一名爪牙变成小恶魔。' },
+
+  // ============================================================================
+  // Bad Moon Rising (暗流涌动)
+  // ============================================================================
+  // Townsfolk
+  { id: 'grandmother', name: '祖母', nameEn: 'Grandmother', type: 'townsfolk', edition: 'bmr', ability: '在你的首个夜晚，你会得知一名善良玩家。如果恶魔杀死了该玩家，你也死亡。' },
+  { id: 'sailor', name: '水手', nameEn: 'Sailor', type: 'townsfolk', edition: 'bmr', ability: '每个夜晚，选择一名存活的玩家：你或该玩家中的一个会醉酒到下个黄昏。你无法死亡。' },
+  { id: 'chambermaid', name: '女仆', nameEn: 'Chambermaid', type: 'townsfolk', edition: 'bmr', ability: '每个夜晚，选择两名存活的玩家（不包括自己）：你会得知他们中今晚有多少人因为自身能力而被唤醒。' },
+  { id: 'exorcist', name: '驱魔人', nameEn: 'Exorcist', type: 'townsfolk', edition: 'bmr', ability: '每个夜晚*，选择一名玩家（不包括自己）：如果你选择了恶魔，该恶魔今晚不会行动。' },
+  { id: 'innkeeper', name: '旅店老板', nameEn: 'Innkeeper', type: 'townsfolk', edition: 'bmr', ability: '每个夜晚*，选择两名玩家：今晚他们不会死亡，但其中一人会醉酒到下个黄昏。' },
+  { id: 'gambler', name: '赌徒', nameEn: 'Gambler', type: 'townsfolk', edition: 'bmr', ability: '每个夜晚*，选择一名玩家并猜测他的角色：如果猜错了，你死亡。' },
+  { id: 'gossip', name: '八卦者', nameEn: 'Gossip', type: 'townsfolk', edition: 'bmr', ability: '每天，你可以公开发表一项声明。如果该声明为真，今晚一名玩家会死亡。' },
+  { id: 'courtier', name: '侍臣', nameEn: 'Courtier', type: 'townsfolk', edition: 'bmr', ability: '在游戏中仅一次，在夜晚，选择一个角色：该角色醉酒3天3夜。' },
+  { id: 'professor', name: '教授', nameEn: 'Professor', type: 'townsfolk', edition: 'bmr', ability: '在游戏中仅一次，在夜晚*，选择一名已死亡的玩家：如果该玩家是镇民，他复活。' },
+  { id: 'minstrel', name: '吟游诗人', nameEn: 'Minstrel', type: 'townsfolk', edition: 'bmr', ability: '如果一名爪牙被处决而死，所有其他玩家（除了旅行者）在下个黄昏前都醉酒。' },
+  { id: 'tea_lady', name: '茶女', nameEn: 'Tea Lady', type: 'townsfolk', edition: 'bmr', ability: '如果你的两个存活邻座都是善良的，他们不会死亡。' },
+  { id: 'pacifist', name: '和平主义者', nameEn: 'Pacifist', type: 'townsfolk', edition: 'bmr', ability: '被处决的善良玩家可能不会死亡。' },
+  // Outsiders
+  { id: 'fool', name: '小丑', nameEn: 'Fool', type: 'outsider', edition: 'bmr', ability: '你第一次将要死亡时，你不会死亡。' },
+  { id: 'tinker', name: '工匠', nameEn: 'Tinker', type: 'outsider', edition: 'bmr', ability: '你可能在任何时间死亡。' },
+  { id: 'moonchild', name: '月之子', nameEn: 'Moonchild', type: 'outsider', edition: 'bmr', ability: '当你死亡时，你可以公开选择一名存活的玩家。如果该玩家是善良的，他在今晚死亡。' },
+  { id: 'goon', name: '恶棍', nameEn: 'Goon', type: 'outsider', edition: 'bmr', ability: '每个夜晚，第一个选择你的玩家会变为醉酒到下个黄昏。你变为他们的阵营。' },
+  // Minions
+  { id: 'godfather', name: '教父', nameEn: 'Godfather', type: 'minion', edition: 'bmr', ability: '在你的首个夜晚，你会得知场上有哪些外来者。如果有人在白天被处决而死，你可以在今晚选择杀死一名玩家。' },
+  { id: 'devils_advocate', name: '魔鬼代言人', nameEn: "Devil's Advocate", type: 'minion', edition: 'bmr', ability: '每个夜晚，选择一名存活的玩家（不同于前一夜）：如果该玩家明天被处决，他不会死亡。' },
+  { id: 'assassin', name: '刺客', nameEn: 'Assassin', type: 'minion', edition: 'bmr', ability: '在游戏中仅一次，在夜晚*，选择一名玩家：该玩家死亡，即使有保护他的能力。' },
+  { id: 'mastermind', name: '幕后黑手', nameEn: 'Mastermind', type: 'minion', edition: 'bmr', ability: '如果恶魔在白天被处决而死，游戏继续。接下来的一个黄昏，如果没有人被处决，邪恶阵营获胜。' },
+  // Demons
+  { id: 'zombuul', name: '丧尸', nameEn: 'Zombuul', type: 'demon', edition: 'bmr', ability: '每个夜晚*，如果今天没有人死亡，你必须选择一名玩家：该玩家死亡。你首次死亡时，你表面上看起来死了但保持存活。' },
+  { id: 'pukka', name: '波卡', nameEn: 'Pukka', type: 'demon', edition: 'bmr', ability: '每个夜晚，选择一名玩家：该玩家中毒。前一夜因你中毒的玩家死亡然后变为健康。' },
+  { id: 'shabaloth', name: '沙巴洛斯', nameEn: 'Shabaloth', type: 'demon', edition: 'bmr', ability: '每个夜晚*，选择两名玩家：他们死亡。一名你前一夜杀死的已死亡玩家可能复活。' },
+  { id: 'po', name: '波', nameEn: 'Po', type: 'demon', edition: 'bmr', ability: '每个夜晚*，你可以选择一名玩家：该玩家死亡。如果你的上一次选择是没有人，选择3名玩家：他们今晚死亡。' },
+
+  // ============================================================================
+  // Sects & Violets (梦中杀机)
+  // ============================================================================
+  // Townsfolk
+  { id: 'clockmaker', name: '钟表匠', nameEn: 'Clockmaker', type: 'townsfolk', edition: 'snv', ability: '在你的首个夜晚，你会得知恶魔和最近的爪牙之间相距几步。' },
+  { id: 'dreamer', name: '梦游者', nameEn: 'Dreamer', type: 'townsfolk', edition: 'snv', ability: '每个夜晚，选择一名玩家（不包括自己）：你会得知一个善良角色和一个邪恶角色，其中一个是该玩家的真实角色。' },
+  { id: 'snake_charmer', name: '弄蛇人', nameEn: 'Snake Charmer', type: 'townsfolk', edition: 'snv', ability: '每个夜晚，选择一名存活的玩家：有一次机会，如果选中了恶魔，你和恶魔互换角色和阵营，此后你中毒。' },
+  { id: 'mathematician', name: '数学家', nameEn: 'Mathematician', type: 'townsfolk', edition: 'snv', ability: '每个夜晚，你会得知自上个黄昏以来有多少玩家的信息受到干扰。' },
+  { id: 'flowergirl', name: '卖花女', nameEn: 'Flowergirl', type: 'townsfolk', edition: 'snv', ability: '每个夜晚*，你会得知恶魔是否今天投了票。' },
+  { id: 'town_crier', name: '宣告员', nameEn: 'Town Crier', type: 'townsfolk', edition: 'snv', ability: '每个夜晚*，你会得知今天是否有爪牙提名。' },
+  { id: 'oracle', name: '占星师', nameEn: 'Oracle', type: 'townsfolk', edition: 'snv', ability: '每个夜晚*，你会得知已死亡的玩家中有多少是邪恶的。' },
+  { id: 'savant', name: '学者', nameEn: 'Savant', type: 'townsfolk', edition: 'snv', ability: '每天，你可以去找说书人获取两条信息。其中一条为真，一条为假。' },
+  { id: 'seamstress', name: '裁缝', nameEn: 'Seamstress', type: 'townsfolk', edition: 'snv', ability: '在游戏中仅一次，在夜晚，选择两名玩家（不包括自己）：你会得知他们是否属于同一阵营。' },
+  { id: 'philosopher', name: '哲学家', nameEn: 'Philosopher', type: 'townsfolk', edition: 'snv', ability: '在游戏中仅一次，在夜晚，选择一个善良角色：获得该角色的能力。如果该角色已经在场，该玩家会醉酒。' },
+  { id: 'artist', name: '艺术家', nameEn: 'Artist', type: 'townsfolk', edition: 'snv', ability: '在游戏中仅一次，在白天，你可以私下向说书人提一个是/否问题。' },
+  { id: 'juggler', name: '杂技师', nameEn: 'Juggler', type: 'townsfolk', edition: 'snv', ability: '在你的第一个白天，你可以公开猜测最多5名玩家的角色。在那一晚，你会得知你猜对了多少个。' },
+  { id: 'sage', name: '圣人', nameEn: 'Sage', type: 'townsfolk', edition: 'snv', ability: '如果恶魔杀死了你，你可以得知两名玩家，其中一名是恶魔。' },
+  // Outsiders
+  { id: 'mutant', name: '变异者', nameEn: 'Mutant', type: 'outsider', edition: 'snv', ability: '如果你被"出柜"（公开声称自己是外来者），你可能会被立刻处决。' },
+  { id: 'sweetheart', name: '甜心', nameEn: 'Sweetheart', type: 'outsider', edition: 'snv', ability: '当你死亡时，一名玩家会醉酒到游戏结束。' },
+  { id: 'barber', name: '理发师', nameEn: 'Barber', type: 'outsider', edition: 'snv', ability: '如果你死亡，恶魔可以选择两名玩家（不包括自己），他们交换角色。' },
+  { id: 'klutz', name: '笨蛋', nameEn: 'Klutz', type: 'outsider', edition: 'snv', ability: '当你死亡后，你必须选择一名存活的玩家。如果你选择了邪恶玩家，你的阵营输掉。' },
+  // Minions
+  { id: 'evil_twin', name: '双胞胎', nameEn: 'Evil Twin', type: 'minion', edition: 'snv', ability: '你和一名善良玩家互相得知对方。如果善良的那个被处决，邪恶阵营获胜。善良玩家不知道谁是邪恶的双胞胎。' },
+  { id: 'witch', name: '女巫', nameEn: 'Witch', type: 'minion', edition: 'snv', ability: '每个夜晚，选择一名玩家：如果该玩家明天提名别人，他死亡。只有一名存活的镇民提名后有人死亡。' },
+  { id: 'cerenovus', name: '偏执狂', nameEn: 'Cerenovus', type: 'minion', edition: 'snv', ability: '每个夜晚，选择一名玩家和一个善良角色：该玩家被"疯狂"成该角色，否则可能被处决。' },
+  { id: 'pit_hag', name: '老巫婆', nameEn: 'Pit Hag', type: 'minion', edition: 'snv', ability: '每个夜晚*，选择一名玩家和一个角色：该玩家变为该角色（如果该角色不在场）。如果恶魔的类型改变，死亡可能发生。' },
+  // Demons
+  { id: 'fang_gu', name: '肺腑', nameEn: 'Fang Gu', type: 'demon', edition: 'snv', ability: '每个夜晚*，选择一名玩家：该玩家死亡。首次选择外来者时，你死亡，该玩家变为肺腑并变为邪恶，且从此不会醉酒或中毒。' },
+  { id: 'vigormortis', name: '活力亡灵', nameEn: 'Vigormortis', type: 'demon', edition: 'snv', ability: '每个夜晚*，选择一名玩家：该玩家死亡。爪牙死亡后保留其能力。如果爪牙因你的能力死亡，爪牙邻座中的一名镇民会中毒。' },
+  { id: 'no_dashii', name: '夺髓者', nameEn: "No Dashii", type: 'demon', edition: 'snv', ability: '每个夜晚*，选择一名玩家：该玩家死亡。与你最近的两名镇民会中毒。' },
+  { id: 'vortox', name: '漩涡', nameEn: 'Vortox', type: 'demon', edition: 'snv', ability: '每个夜晚*，选择一名玩家：该玩家死亡。镇民玩家获得的信息都是错误的，即使该镇民已经死亡。处决善良玩家的一方获胜。' },
+
+  // ============================================================================
+  // Experimental / Other (实验角色)
+  // ============================================================================
+  { id: 'acrobat', name: '杂技演员', nameEn: 'Acrobat', type: 'outsider', edition: 'exp', ability: '每个夜晚*，如果你或你旁边的任何一个邻座是醉酒或中毒的，你死亡。' },
+  { id: 'alchemist', name: '炼金术士', nameEn: 'Alchemist', type: 'townsfolk', edition: 'exp', ability: '你拥有一个爪牙的能力。你作为善良的阵营使用该能力。' },
+  { id: 'amnesiac', name: '失忆者', nameEn: 'Amnesiac', type: 'townsfolk', edition: 'exp', ability: '你不知道自己的能力是什么。每天，你可以私下去猜：说书人会告诉你猜对了多少。' },
+  { id: 'balloonist', name: '气球驾驶员', nameEn: 'Balloonist', type: 'townsfolk', edition: 'exp', ability: '每个夜晚，你会得知一名玩家，但你得知的4名玩家必须各属于不同的角色类型。' },
+  { id: 'bounty_hunter', name: '赏金猎人', nameEn: 'Bounty Hunter', type: 'townsfolk', edition: 'exp', ability: '你知道一名邪恶的玩家。如果该玩家被处决，你会得知另一名邪恶的玩家。' },
+  { id: 'cannibal', name: '食人族', nameEn: 'Cannibal', type: 'townsfolk', edition: 'exp', ability: '你拥有最近被处决而死的善良玩家的能力。如果该玩家是邪恶的，你会中毒到下一个善良玩家被处决而死。' },
+  { id: 'choirboy', name: '唱诗班男孩', nameEn: 'Choirboy', type: 'townsfolk', edition: 'exp', ability: '如果恶魔杀死了正义使者，你会得知是哪个玩家是恶魔。' },
+  { id: 'cult_leader', name: '邪教领袖', nameEn: 'Cult Leader', type: 'townsfolk', edition: 'exp', ability: '每个夜晚，你会变成与你旁边存活的邻座相同的阵营。' },
+  { id: 'engineer', name: '工程师', nameEn: 'Engineer', type: 'townsfolk', edition: 'exp', ability: '在游戏中仅一次，在夜晚，选择哪些爪牙或恶魔在场。' },
+  { id: 'fisherman', name: '渔夫', nameEn: 'Fisherman', type: 'townsfolk', edition: 'exp', ability: '在游戏中仅一次，在白天，你可以向说书人寻求建议来帮助你的阵营获胜。' },
+  { id: 'general', name: '将军', nameEn: 'General', type: 'townsfolk', edition: 'exp', ability: '每个夜晚，你会得知哪个阵营正在赢。' },
+  { id: 'huntsman', name: '猎人', nameEn: 'Huntsman', type: 'townsfolk', edition: 'exp', ability: '在游戏中仅一次，在夜晚，选择一名存活的玩家：赌鬼变为该玩家的角色。如果场上没有赌鬼，你也死亡。' },
+  { id: 'king', name: '国王', nameEn: 'King', type: 'townsfolk', edition: 'exp', ability: '每个夜晚*，如果存活玩家中只剩你和恶魔，你会得知恶魔的角色。白天，你可以声称你是国王，恶魔知道你是谁。' },
+  { id: 'knight', name: '骑士', nameEn: 'Knight', type: 'townsfolk', edition: 'exp', ability: '你会得知两名不是恶魔的玩家。' },
+  { id: 'lycanthrope', name: '狼人', nameEn: 'Lycanthrope', type: 'townsfolk', edition: 'exp', ability: '每个夜晚*，选择一名存活的玩家：如果该玩家是善良的，他死亡，但今晚没有其他人会死于恶魔。' },
+  { id: 'magician', name: '魔术师', nameEn: 'Magician', type: 'townsfolk', edition: 'exp', ability: '恶魔认为你是爪牙。爪牙认为你是恶魔。' },
+  { id: 'nightwatchman', name: '守夜人', nameEn: 'Nightwatchman', type: 'townsfolk', edition: 'exp', ability: '在游戏中仅一次，在夜晚，选择一名玩家：该玩家会得知你是守夜人。' },
+  { id: 'pixie', name: '精灵', nameEn: 'Pixie', type: 'townsfolk', edition: 'exp', ability: '你得知一个场上的镇民角色。如果你"疯狂"声称自己是那个角色，你会获得他的能力。' },
+  { id: 'preacher', name: '传教士', nameEn: 'Preacher', type: 'townsfolk', edition: 'exp', ability: '每个夜晚，选择一名玩家：如果是爪牙，该爪牙的能力失效。' },
+  { id: 'plague_doctor', name: '瘟疫医生', nameEn: 'Plague Doctor', type: 'outsider', edition: 'exp', ability: '如果你死亡，说书人获得一个爪牙能力。' },
+  { id: 'snitch', name: '告密者', nameEn: 'Snitch', type: 'outsider', edition: 'exp', ability: '爪牙在首个夜晚会额外得知三个不在场的善良角色。' },
+  { id: 'damsel', name: '少女', nameEn: 'Damsel', type: 'outsider', edition: 'exp', ability: '所有爪牙知道你是少女。如果有爪牙猜到了你是谁，你的阵营输掉。' },
+  { id: 'golem', name: '魔像', nameEn: 'Golem', type: 'outsider', edition: 'exp', ability: '你只能提名一次。当你提名时，如果该玩家不是恶魔，他死亡。' },
+  { id: 'heretic', name: '异教徒', nameEn: 'Heretic', type: 'outsider', edition: 'exp', ability: '如果有邪恶玩家在结束时输了，反之亦然。' },
+  { id: 'politician', name: '政客', nameEn: 'Politician', type: 'outsider', edition: 'exp', ability: '如果你是对你的阵营造成最大伤害的玩家之一，你换到另一阵营。' },
+  { id: 'puzzlemaster', name: '谜语大师', nameEn: 'Puzzlemaster', type: 'outsider', edition: 'exp', ability: '在游戏中仅一次，你可以猜测谁醉酒了。如果猜对了，你得知恶魔是谁。' },
+  { id: 'marionette', name: '提线木偶', nameEn: 'Marionette', type: 'minion', edition: 'exp', ability: '你以为自己是善良的镇民，但你其实是爪牙。恶魔知道你是谁。' },
+  { id: 'boomdandy', name: '自爆哥', nameEn: 'Boomdandy', type: 'minion', edition: 'exp', ability: '如果你被处决，所有人在10秒内各选一名玩家。最多被选的玩家死亡。' },
+  { id: 'fearmonger', name: '恐惧制造者', nameEn: 'Fearmonger', type: 'minion', edition: 'exp', ability: '每个夜晚，选择一名玩家。如果该玩家明天被提名，他死亡。所有玩家都知道有恐惧制造者在场。' },
+  { id: 'goblin', name: '哥布林', nameEn: 'Goblin', type: 'minion', edition: 'exp', ability: '如果你声称自己是哥布林且被处决，你的阵营获胜。' },
+  { id: 'mezepheles', name: '魅惑者', nameEn: 'Mezepheles', type: 'minion', edition: 'exp', ability: '在游戏中仅一次，你告诉说书人一个暗号。第一个对说书人说出该暗号的善良玩家变为邪恶。' },
+  { id: 'psychopath', name: '精神病人', nameEn: 'Psychopath', type: 'minion', edition: 'exp', ability: '每天，在提名之前，你可以公开选择一名玩家：该玩家死亡。' },
+  { id: 'widow', name: '寡妇', nameEn: 'Widow', type: 'minion', edition: 'exp', ability: '在你的首个夜晚，查看魔典并选择一名玩家：该玩家中毒。一名善良玩家知道场上有寡妇。' },
+  { id: 'organ_grinder', name: '手风琴师', nameEn: 'Organ Grinder', type: 'minion', edition: 'exp', ability: '当你存活时，所有投票都是闭眼进行的。死亡玩家可能会以你的意愿注册为善良或邪恶。' },
+  { id: 'al_hadikhia', name: '阿尔·哈迪基亚', nameEn: "Al-Hadikhia", type: 'demon', edition: 'exp', ability: '每个夜晚*，选择3名玩家（须含存活的）：每人选择生或死，但至少一人必须与一"选择死亡"的玩家不同。' },
+  { id: 'lleech', name: '水蛭', nameEn: 'Lleech', type: 'demon', edition: 'exp', ability: '每个夜晚*，选择一名玩家：该玩家死亡。你选择的首个玩家中毒并且只要你存活他就不会死亡。' },
+  { id: 'lil_monsta', name: '小怪兽', nameEn: "Lil' Monsta", type: 'demon', edition: 'exp', ability: '每个夜晚，爪牙们选择谁保管小怪兽标记和谁死亡。' },
+  { id: 'legion', name: '军团', nameEn: 'Legion', type: 'demon', edition: 'exp', ability: '每个夜晚*，一名玩家可能死亡。处决只有当投票者超过存活玩家一半时才成功。' },
+  { id: 'riot', name: '暴动', nameEn: 'Riot', type: 'demon', edition: 'exp', ability: '在第三天或之后，所有提名的玩家立即被处决（不经投票）。当一名玩家被提名时，该玩家必须立即提名另一个玩家。' },
+  { id: 'yaggababble', name: '巴布鲁', nameEn: 'Yaggababble', type: 'demon', edition: 'exp', ability: '你是恶魔。在游戏中仅一次，在白天，你可以说说书人事先告诉你的一句话。当你说出来后，选择的玩家死亡。' },
+  { id: 'lord_of_typhon', name: '飓风领主', nameEn: 'Lord of Typhon', type: 'demon', edition: 'exp', ability: '每个夜晚*，选择一名玩家：该玩家死亡。场上的每种邪恶角色类型各有且只有一名。' },
+  { id: 'kazali', name: '卡扎里', nameEn: 'Kazali', type: 'demon', edition: 'exp', ability: '每个夜晚*，选择一名玩家：该玩家死亡。在游戏开始前，你选择哪些玩家是你的爪牙以及他们的角色。' },
+  { id: 'ojo', name: '恶眼', nameEn: 'Ojo', type: 'demon', edition: 'exp', ability: '每个夜晚*，选择一个角色：带有该角色的玩家死亡。如果该角色不在场，说书人选择谁死亡。' },
+];
+
+// Generate the JS
+console.log(`// =============================================================================
+// Blood on the Clocktower - Character Database (Auto-generated)
+// 血染钟楼 - 角色数据库
+// =============================================================================
+
+export const TYPE_COLORS = {
+  townsfolk: '#1e6bb8',
+  outsider: '#46a86c',
+  minion: '#c94922',
+  demon: '#b72a2a',
+};
+
+export const TYPE_LABELS = {
+  townsfolk: '镇民',
+  outsider: '外来者',
+  minion: '爪牙',
+  demon: '恶魔',
+};
+
+export const CHARACTERS = {`);
+
+for (const ch of ALL_CHARACTERS) {
+  console.log(`  ${ch.id}: {
+    id: '${ch.id}',
+    name: '${ch.name}',
+    nameEn: '${ch.nameEn.replace(/'/g, "\\'")}',
+    type: '${ch.type}',
+    edition: '${ch.edition}',
+    ability: '${(ch.ability || '').replace(/'/g, "\\'")}',
+    icon: '/icons/${ch.id}.png',
+  },`);
+}
+
+console.log(`};
+
+// Scripts
+export const SCRIPTS = {
+  'trouble-brewing': {
+    id: 'trouble-brewing',
+    name: '初来乍到',
+    nameEn: 'Trouble Brewing',
+    characters: [${ALL_CHARACTERS.filter(c => c.edition === 'tb').map(c => `'${c.id}'`).join(', ')}],
+  },
+  'bad-moon-rising': {
+    id: 'bad-moon-rising',
+    name: '暗流涌动',
+    nameEn: 'Bad Moon Rising',
+    characters: [${ALL_CHARACTERS.filter(c => c.edition === 'bmr').map(c => `'${c.id}'`).join(', ')}],
+  },
+  'sects-and-violets': {
+    id: 'sects-and-violets',
+    name: '梦中杀机',
+    nameEn: 'Sects & Violets',
+    characters: [${ALL_CHARACTERS.filter(c => c.edition === 'snv').map(c => `'${c.id}'`).join(', ')}],
+  },
+};
+
+// Helper functions
+export function getCharactersByScript(scriptId) {
+  const script = SCRIPTS[scriptId];
+  if (!script) return [];
+  return script.characters.map((id) => CHARACTERS[id]).filter(Boolean);
+}
+
+export function getCharactersByType(characters, type) {
+  return characters.filter((c) => c.type === type);
+}
+`);

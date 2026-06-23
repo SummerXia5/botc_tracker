@@ -464,6 +464,36 @@
   font-family: Georgia, 'Times New Roman', serif;
 }
 
+/* ---- Character icon image ---- */
+.seat-char-img {
+  width: 46px;
+  height: 46px;
+  object-fit: contain;
+  pointer-events: none;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.15));
+}
+
+.role-item-icon {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.dist-token-img {
+  width: 42px;
+  height: 42px;
+  object-fit: contain;
+  transition: opacity 200ms;
+}
+
+.bluff-icon {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
 /* ---- Character name on token ---- */
 .seat-char-name {
   font-size: 0.6rem;

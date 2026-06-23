@@ -500,9 +500,13 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                 {/* Character content */}
                 {ch ? (
                   <>
-                    <span className="seat-char-icon" style={{ color: TYPE_COLORS[ch.type] }}>
-                      {ch.name?.charAt(0)}
-                    </span>
+                    {ch.icon ? (
+                      <img className="seat-char-img" src={ch.icon} alt={ch.name} />
+                    ) : (
+                      <span className="seat-char-icon" style={{ color: TYPE_COLORS[ch.type] }}>
+                        {ch.name?.charAt(0)}
+                      </span>
+                    )}
                     <span className="seat-char-name">{ch.name}</span>
                   </>
                 ) : (
@@ -637,7 +641,11 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                             disabled={isAssigned}
                             onClick={() => handleAssignRole(ch.id)}
                           >
-                            <span className="role-item-indicator" style={{ background: TYPE_COLORS[ch.type] }} />
+                            {ch.icon ? (
+                              <img className="role-item-icon" src={ch.icon} alt={ch.name} />
+                            ) : (
+                              <span className="role-item-indicator" style={{ background: TYPE_COLORS[ch.type] }} />
+                            )}
                             <span className="role-item-name">{ch.name}</span>
                             {ch.nameEn && <span className="role-item-en">{ch.nameEn}</span>}
                           </button>
@@ -698,9 +706,13 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                         title={`${ch.name} (${ch.nameEn}) — ${TYPE_LABELS[ch.type]}\n${ch.ability}`}
                         onClick={() => toggleCharInPool(ch.id)}
                       >
-                        <span className="dist-token-icon" style={{ color: isSelected ? TYPE_COLORS[ch.type] : '#666' }}>
-                          {ch.name?.charAt(0)}
-                        </span>
+                        {ch.icon ? (
+                          <img className="dist-token-img" src={ch.icon} alt={ch.name} style={{ opacity: isSelected ? 1 : 0.3 }} />
+                        ) : (
+                          <span className="dist-token-icon" style={{ color: isSelected ? TYPE_COLORS[ch.type] : '#666' }}>
+                            {ch.name?.charAt(0)}
+                          </span>
+                        )}
                         <span className="dist-token-name" style={{ opacity: isSelected ? 1 : 0.4 }}>{ch.name}</span>
                         {isAssigned && <div className="dist-token-check">✓</div>}
                       </div>
@@ -783,7 +795,11 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                   >
                     {ch ? (
                       <>
-                        <span className="bluff-indicator" style={{ background: TYPE_COLORS[ch.type] }} />
+                        {ch.icon ? (
+                          <img className="bluff-icon" src={ch.icon} alt={ch.name} />
+                        ) : (
+                          <span className="bluff-indicator" style={{ background: TYPE_COLORS[ch.type] }} />
+                        )}
                         <span className="bluff-name">{ch.name}</span>
                       </>
                     ) : (
@@ -804,7 +820,11 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                       className="bluff-picker-item"
                       onClick={() => handleAssignBluff(ch.id)}
                     >
-                      <span className="role-item-indicator" style={{ background: TYPE_COLORS[ch.type] }} />
+                      {ch.icon ? (
+                        <img className="role-item-icon" src={ch.icon} alt={ch.name} />
+                      ) : (
+                        <span className="role-item-indicator" style={{ background: TYPE_COLORS[ch.type] }} />
+                      )}
                       <span>{ch.name}</span>
                     </button>
                   ))}
