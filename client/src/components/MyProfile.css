@@ -435,6 +435,47 @@
   font-weight: 800;
 }
 
+/* ---- Group Action Buttons ---- */
+.mp-group-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.mp-btn-unlink,
+.mp-btn-leave {
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 0.72rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: all 200ms;
+  padding: 0;
+}
+
+.mp-group-item:hover .mp-btn-unlink,
+.mp-group-item:hover .mp-btn-leave {
+  opacity: 0.5;
+}
+
+.mp-btn-unlink:hover {
+  opacity: 1 !important;
+  background: rgba(255, 152, 0, 0.1);
+}
+
+.mp-btn-leave:hover {
+  opacity: 1 !important;
+  background: rgba(212, 69, 58, 0.1);
+  color: var(--accent-red);
+}
+
 .mp-no-data {
   text-align: center;
   color: var(--text-tertiary);
