@@ -381,10 +381,12 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
       const teamMap = { townsfolk: 'townsfolk', outsider: 'outsider', minion: 'minion', demon: 'demon', fabled: 'fabled', traveler: 'traveller', traveller: 'traveller' };
 
       if (normalized) {
-        // Merge: local data + script meta image as override
+        // Merge: local data + script meta overrides (JSON name takes priority)
         return {
           ...normalized,
           id, // keep original ID for assignment tracking
+          name: m.name || normalized.name,
+          ability: m.ability || normalized.ability,
           icon: m.image || normalized.icon,
           firstNight: m.firstNight || 0,
           otherNight: m.otherNight || 0,
