@@ -175,15 +175,38 @@ router.post('/:code/sit', (req, res) => {
   });
 });
 
-// ─── DELETE /api/reveal/:code ───────────────────────────────────────────────────
+// ─── POST /api/reveal/:code/unseat ──────────────────────────────────────────────
+// Player stands up or storyteller removes a player from a seat.
 
-router.delete('/:code', (req, res) => {
-  const existed = sessions.delete(req.params.code);
-  if (!existed) {
-    return res.status(404).json({ error: 'Session not found.' });
+router.post('/:code/unseat', (req, res) => {
+  const session = getValidSession(req.params.code);
+  if (!session) {
+    return res.status(404).json({ error: '代码无效或已过期' });
   }
 
-  res.json({ message: 'Session deleted.' });
+  const { seatIndex } = req.body;
+
+  if (seatIndex == null || seatIndex < 0 || seatIndex >= session.totalSeats) {
+    return res.status(400).json({ error: '无效的座位号' });
+  }
+
+  const seatData = session.seated[seatIndex];
+  if (!seatData) {
+    return res.status(400).json({ error: '该座位没有人' });
+  }
+
+  // Restore player to available list if they were from the group
+  if (seatData.playerId) {
+    const player = session.availablePlayers.find(p => p.id === seatData.playerId);
+    if (player) {
+      player.taken = false;
+    }
+  }
+
+  // Clear the seat
+  session.seated[seatIndex] = null;
+
+  res.json({ message: '已起立', seatIndex, seatNumber: seatIndex + 1 });
 });
 
 export default router;

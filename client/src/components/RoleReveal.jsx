@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { getRevealSession, sitRevealSeat } from '../api';
+import { getRevealSession, sitRevealSeat, unseatRevealSeat } from '../api';
 import { CHARACTERS, TYPE_COLORS, TYPE_LABELS, TRAVELLERS } from '../data/characters';
 import './RoleReveal.css';
 
@@ -118,7 +118,29 @@ export default function RoleReveal({ onClose }) {
           <div className="reveal-warning">
             ⚠ 请记住你的角色，此页面关闭后无法再次查看
           </div>
-          <button className="reveal-btn" onClick={onClose}>关闭</button>
+          <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
+            <button className="reveal-btn" onClick={onClose}>关闭</button>
+            <button
+              className="reveal-btn"
+              style={{ background: 'rgba(180,80,80,0.3)', borderColor: 'rgba(180,80,80,0.5)' }}
+              onClick={async () => {
+                if (window.confirm('确定要起立吗？你的角色信息将不再显示。')) {
+                  try {
+                    await unseatRevealSeat(code, revealedInfo.seatIndex);
+                    setRevealedChar(null);
+                    setRevealedInfo(null);
+                    setSelectedPlayer(null);
+                    setCustomName('');
+                    // Refresh session
+                    const data = await getRevealSession(code);
+                    setSession(data);
+                  } catch (e) { console.error('Unseat failed:', e); }
+                }
+              }}
+            >
+              🚶 起立
+            </button>
+          </div>
         </div>
       </div>
     );

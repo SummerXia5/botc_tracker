@@ -2,7 +2,7 @@ import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 
 import { CHARACTERS, TYPE_COLORS, TYPE_LABELS, SCRIPTS, TRAVELLERS } from '../data/characters';
 import PlayerSelector from './PlayerSelector';
-import { createPlayer, createRevealSession, getRevealSession, sitRevealSeat } from '../api';
+import { createPlayer, createRevealSession, getRevealSession, sitRevealSeat, unseatRevealSeat } from '../api';
 import './Grimoire.css';
 
 const REMINDER_TOKENS = [
@@ -193,8 +193,13 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
   // ================================================================
   useEffect(() => {
     const prev = document.body.style.overflow;
+    const prevBg = document.body.style.background;
     document.body.style.overflow = 'hidden';
-    return () => { document.body.style.overflow = prev; };
+    document.body.style.background = '#1a1d23';
+    return () => {
+      document.body.style.overflow = prev;
+      document.body.style.background = prevBg;
+    };
   }, []);
 
   // ================================================================
@@ -1808,14 +1813,28 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                           : manualSeatIdx === seat.seatIndex ? 'rgba(212,184,120,0.4)'
                           : 'rgba(100,80,50,0.15)'}`,
                         color: seat.occupied ? '#a0d4a0' : '#6a5a3a',
-                        cursor: seat.occupied ? 'default' : 'pointer',
+                        cursor: 'pointer',
                       }}
-                      onClick={() => {
-                        if (!seat.occupied) setManualSeatIdx(manualSeatIdx === seat.seatIndex ? null : seat.seatIndex);
+                      onClick={async () => {
+                        if (seat.occupied) {
+                          // Unseat (confirm)
+                          if (window.confirm(`移除 ${seat.playerName} 的座位？`)) {
+                            try {
+                              await unseatRevealSeat(revealCode, seat.seatIndex);
+                              addLog(`说书人移除 ${seat.playerName} (座位${seat.seatNumber})`);
+                              const data = await getRevealSession(revealCode);
+                              setRevealSession(data);
+                            } catch (e) { console.error('Unseat failed:', e); }
+                          }
+                        } else {
+                          setManualSeatIdx(manualSeatIdx === seat.seatIndex ? null : seat.seatIndex);
+                        }
                       }}
                     >
                       <span style={{ fontWeight: 700 }}>{seat.seatNumber}.</span>{' '}
-                      {seat.occupied ? seat.playerName : '点击入座'}
+                      {seat.occupied ? (
+                        <>{seat.playerName} <span style={{ fontSize: '0.6rem', opacity: 0.6 }}>✕</span></>
+                      ) : '点击入座'}
                     </div>
                   ))}
                 </div>

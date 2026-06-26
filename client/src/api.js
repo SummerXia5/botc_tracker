@@ -212,3 +212,10 @@ export async function sitRevealSeat(code, { seatIndex, playerName, playerId }) {
     body: JSON.stringify({ seatIndex, playerName, playerId }),
   });
 }
+
+export async function unseatRevealSeat(code, seatIndex) {
+  return request(`/api/reveal/${code}/unseat`, {
+    method: 'POST',
+    body: JSON.stringify({ seatIndex }),
+  });
+}
