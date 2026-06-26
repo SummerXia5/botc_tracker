@@ -732,19 +732,44 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
   //  Role assignment
   // ----------------------------------------------------------------
   const handleSeatClick = (index, event) => {
-    // If in setup phase and no character yet, open role panel
-    if (phase === 'setup' && !seats[index].characterId) {
+    // If no character yet, open role panel
+    if (!seats[index].characterId) {
       setAssigningSeatIndex(index);
       setShowRolePanel(true);
       return;
     }
 
-    // Toggle action menu for this seat
-    if (activeSeatMenu === index) {
-      setActiveSeatMenu(null); // close if same
-    } else {
-      setActiveSeatMenu(index); // open for this seat
+    // During setup: open role panel to reassign
+    if (phase === 'setup') {
+      setAssigningSeatIndex(index);
+      setShowRolePanel(true);
+      return;
     }
+
+    // During game: detect top/bottom half click on the seat token
+    const rect = event.currentTarget.getBoundingClientRect();
+    const clickY = event.clientY - rect.top;
+    const isBottomHalf = clickY > rect.height * 0.5;
+
+    if (isBottomHalf) {
+      // Bottom half → change character
+      setAssigningSeatIndex(index);
+      setShowRolePanel(true);
+      return;
+    }
+
+    // Top half → death/revive
+    if (seats[index].alive) {
+      setDeathSeatIndex(index);
+      setShowDeathPicker(true);
+      return;
+    }
+    // Revive
+    setSeats(prev => prev.map((s, i) => {
+      if (i !== index) return s;
+      addLog(`${s.player?.name || `座位${index+1}`} 复活`);
+      return { ...s, alive: true, deathDay: null, deathCause: null };
+    }));
   };
 
   const DEATH_REASONS = [
@@ -1008,7 +1033,7 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
   const allAssigned = seats.every(s => s.characterId);
 
   return (
-    <div className={`grimoire grimoire-${phase}`} onClick={() => activeSeatMenu !== null && setActiveSeatMenu(null)}>
+    <div className={`grimoire grimoire-${phase}`}>
       {/* ---- Privacy Mask ---- */}
       {showMask && (
         <div className="grimoire-mask" onClick={() => setShowMask(false)}>
@@ -1354,47 +1379,24 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
 
 
 
-                {/* Tap-triggered action menu (iPad compatible) */}
-                {activeSeatMenu === i && seat.characterId && (
-                  <div className="seat-action-menu" onClick={(e) => e.stopPropagation()}>
-                    {phase !== 'setup' && (
-                      <>
-                        {seat.alive ? (
-                          <button className="seat-action-btn action-danger" onClick={() => {
-                            setDeathSeatIndex(i);
-                            setShowDeathPicker(true);
-                            setActiveSeatMenu(null);
-                          }}>💀 标记死亡</button>
-                        ) : (
-                          <button className="seat-action-btn action-success" onClick={() => {
-                            setSeats(prev => prev.map((s, si) => {
-                              if (si !== i) return s;
-                              addLog(`${s.player?.name || `座位${i+1}`} 复活`);
-                              return { ...s, alive: true, deathDay: null, deathCause: null };
-                            }));
-                            setActiveSeatMenu(null);
-                          }}>✨ 复活</button>
-                        )}
-                      </>
-                    )}
-                    <button className="seat-action-btn" onClick={() => {
-                      setAssigningSeatIndex(i);
-                      setShowRolePanel(true);
-                      setActiveSeatMenu(null);
-                    }}>🔄 换角色</button>
-                    <button className="seat-action-btn" onClick={() => {
+                {/* Small icon buttons around the token (distinct tap targets) */}
+                {seat.characterId && (
+                  <>
+                    {/* 🎭 Perceived identity — left side */}
+                    <div className="seat-side-btn seat-btn-left" onClick={(e) => {
+                      e.stopPropagation();
                       setPerceivedSeatIndex(i);
                       setShowPerceivedPicker(true);
-                      setActiveSeatMenu(null);
-                    }}>🎭 认知覆盖</button>
+                    }}>🎭</div>
+                    {/* 📝 Reminders — right side (game only) */}
                     {phase !== 'setup' && (
-                      <button className="seat-action-btn" onClick={() => {
+                      <div className="seat-side-btn seat-btn-right" onClick={(e) => {
+                        e.stopPropagation();
                         setReminderSeatIndex(i);
                         setShowReminderPicker(true);
-                        setActiveSeatMenu(null);
-                      }}>📝 备忘标记</button>
+                      }}>📝</div>
                     )}
-                  </div>
+                  </>
                 )}
                 {/* Character content — flip display when perceived is set */}
                 {ch ? (() => {
