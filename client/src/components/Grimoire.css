@@ -8,23 +8,28 @@
   position: fixed;
   inset: 0;
   z-index: 200;
-  background: #1a1d23;
-  background-image:
-    radial-gradient(ellipse at center, rgba(30, 35, 45, 0.9), rgba(15, 17, 22, 1)),
-    linear-gradient(180deg, #1a1d23 0%, #0f1116 100%);
+  background: #1a1510;
+  background-image: url('/grimoire_bg.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
   overflow: hidden;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   color: #c4b08a;
-  transition: background 800ms ease, background-image 800ms ease;
+  transition: background 800ms ease;
 }
 
-/* ---- Day phase — warm amber/golden sky ---- */
-.grimoire-day {
-  background: #2a2218;
-  background-image:
-    radial-gradient(ellipse at 50% 30%, rgba(80, 60, 20, 0.5) 0%, transparent 70%),
-    radial-gradient(ellipse at center, rgba(50, 40, 25, 0.9), rgba(25, 20, 14, 1)),
-    linear-gradient(180deg, #3a2e1a 0%, #1e1810 100%);
+/* ---- Day phase — warm amber overlay ---- */
+.grimoire-day::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 50% 30%, rgba(120, 90, 30, 0.25) 0%, transparent 70%),
+    linear-gradient(180deg, rgba(60, 45, 15, 0.4) 0%, rgba(30, 22, 10, 0.3) 100%);
+  pointer-events: none;
+  z-index: 0;
+  transition: opacity 800ms ease;
 }
 
 /* Subtle sun glow */
@@ -42,13 +47,17 @@
   z-index: 0;
 }
 
-/* ---- Night phase — deep midnight blue + stars ---- */
-.grimoire-night {
-  background: #0a0e1a;
-  background-image:
-    radial-gradient(ellipse at 50% 40%, rgba(15, 20, 50, 0.8) 0%, transparent 60%),
-    radial-gradient(ellipse at center, rgba(8, 12, 28, 0.95), rgba(4, 6, 14, 1)),
-    linear-gradient(180deg, #0e1228 0%, #060810 100%);
+/* ---- Night phase — deep blue overlay ---- */
+.grimoire-night::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 50% 40%, rgba(10, 15, 50, 0.5) 0%, transparent 60%),
+    linear-gradient(180deg, rgba(8, 12, 30, 0.6) 0%, rgba(4, 6, 14, 0.5) 100%);
+  pointer-events: none;
+  z-index: 0;
+  transition: opacity 800ms ease;
 }
 
 /* Subtle moon glow */
