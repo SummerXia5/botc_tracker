@@ -64,6 +64,10 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
   const [showPlayerManager, setShowPlayerManager] = useState(false);
   const [dragIndex, setDragIndex] = useState(null);
 
+  // ---- Circle drag-to-swap ----
+  const [circleDragIdx, setCircleDragIdx] = useState(null);
+  const [circleDropIdx, setCircleDropIdx] = useState(null);
+
   // ---- Setup: player selection ----
   const [selectedPlayerIds, setSelectedPlayerIds] = useState([]);
 
@@ -624,9 +628,45 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                   'seat-token',
                   !seat.alive && 'dead',
                   ch && `type-${ch.type}`,
-
+                  circleDragIdx === i && 'seat-dragging',
+                  circleDropIdx === i && circleDragIdx !== null && circleDragIdx !== i && 'seat-drop-target',
                 ].filter(Boolean).join(' ')}
                 style={{ left: `${x}%`, top: `${y}%` }}
+                draggable
+                onDragStart={(e) => {
+                  setCircleDragIdx(i);
+                  e.dataTransfer.effectAllowed = 'move';
+                  // Set a small transparent image as drag ghost
+                  const ghost = document.createElement('div');
+                  ghost.style.opacity = '0';
+                  document.body.appendChild(ghost);
+                  e.dataTransfer.setDragImage(ghost, 0, 0);
+                  setTimeout(() => document.body.removeChild(ghost), 0);
+                }}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  e.dataTransfer.dropEffect = 'move';
+                  if (circleDropIdx !== i) setCircleDropIdx(i);
+                }}
+                onDragLeave={() => {
+                  if (circleDropIdx === i) setCircleDropIdx(null);
+                }}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  if (circleDragIdx !== null && circleDragIdx !== i) {
+                    setSeats(prev => {
+                      const next = [...prev];
+                      [next[circleDragIdx], next[i]] = [next[i], next[circleDragIdx]];
+                      return next;
+                    });
+                  }
+                  setCircleDragIdx(null);
+                  setCircleDropIdx(null);
+                }}
+                onDragEnd={() => {
+                  setCircleDragIdx(null);
+                  setCircleDropIdx(null);
+                }}
                 onClick={() => handleSeatClick(i)}
               >
                 {/* Dead shroud overlay */}
