@@ -1090,6 +1090,18 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
           </div>
         )}
 
+        {/* Phase transition — prominent inline button */}
+        {phase === 'day' && (
+          <button className="topbar-phase-btn phase-night-btn" onClick={handleStartNight}>
+            🌙 夜晚
+          </button>
+        )}
+        {phase === 'night' && (
+          <button className="topbar-phase-btn phase-day-btn" onClick={handleStartDay}>
+            ☀ 白天
+          </button>
+        )}
+
         {/* Gear menu button - only during game (day/night) */}
         {phase !== 'setup' && (
           <button className="topbar-menu-btn" onClick={() => setShowMenu(!showMenu)}>⚙</button>
@@ -1099,19 +1111,6 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
         {/* Dropdown menu - day/night only */}
         {phase !== 'setup' && showMenu && (
           <div className="topbar-dropdown">
-            {phase === 'day' && (
-              <button className="dropdown-item dropdown-primary" onClick={() => { handleStartNight(); setShowMenu(false); }}>
-                🌙 开始夜晚
-              </button>
-            )}
-            {phase === 'night' && (
-              <button className="dropdown-item dropdown-primary" onClick={() => { handleStartDay(); setShowMenu(false); }}>
-                ☀ 开始白天
-              </button>
-            )}
-
-            <div className="dropdown-divider" />
-
             <button className="dropdown-item" onClick={() => { setShowDistribution(!showDistribution); setShowMenu(false); }}>
               📜 查看配版
             </button>
@@ -1363,7 +1362,7 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                   <>
                     <div className="seat-hover-zone seat-hover-top">
                       <span className="seat-hover-label">
-                        {seat.alive ? '💀 处死' : '✨ 复活'}
+                        {seat.alive ? '💀 标记死亡' : '✨ 复活'}
                       </span>
                     </div>
                     <div className="seat-hover-zone seat-hover-bottom">

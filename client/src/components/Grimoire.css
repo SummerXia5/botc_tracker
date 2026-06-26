@@ -594,6 +594,38 @@
   color: #e8d4a8;
 }
 
+/* Phase transition buttons — prominent */
+.topbar-phase-btn {
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 200ms ease;
+  border: 1.5px solid;
+  white-space: nowrap;
+}
+.phase-night-btn {
+  background: rgba(50, 40, 100, 0.7);
+  border-color: rgba(120, 100, 200, 0.5);
+  color: #c0b0f0;
+}
+.phase-night-btn:hover {
+  background: rgba(60, 50, 120, 0.85);
+  border-color: rgba(140, 120, 220, 0.7);
+  box-shadow: 0 0 12px rgba(100, 80, 200, 0.3);
+}
+.phase-day-btn {
+  background: rgba(120, 90, 30, 0.6);
+  border-color: rgba(200, 160, 60, 0.5);
+  color: #f0d870;
+}
+.phase-day-btn:hover {
+  background: rgba(140, 110, 40, 0.8);
+  border-color: rgba(220, 180, 80, 0.7);
+  box-shadow: 0 0 12px rgba(200, 160, 60, 0.3);
+}
+
 .grimoire-close-ingame {
   position: static;
 }
