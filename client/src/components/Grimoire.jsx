@@ -1033,115 +1033,109 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
           <div className="mask-hint">点击任意位置解锁</div>
         </div>
       )}
-      {/* ---- Top-right: Phase pill + close + menu ---- */}
-      <div className="grimoire-topbar">
-        <div className={`grimoire-phase-pill phase-${phase}`}>
-          {phase === 'setup' && '⚙ 配置中'}
-          {phase === 'day' && `☀ 白天 ${dayNumber}`}
-          {phase === 'night' && `☽ 夜晚 ${dayNumber}`}
-        </div>
+      {/* ---- Floating controls (no topbar) ---- */}
+      {/* Close button — top-right corner */}
+      <button className="grimoire-float-close" onClick={onClose}>✕</button>
 
-        {/* Day timer - inline next to phase pill */}
-        {phase === 'day' && (
-          <div className={`grimoire-timer ${timerSeconds === 0 ? 'timer-expired' : timerSeconds <= 60 ? 'timer-warning' : ''}`}>
-            <span className="timer-display">
-              {String(Math.floor(timerSeconds / 60)).padStart(2, '0')}:{String(timerSeconds % 60).padStart(2, '0')}
-            </span>
-            <div className="timer-controls">
-              <button
-                className="timer-btn"
-                onClick={() => {
-                  if (timerSeconds === 0) {
-                    setTimerSeconds(timerDuration);
-                  }
-                  setTimerRunning(!timerRunning);
-                }}
-                title={timerRunning ? '暂停' : '开始'}
-              >
-                {timerRunning ? '⏸' : '▶'}
-              </button>
-              <button
-                className="timer-btn"
-                onClick={() => { setTimerRunning(false); setTimerSeconds(timerDuration); }}
-                title="重置"
-              >
-                ↺
-              </button>
-              <button
-                className="timer-btn timer-adjust"
-                onClick={() => {
-                  const newMin = Math.max(1, Math.floor(timerDuration / 60) - 1);
-                  setTimerDuration(newMin * 60);
-                  if (!timerRunning) setTimerSeconds(newMin * 60);
-                }}
-                title="减少1分钟"
-              >−</button>
-              <span className="timer-duration-label">{Math.floor(timerDuration / 60)}分</span>
-              <button
-                className="timer-btn timer-adjust"
-                onClick={() => {
-                  const newMin = Math.floor(timerDuration / 60) + 1;
-                  setTimerDuration(newMin * 60);
-                  if (!timerRunning) setTimerSeconds(newMin * 60);
-                }}
-                title="增加1分钟"
-              >+</button>
-            </div>
-          </div>
-        )}
-
-        {/* Phase transition — prominent inline button */}
-        {phase === 'day' && (
-          <button className="topbar-phase-btn phase-night-btn" onClick={handleStartNight}>
-            🌙 夜晚
-          </button>
-        )}
-        {phase === 'night' && (
-          <button className="topbar-phase-btn phase-day-btn" onClick={handleStartDay}>
-            ☀ 白天
-          </button>
-        )}
-
-        {/* Gear menu button - only during game (day/night) */}
-        {phase !== 'setup' && (
+      {/* Gear menu — top-right, next to close */}
+      {phase !== 'setup' && (
+        <div className="grimoire-float-gear">
           <button className="topbar-menu-btn" onClick={() => setShowMenu(!showMenu)}>⚙</button>
-        )}
-        <button className="grimoire-close-btn grimoire-close-ingame" onClick={onClose}>✕</button>
+          {showMenu && (
+            <div className="topbar-dropdown">
+              <button className="dropdown-item" onClick={() => { setShowDistribution(!showDistribution); setShowMenu(false); }}>
+                📜 查看配版
+              </button>
+              <button className="dropdown-item" onClick={() => { setShowNightOrder(!showNightOrder); setShowMenu(false); }}>
+                🌃 夜晚顺序
+              </button>
+              <button className="dropdown-item" onClick={() => { setShowDemonBluffs(true); setShowMenu(false); }}>
+                🎭 恶魔伪装
+              </button>
+              <button className="dropdown-item" onClick={() => {
+                setShowTravellerPanel(!showTravellerPanel);
+                setTravellerStep('player');
+                setTravellerPlayer(null);
+                setTravellerCharId(null);
+                setNewTravellerName('');
+                setShowMenu(false);
+              }}>
+                🧳 旅行者
+              </button>
+              <button className="dropdown-item" onClick={() => { setShowMask(true); setShowMenu(false); }}>
+                🔒 遮罩
+              </button>
 
-        {/* Dropdown menu - day/night only */}
-        {phase !== 'setup' && showMenu && (
-          <div className="topbar-dropdown">
-            <button className="dropdown-item" onClick={() => { setShowDistribution(!showDistribution); setShowMenu(false); }}>
-              📜 查看配版
-            </button>
-            <button className="dropdown-item" onClick={() => { setShowNightOrder(!showNightOrder); setShowMenu(false); }}>
-              🌃 夜晚顺序
-            </button>
-            <button className="dropdown-item" onClick={() => { setShowDemonBluffs(true); setShowMenu(false); }}>
-              🎭 恶魔伪装
-            </button>
-            <button className="dropdown-item" onClick={() => {
-              setShowTravellerPanel(!showTravellerPanel);
-              setTravellerStep('player');
-              setTravellerPlayer(null);
-              setTravellerCharId(null);
-              setNewTravellerName('');
-              setShowMenu(false);
-            }}>
-              🧳 旅行者
-            </button>
-            <button className="dropdown-item" onClick={() => { setShowMask(true); setShowMenu(false); }}>
-              🔒 遮罩
-            </button>
+              <div className="dropdown-divider" />
 
-            <div className="dropdown-divider" />
+              <button className="dropdown-item dropdown-danger" onClick={() => { setShowEndDialog(true); setShowMenu(false); }}>
+                ⛔ 结束对局
+              </button>
+            </div>
+          )}
+        </div>
+      )}
 
-            <button className="dropdown-item dropdown-danger" onClick={() => { setShowEndDialog(true); setShowMenu(false); }}>
-              ⛔ 结束对局
+      {/* Day timer — top center floating */}
+      {phase === 'day' && (
+        <div className={`grimoire-timer grimoire-timer-float ${timerSeconds === 0 ? 'timer-expired' : timerSeconds <= 60 ? 'timer-warning' : ''}`}>
+          <span className="timer-display">
+            {String(Math.floor(timerSeconds / 60)).padStart(2, '0')}:{String(timerSeconds % 60).padStart(2, '0')}
+          </span>
+          <div className="timer-controls">
+            <button
+              className="timer-btn"
+              onClick={() => {
+                if (timerSeconds === 0) {
+                  setTimerSeconds(timerDuration);
+                }
+                setTimerRunning(!timerRunning);
+              }}
+              title={timerRunning ? '暂停' : '开始'}
+            >
+              {timerRunning ? '⏸' : '▶'}
             </button>
+            <button
+              className="timer-btn"
+              onClick={() => { setTimerRunning(false); setTimerSeconds(timerDuration); }}
+              title="重置"
+            >
+              ↺
+            </button>
+            <button
+              className="timer-btn timer-adjust"
+              onClick={() => {
+                const newMin = Math.max(1, Math.floor(timerDuration / 60) - 1);
+                setTimerDuration(newMin * 60);
+                if (!timerRunning) setTimerSeconds(newMin * 60);
+              }}
+              title="减少1分钟"
+            >−</button>
+            <span className="timer-duration-label">{Math.floor(timerDuration / 60)}分</span>
+            <button
+              className="timer-btn timer-adjust"
+              onClick={() => {
+                const newMin = Math.floor(timerDuration / 60) + 1;
+                setTimerDuration(newMin * 60);
+                if (!timerRunning) setTimerSeconds(newMin * 60);
+              }}
+              title="增加1分钟"
+            >+</button>
           </div>
-        )}
-      </div>
+        </div>
+      )}
+
+      {/* Phase transition — bottom-center prominent pill */}
+      {phase === 'day' && (
+        <button className="phase-transition-btn phase-night-btn" onClick={handleStartNight}>
+          🌙 进入夜晚
+        </button>
+      )}
+      {phase === 'night' && (
+        <button className="phase-transition-btn phase-day-btn" onClick={handleStartDay}>
+          ☀ 进入白天
+        </button>
+      )}
 
       {/* ---- Setup phase: Right sidebar with all actions ---- */}
       {phase === 'setup' && (
