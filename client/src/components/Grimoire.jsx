@@ -154,6 +154,14 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
 
   // ---- Setup: player selection ----
   const [selectedPlayerIds, setSelectedPlayerIds] = useState([]);
+  // ================================================================
+  //  Lock body scroll while Grimoire is open
+  // ================================================================
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = prev; };
+  }, []);
 
   // ================================================================
   //  LocalStorage persistence — survive refresh / disconnect
