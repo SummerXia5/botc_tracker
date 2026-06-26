@@ -1251,6 +1251,28 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
           <span>💀{seats.length - aliveCount}</span>
         </div>
       </div>
+      {/* ---- Bottom-left: Demon Bluffs floating widget ---- */}
+      <div className="bluffs-widget" onClick={() => setShowDemonBluffs(true)}>
+        <div className="bluffs-widget-title">恶魔伪装</div>
+        <div className="bluffs-widget-slots">
+          {demonBluffs.map((bluffId, bi) => {
+            const bch = bluffId ? (charLookup[bluffId] || CHARACTERS[bluffId]) : null;
+            return (
+              <div key={bi} className={`bluffs-widget-slot ${bch ? 'filled' : ''}`}>
+                {bch ? (
+                  bch.icon ? (
+                    <img src={bch.icon} alt={bch.name} className="bluffs-widget-icon" />
+                  ) : (
+                    <span className="bluffs-widget-letter">{bch.name?.charAt(0)}</span>
+                  )
+                ) : (
+                  <span className="bluffs-widget-empty">?</span>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
 
       {/* ---- Circular seating chart ---- */}
       <div className="grimoire-circle-container">
