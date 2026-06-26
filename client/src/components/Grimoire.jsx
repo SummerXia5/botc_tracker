@@ -1175,8 +1175,8 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                   return;
                 }
                 // Validate: characters that need perceived identity must have it set
-                const PERCEIVED_IDS = ['drunk', 'marionette', 'lunatic'];
-                const PERCEIVED_NAMES = ['酒鬼', '提线木偶', '疯子'];
+                const PERCEIVED_IDS = ['drunk', 'marionette', 'lunatic', 'recluse', 'hermit', 'wudaozhe'];
+                const PERCEIVED_NAMES = ['酒鬼', '提线木偶', '疯子', '隐士', '悟道者'];
                 const missing = seats
                   .map((s, idx) => {
                     if (!s.characterId) return null;
@@ -1398,8 +1398,8 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                 {/* Small icon buttons around the token (distinct tap targets) */}
                 {seat.characterId && (() => {
                   // Only these characters need perceived identity
-                  const PERCEIVED_IDS = ['drunk', 'marionette', 'lunatic'];
-                  const PERCEIVED_NAMES = ['酒鬼', '提线木偶', '疯子'];
+                  const PERCEIVED_IDS = ['drunk', 'marionette', 'lunatic', 'recluse', 'hermit', 'wudaozhe'];
+                  const PERCEIVED_NAMES = ['酒鬼', '提线木偶', '疯子', '隐士', '悟道者'];
                   const needsPerceived = PERCEIVED_IDS.some(pid => seat.characterId.toLowerCase().includes(pid))
                     || (ch && PERCEIVED_NAMES.some(pn => ch.name?.includes(pn)));
                   return (
