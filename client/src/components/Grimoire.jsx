@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { CHARACTERS, TYPE_COLORS, TYPE_LABELS, SCRIPTS, TRAVELLERS } from '../data/characters';
 import PlayerSelector from './PlayerSelector';
 import { createPlayer, createRevealSession } from '../api';
@@ -187,7 +188,7 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
   // Auto-save on every state change (debounced via layout)
   useEffect(() => {
     if (!hasRestoredRef.current) return; // Don't save during initial mount
-    if (seats.length === 0 && phase === 'setup') return; // Nothing to save
+    if (seats.length === 0) return; // Nothing to save when seats empty
     try {
       const toSave = {
         selectedScript,
@@ -375,6 +376,8 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
   // ----------------------------------------------------------------
   const handleStartSetup = () => {
     if (!selectedScript || selectedPlayerIds.length < 5) return;
+    // Clear any old saved state
+    clearSavedState();
     // Start with empty seats — players will be on the left side of the manager
     setSeats([]);
     setPhase('setup');
@@ -684,7 +687,7 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
   //  Render: Script + player selection (before seats exist)
   // ================================================================
   if (seats.length === 0 && !phase) {
-    return (
+    return createPortal(
       <div className="grimoire">
         <div className="grimoire-setup">
           <div className="grimoire-setup-header">
@@ -747,7 +750,8 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
             开始配置 ({selectedPlayerIds.length} 人)
           </button>
         </div>
-      </div>
+      </div>,
+      document.body
     );
   }
 
@@ -756,7 +760,7 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
   // ================================================================
   const allAssigned = seats.every(s => s.characterId);
 
-  return (
+  return createPortal(
     <div className={`grimoire grimoire-${phase}`}>
       {/* ---- Privacy Mask ---- */}
       {showMask && (
@@ -1999,6 +2003,7 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
           </div>
         </details>
       )}
-    </div>
+    </div>,
+    document.body
   );
 }
