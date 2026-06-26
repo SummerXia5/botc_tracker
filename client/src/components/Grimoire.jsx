@@ -768,7 +768,7 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
   // ================================================================
   //  Render: Script + player selection (before seats exist)
   // ================================================================
-  if (seats.length === 0 && !phase) {
+  if (seats.length === 0) {
     return (
       <div className="grimoire">
         <div className="grimoire-setup">
