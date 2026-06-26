@@ -823,6 +823,16 @@
   background: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.7) 50%, rgba(30, 0, 0, 0.8) 100%);
   z-index: 5;
   pointer-events: none;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 4px;
+}
+
+.death-cause-badge {
+  font-size: 0.7rem;
+  opacity: 0.8;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.8));
 }
 
 /* ---- Nominated seat ---- */
@@ -1533,6 +1543,101 @@
   font-size: 0.75rem;
   color: #5a4a3a;
   animation: maskHintPulse 2.5s ease-in-out infinite;
+}
+
+/* ---- Death Reason Picker ---- */
+.death-picker-panel {
+  width: 100%;
+  max-width: 420px;
+  background: rgba(25, 22, 30, 0.98);
+  border-top: 1px solid rgba(180, 60, 60, 0.3);
+  border-radius: 16px 16px 0 0;
+  padding: 20px 20px 28px;
+  animation: slideUp 250ms ease;
+}
+
+.death-picker-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #e06050;
+  margin: 0 0 16px;
+  text-align: center;
+}
+
+.death-picker-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.death-option-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(100, 80, 50, 0.15);
+  background: rgba(255, 255, 255, 0.03);
+  color: #d4c0a8;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 150ms;
+}
+
+.death-option-btn:hover {
+  background: rgba(180, 60, 60, 0.12);
+  border-color: rgba(180, 60, 60, 0.3);
+  transform: translateY(-1px);
+}
+
+.death-option-icon {
+  font-size: 1.2rem;
+}
+
+.death-custom-row {
+  display: flex;
+  gap: 8px;
+}
+
+.death-custom-input {
+  flex: 1;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(100, 80, 50, 0.2);
+  background: rgba(255, 255, 255, 0.04);
+  color: #d4c0a8;
+  font-size: 0.85rem;
+  outline: none;
+}
+
+.death-custom-input::placeholder {
+  color: rgba(180, 160, 130, 0.3);
+}
+
+.death-custom-input:focus {
+  border-color: rgba(212, 184, 120, 0.5);
+}
+
+.death-custom-confirm {
+  padding: 10px 18px;
+  border-radius: 10px;
+  border: none;
+  background: rgba(180, 60, 60, 0.2);
+  color: #e06050;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 150ms;
+}
+
+.death-custom-confirm:hover:not(:disabled) {
+  background: rgba(180, 60, 60, 0.35);
+}
+
+.death-custom-confirm:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
 }
 
 /* ============================================

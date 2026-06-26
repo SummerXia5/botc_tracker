@@ -55,6 +55,11 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
   // ---- Game log ----
   const [log, setLog] = useState([]);
 
+  // ---- Death reason picker ----
+  const [showDeathPicker, setShowDeathPicker] = useState(false);
+  const [deathSeatIndex, setDeathSeatIndex] = useState(null);
+  const [customDeathReason, setCustomDeathReason] = useState('');
+
   // ---- Reminder tokens ----
   const [seatReminders, setSeatReminders] = useState({}); // { seatIndex: ['dead', 'drunk', 'custom:xxx', ...] }
   const [reminderSeatIndex, setReminderSeatIndex] = useState(null);
@@ -538,19 +543,43 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
       setShowRolePanel(true);
       return;
     }
-    // Otherwise toggle alive/dead
+    // If alive → show death reason picker; if dead → revive directly
+    if (seats[index].alive) {
+      setDeathSeatIndex(index);
+      setShowDeathPicker(true);
+      return;
+    }
+    // Revive
     setSeats(prev => prev.map((s, i) => {
       if (i !== index) return s;
-      const newAlive = !s.alive;
-      addLog(`${s.player.name} ${newAlive ? '复活' : '死亡'}`);
-      return {
-        ...s,
-        alive: newAlive,
-        deathDay: newAlive ? null : dayNumber,
-      };
+      addLog(`${s.player.name} 复活`);
+      return { ...s, alive: true, deathDay: null, deathCause: null };
     }));
   };
 
+  const DEATH_REASONS = [
+    { id: 'executed', label: '被处决', icon: '⚖️' },
+    { id: 'killed_night', label: '夜晚死亡', icon: '🌙' },
+    { id: 'ability', label: '技能致死', icon: '✨' },
+    { id: 'exiled', label: '被放逐', icon: '🚪' },
+    { id: 'poisoned', label: '中毒死亡', icon: '☠️' },
+    { id: 'suicide', label: '自杀', icon: '💀' },
+  ];
+
+  const confirmDeath = (reason) => {
+    if (deathSeatIndex === null) return;
+    const label = reason.startsWith('custom:')
+      ? reason.replace('custom:', '')
+      : DEATH_REASONS.find(r => r.id === reason)?.label || reason;
+    setSeats(prev => prev.map((s, i) => {
+      if (i !== deathSeatIndex) return s;
+      addLog(`${s.player.name} 死亡（${label}）`);
+      return { ...s, alive: false, deathDay: dayNumber, deathCause: reason };
+    }));
+    setShowDeathPicker(false);
+    setDeathSeatIndex(null);
+    setCustomDeathReason('');
+  };
   const handleAssignRole = (charId) => {
     if (assigningSeatIndex === null) return;
     setSeats(prev => prev.map((s, i) => {
@@ -588,9 +617,13 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
   };
 
   const toggleReminder = (seatIdx, reminderId) => {
+    const playerName = seats[seatIdx]?.player?.name || `座位${seatIdx + 1}`;
+    const token = REMINDER_TOKENS.find(t => t.id === reminderId);
+    const label = reminderId.startsWith('custom:') ? reminderId.replace('custom:', '') : (token?.label || reminderId);
     setSeatReminders(prev => {
       const current = prev[seatIdx] || [];
       const has = current.includes(reminderId);
+      addLog(`${playerName} ${has ? '移除' : '添加'}标记: ${label}`);
       return {
         ...prev,
         [seatIdx]: has
@@ -610,6 +643,8 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
   // ----------------------------------------------------------------
   const handleAssignBluff = (charId) => {
     if (assigningBluffIndex === null) return;
+    const ch = charLookup[charId] || CHARACTERS[charId];
+    addLog(`恶魔伪装 ${assigningBluffIndex + 1}: ${ch?.name || charId}`);
     setDemonBluffs(prev => {
       const next = [...prev];
       next[assigningBluffIndex] = charId;
@@ -848,6 +883,9 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                 onDrop={(e) => {
                   e.preventDefault();
                   if (circleDragIdx !== null && circleDragIdx !== i) {
+                    const fromName = seats[circleDragIdx]?.player?.name;
+                    const toName = seats[i]?.player?.name;
+                    addLog(`座位交换: ${fromName} ↔ ${toName}`);
                     setSeats(prev => {
                       const next = [...prev];
                       [next[circleDragIdx], next[i]] = [next[i], next[circleDragIdx]];
@@ -864,7 +902,18 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                 onClick={() => handleSeatClick(i)}
               >
                 {/* Dead shroud overlay */}
-                {!seat.alive && <div className="seat-shroud" />}
+                {!seat.alive && (
+                  <div className="seat-shroud">
+                    {seat.deathCause && (
+                      <span className="death-cause-badge">
+                        {seat.deathCause.startsWith('custom:')
+                          ? '📝'
+                          : (DEATH_REASONS.find(r => r.id === seat.deathCause)?.icon || '💀')
+                        }
+                      </span>
+                    )}
+                  </div>
+                )}
 
                 {/* Alive indicator dot */}
                 {seat.alive && <div className="seat-alive-dot" />}
@@ -929,6 +978,7 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                               zIndex: 10 - ri,
                             }}
                             onClick={() => {
+                              addLog(`${seat.player.name} 移除标记: ${label}`);
                               setSeatReminders(prev => ({
                                 ...prev,
                                 [i]: (prev[i] || []).filter((_, idx) => idx !== ri),
@@ -1755,6 +1805,50 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
               📺 全屏展示给恶魔
             </button>
           )}
+        </div>
+      )}
+
+      {/* ---- Death Reason Picker ---- */}
+      {showDeathPicker && deathSeatIndex !== null && (
+        <div className="grimoire-panel-overlay" onClick={() => { setShowDeathPicker(false); setDeathSeatIndex(null); }}>
+          <div className="death-picker-panel" onClick={e => e.stopPropagation()}>
+            <h3 className="death-picker-title">
+              💀 {seats[deathSeatIndex]?.player?.name} — 死亡原因
+            </h3>
+            <div className="death-picker-options">
+              {DEATH_REASONS.map(r => (
+                <button
+                  key={r.id}
+                  className="death-option-btn"
+                  onClick={() => confirmDeath(r.id)}
+                >
+                  <span className="death-option-icon">{r.icon}</span>
+                  <span>{r.label}</span>
+                </button>
+              ))}
+            </div>
+            <div className="death-custom-row">
+              <input
+                type="text"
+                className="death-custom-input"
+                placeholder="自定义原因..."
+                value={customDeathReason}
+                onChange={e => setCustomDeathReason(e.target.value)}
+                onKeyDown={e => {
+                  if (e.key === 'Enter' && customDeathReason.trim()) {
+                    confirmDeath(`custom:${customDeathReason.trim()}`);
+                  }
+                }}
+              />
+              <button
+                className="death-custom-confirm"
+                disabled={!customDeathReason.trim()}
+                onClick={() => confirmDeath(`custom:${customDeathReason.trim()}`)}
+              >
+                确认
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
