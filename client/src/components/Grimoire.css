@@ -451,6 +451,93 @@
   color: #9a8ac0;
 }
 
+/* ---- Day Timer (供料计时) ---- */
+.grimoire-timer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 14px;
+  border-radius: 999px;
+  background: rgba(212, 184, 120, 0.1);
+  border: 1px solid rgba(212, 184, 120, 0.2);
+}
+
+.timer-display {
+  font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #d4b878;
+  letter-spacing: 0.05em;
+  min-width: 70px;
+  text-align: center;
+}
+
+.timer-controls {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.timer-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid rgba(212, 184, 120, 0.3);
+  background: rgba(212, 184, 120, 0.1);
+  color: #d4b878;
+  font-size: 0.85rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 150ms;
+}
+
+.timer-btn:hover {
+  background: rgba(212, 184, 120, 0.25);
+  transform: scale(1.1);
+}
+
+.timer-btn.timer-adjust {
+  width: 22px;
+  height: 22px;
+  font-size: 0.75rem;
+  border-color: rgba(212, 184, 120, 0.2);
+}
+
+.timer-duration-label {
+  font-size: 0.7rem;
+  color: #8a7a5a;
+  min-width: 24px;
+  text-align: center;
+}
+
+/* Warning: under 60s */
+.grimoire-timer.timer-warning {
+  border-color: rgba(230, 160, 60, 0.5);
+  background: rgba(230, 160, 60, 0.15);
+}
+
+.grimoire-timer.timer-warning .timer-display {
+  color: #e6a03c;
+}
+
+/* Expired: 0s */
+.grimoire-timer.timer-expired {
+  border-color: rgba(220, 60, 60, 0.5);
+  background: rgba(220, 60, 60, 0.15);
+  animation: timerFlash 800ms ease infinite alternate;
+}
+
+.grimoire-timer.timer-expired .timer-display {
+  color: #dc3c3c;
+}
+
+@keyframes timerFlash {
+  from { background: rgba(220, 60, 60, 0.1); }
+  to { background: rgba(220, 60, 60, 0.3); }
+}
+
 .grimoire-vote-counter {
   font-size: 0.78rem;
   font-weight: 600;

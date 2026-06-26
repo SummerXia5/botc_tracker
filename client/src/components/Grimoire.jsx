@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useRef } from 'react';
+import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import { CHARACTERS, TYPE_COLORS, TYPE_LABELS, SCRIPTS, TRAVELLERS } from '../data/characters';
 import PlayerSelector from './PlayerSelector';
 import { createPlayer } from '../api';
@@ -78,8 +78,97 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
   // ---- Privacy mask ----
   const [showMask, setShowMask] = useState(false);
 
+  // ---- Day timer (供料计时) ----
+  const [timerDuration, setTimerDuration] = useState(8 * 60); // seconds, default 8 min
+  const [timerSeconds, setTimerSeconds] = useState(8 * 60);
+  const [timerRunning, setTimerRunning] = useState(false);
+  const timerRef = useRef(null);
+
+  // Timer tick effect
+  useEffect(() => {
+    if (timerRunning && timerSeconds > 0) {
+      timerRef.current = setInterval(() => {
+        setTimerSeconds(prev => {
+          if (prev <= 1) {
+            setTimerRunning(false);
+            clearInterval(timerRef.current);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+    return () => clearInterval(timerRef.current);
+  }, [timerRunning]);
+
+  // Reset timer when switching to day
+  useEffect(() => {
+    if (phase === 'day') {
+      setTimerSeconds(timerDuration);
+      setTimerRunning(false);
+    }
+  }, [phase, dayNumber]);
+
   // ---- Setup: player selection ----
   const [selectedPlayerIds, setSelectedPlayerIds] = useState([]);
+
+  // ================================================================
+  //  LocalStorage persistence — survive refresh / disconnect
+  // ================================================================
+  const STORAGE_KEY = `grimoire_state_${groupId}`;
+  const hasRestoredRef = useRef(false);
+
+  // Restore state from localStorage on mount
+  useEffect(() => {
+    if (hasRestoredRef.current) return;
+    hasRestoredRef.current = true;
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return;
+      const saved = JSON.parse(raw);
+      if (saved.seats && saved.seats.length > 0) {
+        setSeats(saved.seats);
+        setSelectedScript(saved.selectedScript || null);
+        setPhase(saved.phase || 'setup');
+        setDayNumber(saved.dayNumber || 0);
+        setDemonBluffs(saved.demonBluffs || [null, null, null]);
+        setLog(saved.log || []);
+        setSeatReminders(saved.seatReminders || {});
+        if (saved.selectedPlayerIds) setSelectedPlayerIds(saved.selectedPlayerIds);
+        console.log('[Grimoire] Restored saved game state');
+      }
+    } catch (e) {
+      console.warn('[Grimoire] Failed to restore state:', e);
+    }
+  }, []);
+
+  // Auto-save on every state change (debounced via layout)
+  useEffect(() => {
+    if (!hasRestoredRef.current) return; // Don't save during initial mount
+    if (seats.length === 0 && phase === 'setup') return; // Nothing to save
+    try {
+      const toSave = {
+        selectedScript,
+        seats,
+        phase,
+        dayNumber,
+        demonBluffs,
+        log,
+        seatReminders,
+        selectedPlayerIds,
+        savedAt: new Date().toISOString(),
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
+    } catch (e) {
+      console.warn('[Grimoire] Failed to save state:', e);
+    }
+  }, [selectedScript, seats, phase, dayNumber, demonBluffs, log, seatReminders]);
+
+  // Clear saved state helper
+  const clearSavedState = useCallback(() => {
+    localStorage.removeItem(STORAGE_KEY);
+    console.log('[Grimoire] Cleared saved game state');
+  }, [STORAGE_KEY]);
 
   // ----------------------------------------------------------------
   //  Available scripts: merge group scripts + built-in SCRIPTS
@@ -519,6 +608,7 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
       }),
     };
     onExportGame?.(gameData);
+    clearSavedState(); // Clear persisted state on game end
     addLog(`对局结束 · ${selectedWinner === 'good' ? '善良' : '邪恶'}阵营获胜`);
     setShowEndDialog(false);
   };
@@ -616,6 +706,55 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
           {phase === 'day' && `☀ 白天 ${dayNumber}`}
           {phase === 'night' && `☽ 夜晚 ${dayNumber}`}
         </div>
+
+        {/* Day timer */}
+        {phase === 'day' && (
+          <div className={`grimoire-timer ${timerSeconds === 0 ? 'timer-expired' : timerSeconds <= 60 ? 'timer-warning' : ''}`}>
+            <span className="timer-display">
+              {String(Math.floor(timerSeconds / 60)).padStart(2, '0')}:{String(timerSeconds % 60).padStart(2, '0')}
+            </span>
+            <div className="timer-controls">
+              <button
+                className="timer-btn"
+                onClick={() => {
+                  if (timerSeconds === 0) {
+                    setTimerSeconds(timerDuration);
+                  }
+                  setTimerRunning(!timerRunning);
+                }}
+                title={timerRunning ? '暂停' : '开始'}
+              >
+                {timerRunning ? '⏸' : '▶'}
+              </button>
+              <button
+                className="timer-btn"
+                onClick={() => { setTimerRunning(false); setTimerSeconds(timerDuration); }}
+                title="重置"
+              >
+                ↺
+              </button>
+              <button
+                className="timer-btn timer-adjust"
+                onClick={() => {
+                  const newMin = Math.max(1, Math.floor(timerDuration / 60) - 1);
+                  setTimerDuration(newMin * 60);
+                  if (!timerRunning) setTimerSeconds(newMin * 60);
+                }}
+                title="减少1分钟"
+              >−</button>
+              <span className="timer-duration-label">{Math.floor(timerDuration / 60)}分</span>
+              <button
+                className="timer-btn timer-adjust"
+                onClick={() => {
+                  const newMin = Math.floor(timerDuration / 60) + 1;
+                  setTimerDuration(newMin * 60);
+                  if (!timerRunning) setTimerSeconds(newMin * 60);
+                }}
+                title="增加1分钟"
+              >+</button>
+            </div>
+          </div>
+        )}
 
         <button className="grimoire-close-btn grimoire-close-ingame" onClick={onClose} style={{ position: 'absolute', right: 12, top: 8 }}>✕</button>
       </div>
