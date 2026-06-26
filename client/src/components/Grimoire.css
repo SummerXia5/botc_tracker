@@ -1588,6 +1588,22 @@
   background: rgba(180, 60, 60, 0.2);
 }
 
+.pm-addall-btn {
+  padding: 4px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(100, 180, 100, 0.3);
+  background: rgba(100, 180, 100, 0.1);
+  color: #a0d4a0;
+  font-size: 0.7rem;
+  cursor: pointer;
+  transition: all 150ms;
+  white-space: nowrap;
+}
+
+.pm-addall-btn:hover {
+  background: rgba(100, 180, 100, 0.2);
+}
+
 .pm-columns {
   display: flex;
   flex: 1;
@@ -1977,6 +1993,23 @@
 .end-dialog-actions .btn-primary:disabled {
   opacity: 0.35;
   cursor: not-allowed;
+}
+
+.end-dialog-actions .btn-close-grimoire {
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #b0a080;
+  background: rgba(100, 80, 50, 0.2);
+  border: 1px solid rgba(120, 100, 60, 0.3);
+  cursor: pointer;
+  transition: all 150ms ease;
+}
+
+.end-dialog-actions .btn-close-grimoire:hover {
+  background: rgba(100, 80, 50, 0.35);
+  color: #d4b878;
 }
 
 /* ============================================

@@ -375,18 +375,13 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
   // ----------------------------------------------------------------
   const handleStartSetup = () => {
     if (!selectedScript || selectedPlayerIds.length < 5) return;
-    const newSeats = selectedPlayerIds.map(pid => {
-      const player = localPlayers.find(p => p.id === pid);
-      return {
-        player,
-        characterId: null,
-        alive: true,
-      };
-    });
-    setSeats(newSeats);
+    // Start with empty seats — players will be on the left side of the manager
+    setSeats([]);
     setPhase('setup');
     setDayNumber(0);
-    addLog(`开始配置 · ${selectedScript.name} · ${newSeats.length} 名玩家`);
+    addLog(`开始配置 · ${selectedScript.name} · ${selectedPlayerIds.length} 名可选玩家`);
+    // Auto-open player manager so user can arrange seats
+    setShowPlayerManager(true);
   };
 
   // ----------------------------------------------------------------
@@ -688,7 +683,7 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
   // ================================================================
   //  Render: Script + player selection (before seats exist)
   // ================================================================
-  if (seats.length === 0) {
+  if (seats.length === 0 && !phase) {
     return (
       <div className="grimoire">
         <div className="grimoire-setup">
@@ -1324,6 +1319,21 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
             <div className="pm-header">
               <h3>管理玩家 ({seats.length} 人)</h3>
               <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                {(() => {
+                  const available = localPlayers.filter(p => !seats.some(s => s.player.id === p.id));
+                  return available.length > 0 && (
+                    <button
+                      className="pm-addall-btn"
+                      onClick={() => {
+                        const newSeats = available.map(p => ({ player: p, characterId: null, alive: true }));
+                        setSeats(prev => [...prev, ...newSeats]);
+                        addLog(`全部添加 ${available.length} 名玩家`);
+                      }}
+                    >
+                      全部添加
+                    </button>
+                  );
+                })()}
                 {seats.length > 0 && (
                   <button
                     className="pm-reset-btn"
@@ -1952,6 +1962,17 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
             </div>
             <div className="end-dialog-actions">
               <button className="btn-ghost" onClick={() => setShowEndDialog(false)}>取消</button>
+              <button
+                className="btn-close-grimoire"
+                onClick={() => {
+                  clearSavedState();
+                  addLog('对局取消 — 关闭魔典');
+                  setShowEndDialog(false);
+                  onClose();
+                }}
+              >
+                关闭魔典
+              </button>
               <button
                 className="btn-primary"
                 disabled={!selectedWinner}
