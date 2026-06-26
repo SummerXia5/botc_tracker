@@ -1122,9 +1122,21 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                   </div>
                 )}
 
-                {/* Alive indicator dot */}
-                {seat.alive && <div className="seat-alive-dot" />}
 
+
+                {/* Hover zone banners (only during game with assigned character) */}
+                {phase !== 'setup' && seat.characterId && (
+                  <>
+                    <div className="seat-hover-zone seat-hover-top">
+                      <span className="seat-hover-label">
+                        {seat.alive ? '💀 处死' : '✨ 复活'}
+                      </span>
+                    </div>
+                    <div className="seat-hover-zone seat-hover-bottom">
+                      <span className="seat-hover-label">🔄 换角色</span>
+                    </div>
+                  </>
+                )}
                 {/* Character content */}
                 {ch ? (
                   <>

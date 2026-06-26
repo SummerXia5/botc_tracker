@@ -886,17 +886,40 @@
 }
 
 /* ---- Alive indicator (green dot) ---- */
-.seat-alive-dot {
+/* ---- Hover zone overlays (top = kill, bottom = change char) ---- */
+.seat-hover-zone {
   position: absolute;
-  top: -2px;
-  right: -2px;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: #4caf50;
-  border: 1px solid rgba(0, 0, 0, 0.3);
-  z-index: 10;
-  box-shadow: 0 0 4px rgba(76, 175, 80, 0.4);
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 150ms ease;
+  pointer-events: none;
+  z-index: 12;
+}
+.seat-hover-top {
+  top: 0;
+  height: 50%;
+  border-radius: 50% 50% 0 0;
+  background: linear-gradient(180deg, rgba(180, 30, 30, 0.7) 0%, rgba(180, 30, 30, 0.2) 80%, transparent 100%);
+}
+.seat-hover-bottom {
+  bottom: 0;
+  height: 50%;
+  border-radius: 0 0 50% 50%;
+  background: linear-gradient(0deg, rgba(40, 100, 180, 0.6) 0%, rgba(40, 100, 180, 0.15) 80%, transparent 100%);
+}
+.seat-token:hover .seat-hover-zone {
+  opacity: 1;
+}
+.seat-hover-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #fff;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.7);
+  letter-spacing: 0.5px;
 }
 
 /* ---- Dead seat ---- */
