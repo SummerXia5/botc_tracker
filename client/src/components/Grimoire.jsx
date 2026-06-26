@@ -1849,8 +1849,7 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
 
                 {/* Manual player picker */}
                 {manualSeatIdx !== null && (
-                  <div style={{
-                    marginTop: 10, padding: '10px 12px', borderRadius: 10,
+                  <div style={{ marginTop: 10, padding: '10px 12px', borderRadius: 10,
                     background: 'rgba(30,28,35,0.95)',
                     border: '1px solid rgba(212,184,120,0.3)',
                   }}>
@@ -1877,7 +1876,6 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                               });
                               setManualSeatIdx(null);
                               addLog(`说书人帮 ${p.name} 入座 ${manualSeatIdx + 1} 号`);
-                              // Refresh immediately
                               const data = await getRevealSession(revealCode);
                               setRevealSession(data);
                             } catch (e) {
@@ -1888,6 +1886,64 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                           {p.name}
                         </button>
                       ))}
+                    </div>
+                    {/* Add new player inline */}
+                    <div style={{ display: 'flex', gap: 4, marginTop: 8 }}>
+                      <input
+                        type="text"
+                        placeholder="输入新玩家名..."
+                        id="manual-new-player"
+                        style={{
+                          flex: 1, padding: '5px 8px', borderRadius: 6,
+                          border: '1px solid rgba(100,80,50,0.3)',
+                          background: 'rgba(255,255,255,0.06)',
+                          color: '#d4c0a8', fontSize: '0.7rem',
+                          outline: 'none',
+                        }}
+                        onKeyDown={async (e) => {
+                          if (e.key === 'Enter' && e.target.value.trim()) {
+                            const name = e.target.value.trim();
+                            try {
+                              await sitRevealSeat(revealCode, {
+                                seatIndex: manualSeatIdx,
+                                playerName: name,
+                                playerId: null,
+                              });
+                              setManualSeatIdx(null);
+                              addLog(`说书人帮 ${name} 入座 ${manualSeatIdx + 1} 号`);
+                              const data = await getRevealSession(revealCode);
+                              setRevealSession(data);
+                            } catch (err) { console.error(err); }
+                          }
+                        }}
+                      />
+                      <button
+                        style={{
+                          padding: '4px 10px', borderRadius: 6,
+                          border: '1px solid rgba(100,180,100,0.3)',
+                          background: 'rgba(100,180,100,0.1)',
+                          color: '#a0d4a0', fontSize: '0.7rem',
+                          cursor: 'pointer',
+                        }}
+                        onClick={async () => {
+                          const input = document.getElementById('manual-new-player');
+                          const name = input?.value?.trim();
+                          if (!name) return;
+                          try {
+                            await sitRevealSeat(revealCode, {
+                              seatIndex: manualSeatIdx,
+                              playerName: name,
+                              playerId: null,
+                            });
+                            setManualSeatIdx(null);
+                            addLog(`说书人帮 ${name} 入座 ${manualSeatIdx + 1} 号`);
+                            const data = await getRevealSession(revealCode);
+                            setRevealSession(data);
+                          } catch (err) { console.error(err); }
+                        }}
+                      >
+                        + 添加
+                      </button>
                     </div>
                     <button
                       style={{
