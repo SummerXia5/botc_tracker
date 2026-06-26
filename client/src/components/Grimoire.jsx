@@ -2,7 +2,7 @@ import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { CHARACTERS, TYPE_COLORS, TYPE_LABELS, SCRIPTS, TRAVELLERS } from '../data/characters';
 import PlayerSelector from './PlayerSelector';
-import { createPlayer, createRevealSession, getRevealSession } from '../api';
+import { createPlayer, createRevealSession, getRevealSession, sitRevealSeat } from '../api';
 import './Grimoire.css';
 
 const REMINDER_TOKENS = [
@@ -120,6 +120,7 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
   const [showRevealCode, setShowRevealCode] = useState(false);
   const [revealLoading, setRevealLoading] = useState(false);
   const [revealSession, setRevealSession] = useState(null);
+  const [manualSeatIdx, setManualSeatIdx] = useState(null); // storyteller manual seat assignment
   const revealPollRef = useRef(null);
 
   // ---- Day timer (供料计时) ----
@@ -1767,18 +1768,85 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                   gap: 6, textAlign: 'left',
                 }}>
                   {revealSession.seats.map(seat => (
-                    <div key={seat.seatIndex} style={{
-                      padding: '6px 10px', borderRadius: 8,
-                      fontSize: '0.7rem',
-                      background: seat.occupied ? 'rgba(100,180,100,0.1)' : 'rgba(255,255,255,0.03)',
-                      border: `1px solid ${seat.occupied ? 'rgba(100,180,100,0.3)' : 'rgba(100,80,50,0.15)'}`,
-                      color: seat.occupied ? '#a0d4a0' : '#6a5a3a',
-                    }}>
+                    <div
+                      key={seat.seatIndex}
+                      style={{
+                        padding: '6px 10px', borderRadius: 8,
+                        fontSize: '0.7rem',
+                        background: seat.occupied ? 'rgba(100,180,100,0.1)'
+                          : manualSeatIdx === seat.seatIndex ? 'rgba(212,184,120,0.15)'
+                          : 'rgba(255,255,255,0.03)',
+                        border: `1px solid ${seat.occupied ? 'rgba(100,180,100,0.3)'
+                          : manualSeatIdx === seat.seatIndex ? 'rgba(212,184,120,0.4)'
+                          : 'rgba(100,80,50,0.15)'}`,
+                        color: seat.occupied ? '#a0d4a0' : '#6a5a3a',
+                        cursor: seat.occupied ? 'default' : 'pointer',
+                      }}
+                      onClick={() => {
+                        if (!seat.occupied) setManualSeatIdx(manualSeatIdx === seat.seatIndex ? null : seat.seatIndex);
+                      }}
+                    >
                       <span style={{ fontWeight: 700 }}>{seat.seatNumber}.</span>{' '}
-                      {seat.occupied ? seat.playerName : '等待中...'}
+                      {seat.occupied ? seat.playerName : '点击入座'}
                     </div>
                   ))}
                 </div>
+
+                {/* Manual player picker */}
+                {manualSeatIdx !== null && (
+                  <div style={{
+                    marginTop: 10, padding: '10px 12px', borderRadius: 10,
+                    background: 'rgba(30,28,35,0.95)',
+                    border: '1px solid rgba(212,184,120,0.3)',
+                  }}>
+                    <div style={{ fontSize: '0.75rem', color: '#d4b878', marginBottom: 8, fontWeight: 600 }}>
+                      为座位 {manualSeatIdx + 1} 选择玩家:
+                    </div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                      {revealSession.availablePlayers.map(p => (
+                        <button
+                          key={p.id}
+                          style={{
+                            padding: '4px 10px', borderRadius: 6,
+                            border: '1px solid rgba(100,80,50,0.2)',
+                            background: 'rgba(255,255,255,0.04)',
+                            color: '#d4c0a8', fontSize: '0.7rem',
+                            cursor: 'pointer',
+                          }}
+                          onClick={async () => {
+                            try {
+                              await sitRevealSeat(revealCode, {
+                                seatIndex: manualSeatIdx,
+                                playerName: p.name,
+                                playerId: p.id,
+                              });
+                              setManualSeatIdx(null);
+                              addLog(`说书人帮 ${p.name} 入座 ${manualSeatIdx + 1} 号`);
+                              // Refresh immediately
+                              const data = await getRevealSession(revealCode);
+                              setRevealSession(data);
+                            } catch (e) {
+                              console.error('Manual seat failed:', e);
+                            }
+                          }}
+                        >
+                          {p.name}
+                        </button>
+                      ))}
+                    </div>
+                    <button
+                      style={{
+                        marginTop: 6, padding: '3px 10px', borderRadius: 6,
+                        border: '1px solid rgba(100,80,50,0.2)',
+                        background: 'transparent', color: '#8a7a5a',
+                        fontSize: '0.65rem', cursor: 'pointer',
+                      }}
+                      onClick={() => setManualSeatIdx(null)}
+                    >
+                      取消
+                    </button>
+                  </div>
+                )}
               </div>
             )}
 
