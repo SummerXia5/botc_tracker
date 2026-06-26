@@ -1136,21 +1136,25 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                       </span>
                     )}
                     <span className="seat-char-name">{ch.name}</span>
-                    {/* Night order badges */}
-                    {nightOrderBadges.firstNight[seat.characterId] && (
-                      <div
-                        className="night-order-badge night-order-first"
-                        title={`首夜 #${nightOrderBadges.firstNight[seat.characterId].rank}: ${nightOrderBadges.firstNight[seat.characterId].reminder || '无提示'}`}
-                      >
-                        {nightOrderBadges.firstNight[seat.characterId].rank}
-                      </div>
-                    )}
-                    {nightOrderBadges.otherNight[seat.characterId] && (
-                      <div
-                        className="night-order-badge night-order-other"
-                        title={`其他夜 #${nightOrderBadges.otherNight[seat.characterId].rank}: ${nightOrderBadges.otherNight[seat.characterId].reminder || '无提示'}`}
-                      >
-                        {nightOrderBadges.otherNight[seat.characterId].rank}
+                    {/* Night order badges - centered vertically */}
+                    {(nightOrderBadges.firstNight[seat.characterId] || nightOrderBadges.otherNight[seat.characterId]) && (
+                      <div className="night-badges-row">
+                        {nightOrderBadges.firstNight[seat.characterId] ? (
+                          <div
+                            className="night-order-badge night-order-first"
+                            data-tip={`首夜 #${nightOrderBadges.firstNight[seat.characterId].rank}: ${nightOrderBadges.firstNight[seat.characterId].reminder || '无提示'}`}
+                          >
+                            {nightOrderBadges.firstNight[seat.characterId].rank}
+                          </div>
+                        ) : <div className="night-badge-spacer" />}
+                        {nightOrderBadges.otherNight[seat.characterId] ? (
+                          <div
+                            className="night-order-badge night-order-other"
+                            data-tip={`其他夜 #${nightOrderBadges.otherNight[seat.characterId].rank}: ${nightOrderBadges.otherNight[seat.characterId].reminder || '无提示'}`}
+                          >
+                            {nightOrderBadges.otherNight[seat.characterId].rank}
+                          </div>
+                        ) : <div className="night-badge-spacer" />}
                       </div>
                     )}
                   </>
@@ -1216,7 +1220,7 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                           label = token?.label || rid;
                           icon = token?.icon || '?';
                         }
-                        const dist = 60 + ri * 32;
+                        const dist = 68 + ri * 44;
                         const tx = towardCenterX * dist;
                         const ty = towardCenterY * dist;
                         return (
@@ -1225,7 +1229,7 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                             className="seat-reminder-token"
                             title={label}
                             style={{
-                              transform: `translate(${tx - 18}px, ${ty - 18}px)`,
+                              transform: `translate(${tx - 26}px, ${ty - 26}px)`,
                               zIndex: 10 - ri,
                             }}
                             onClick={() => {
@@ -1239,7 +1243,7 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                             {isScript && scriptToken?.charIcon ? (
                               <span className="reminder-token-icon" style={{
                                 display: 'inline-block',
-                                width: 18, height: 18,
+                                width: 26, height: 26,
                                 backgroundImage: `url(${scriptToken.charIcon})`,
                                 backgroundSize: 'cover',
                                 backgroundPosition: 'center',

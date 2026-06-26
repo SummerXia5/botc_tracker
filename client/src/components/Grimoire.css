@@ -759,30 +759,91 @@
 }
 
 /* ---- Night order badges ---- */
-.night-order-badge {
+.night-badges-row {
   position: absolute;
-  bottom: 22%;
-  width: 24px;
-  height: 24px;
+  bottom: 18%;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 4px;
+  z-index: 5;
+  pointer-events: none;
+}
+
+.night-badge-spacer {
+  width: 26px;
+  height: 26px;
+}
+
+.night-order-badge {
+  width: 26px;
+  height: 26px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   font-weight: 800;
   color: #fff;
-  z-index: 5;
   cursor: help;
-  border: 2px solid rgba(255,255,255,0.3);
-  box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+  pointer-events: auto;
+  border: 2px solid rgba(255,255,255,0.35);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+  position: relative;
 }
 .night-order-first {
-  left: 2px;
   background: #2a6cb8;
 }
 .night-order-other {
-  right: 2px;
   background: #b82a2a;
+}
+
+/* Custom tooltip for night badges */
+.night-order-badge::after {
+  content: attr(data-tip);
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(15, 12, 20, 0.95);
+  color: #e8dcc8;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  max-width: 240px;
+  min-width: 140px;
+  width: max-content;
+  text-align: left;
+  border: 1px solid rgba(100, 80, 50, 0.3);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 150ms ease, visibility 150ms ease;
+  pointer-events: none;
+  z-index: 100;
+}
+.night-order-badge::before {
+  content: '';
+  position: absolute;
+  bottom: calc(100% + 2px);
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: rgba(15, 12, 20, 0.95);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 150ms ease, visibility 150ms ease;
+  z-index: 100;
+}
+.night-order-badge:hover::after,
+.night-order-badge:hover::before {
+  opacity: 1;
+  visibility: visible;
 }
 
 /* ---- Empty token ---- */
@@ -2600,8 +2661,8 @@
 
 .seat-reminder-token {
   position: absolute;
-  width: 36px;
-  height: 36px;
+  width: 52px;
+  height: 52px;
   border-radius: 50%;
   background: radial-gradient(circle at 30% 25%, #6b4d8a, #3d2856 60%, #2a1a3d 100%);
   border: 2px solid rgba(160, 130, 200, 0.35);
@@ -2620,17 +2681,17 @@
 }
 
 .seat-reminder-token .reminder-token-icon {
-  font-size: 1rem;
+  font-size: 1.2rem;
   line-height: 1;
 }
 
 .seat-reminder-token .reminder-token-text {
-  font-size: 0.5rem;
+  font-size: 0.58rem;
   color: #c4b8d4;
   line-height: 1;
-  margin-top: 1px;
+  margin-top: 2px;
   white-space: nowrap;
-  max-width: 40px;
+  max-width: 48px;
   overflow: hidden;
   text-overflow: ellipsis;
 }
