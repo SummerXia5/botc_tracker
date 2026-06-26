@@ -1593,10 +1593,11 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                     <div className="role-panel-grid">
                       {chars.map(ch => {
                         const isCurrent = seats[perceivedSeatIndex]?.perceivedCharId === ch.id;
+                        const isInPlay = assignedCharIds.has(ch.id);
                         return (
                           <button
                             key={ch.id}
-                            className={`role-panel-item ${isCurrent ? 'role-assigned' : ''}`}
+                            className={`role-panel-item ${isCurrent ? 'role-assigned' : ''} ${isInPlay ? 'role-in-play' : ''}`}
                             onClick={() => handleAssignPerceived(ch.id)}
                           >
                             {ch.icon ? (
@@ -1606,6 +1607,7 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                             )}
                             <span className="role-item-name">{ch.name}</span>
                             {ch.nameEn && <span className="role-item-en">{ch.nameEn}</span>}
+                            {isInPlay && <span className="role-in-play-dot" title="已在场">●</span>}
                           </button>
                         );
                       })}

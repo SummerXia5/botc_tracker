@@ -1295,6 +1295,20 @@
   text-decoration: line-through;
 }
 
+.role-panel-item.role-in-play {
+  border-color: rgba(100, 200, 120, 0.4);
+}
+
+.role-in-play-dot {
+  position: absolute;
+  top: 4px;
+  right: 6px;
+  font-size: 0.55rem;
+  color: #5cb870;
+  line-height: 1;
+  text-shadow: 0 0 4px rgba(92, 184, 112, 0.6);
+}
+
 .role-item-indicator {
   width: 8px;
   height: 8px;
