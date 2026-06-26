@@ -1359,6 +1359,13 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                     <div className="seat-hover-zone seat-hover-bottom">
                       <span className="seat-hover-label">🔄 换角色</span>
                     </div>
+                    <div className="seat-hover-zone seat-hover-left" onClick={(e) => {
+                      e.stopPropagation();
+                      setPerceivedSeatIndex(i);
+                      setShowPerceivedPicker(true);
+                    }}>
+                      <span className="seat-hover-label">🎭</span>
+                    </div>
                   </>
                 )}
                 {/* Character content */}

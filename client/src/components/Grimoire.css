@@ -1295,8 +1295,24 @@
   border-radius: 0 0 50% 50%;
   background: linear-gradient(0deg, rgba(40, 100, 180, 0.6) 0%, rgba(40, 100, 180, 0.15) 80%, transparent 100%);
 }
+.seat-hover-left {
+  top: 50%;
+  transform: translateY(-50%);
+  left: -6px;
+  right: auto;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(120, 60, 160, 0.8);
+  border: 1.5px solid rgba(180, 140, 220, 0.5);
+  cursor: pointer;
+}
+.seat-hover-left:hover {
+  background: rgba(140, 80, 180, 0.95);
+}
 .seat-token:hover .seat-hover-zone {
   opacity: 1;
+  pointer-events: auto;
 }
 .seat-hover-label {
   font-size: 0.68rem;
@@ -3213,7 +3229,7 @@
 .reminder-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
+  gap: 10px;
   margin-bottom: 16px;
 }
 
@@ -3221,8 +3237,8 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
-  padding: 10px 4px;
+  gap: 6px;
+  padding: 14px 6px;
   border-radius: 10px;
   border: 2px solid transparent;
   background: rgba(255,255,255,0.05);
@@ -3243,12 +3259,13 @@
 }
 
 .reminder-token-icon {
-  font-size: 1.4rem;
+  font-size: 2.2rem;
 }
 
 .reminder-token-label {
-  font-size: 0.65rem;
-  opacity: 0.8;
+  font-size: 0.82rem;
+  font-weight: 600;
+  opacity: 0.9;
 }
 
 .reminder-current {
