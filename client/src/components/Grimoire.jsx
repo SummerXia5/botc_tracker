@@ -220,9 +220,13 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
         setSeatReminders(saved.seatReminders || {});
         if (saved.selectedPlayerIds) setSelectedPlayerIds(saved.selectedPlayerIds);
         console.log('[Grimoire] Restored saved game state');
+      } else {
+        // Stale state with no seats — clear it
+        localStorage.removeItem(STORAGE_KEY);
       }
     } catch (e) {
       console.warn('[Grimoire] Failed to restore state:', e);
+      localStorage.removeItem(STORAGE_KEY);
     }
   }, []);
 
