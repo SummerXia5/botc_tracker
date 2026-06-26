@@ -1090,6 +1090,33 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
         <button className="grimoire-close-btn grimoire-close-ingame" onClick={onClose} style={{ position: 'absolute', right: 12, top: 8 }}>✕</button>
       </div>
 
+      {/* ---- Top-left: Script composition info ---- */}
+      <div className="grimoire-comp-info">
+        <div className="comp-script-name">{selectedScript?.name}</div>
+        <div className="comp-type-row">
+          {(() => {
+            const counts = { townsfolk: 0, outsider: 0, minion: 0, demon: 0 };
+            seats.forEach(s => {
+              const ch = s.characterId ? (charLookup[s.characterId] || CHARACTERS[s.characterId]) : null;
+              if (ch && counts[ch.type] !== undefined) counts[ch.type]++;
+            });
+            return (
+              <>
+                <span className="comp-tag comp-townsfolk">{counts.townsfolk}民</span>
+                <span className="comp-tag comp-outsider">{counts.outsider}外</span>
+                <span className="comp-tag comp-minion">{counts.minion}爪</span>
+                <span className="comp-tag comp-demon">{counts.demon}恶</span>
+              </>
+            );
+          })()}
+        </div>
+        <div className="comp-stats-row">
+          <span>👤{seats.length}</span>
+          <span>💚{aliveCount}</span>
+          <span>💀{seats.length - aliveCount}</span>
+        </div>
+      </div>
+
       {/* ---- Circular seating chart ---- */}
       <div className="grimoire-circle-container">
         <div className="grimoire-circle" style={{
@@ -1201,6 +1228,12 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                 {/* Character content */}
                 {ch ? (
                   <>
+                    {ch.ability && (
+                      <div className="seat-ability-tooltip">
+                        <div className="ability-tooltip-name">{ch.name}</div>
+                        <div className="ability-tooltip-text">{ch.ability}</div>
+                      </div>
+                    )}
                     {ch.icon ? (
                       <img className="seat-char-img" src={ch.icon} alt={ch.name} />
                     ) : (
@@ -1454,15 +1487,9 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
         {/* Secondary actions */}
         <button
           className={`action-bar-btn ${showNightOrder ? 'action-active' : ''}`}
-          onClick={() => { setShowNightOrder(!showNightOrder); setShowDemonBluffs(false); }}
+          onClick={() => { setShowNightOrder(!showNightOrder); }}
         >
           夜晚顺序
-        </button>
-        <button
-          className={`action-bar-btn ${showDemonBluffs ? 'action-active' : ''}`}
-          onClick={() => { setShowDemonBluffs(!showDemonBluffs); setShowNightOrder(false); }}
-        >
-          恶魔伪装
         </button>
         {phase === 'setup' && (
           <button
@@ -2483,15 +2510,14 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
         </div>
       )}
 
-      {/* ---- Demon Bluffs Panel ---- */}
-      {showDemonBluffs && (
-        <div className="grimoire-side-panel">
-          <div className="side-panel-header">
-            <h3>恶魔伪装</h3>
-            <button className="side-panel-close" onClick={() => { setShowDemonBluffs(false); setAssigningBluffIndex(null); }}>✕</button>
-          </div>
-          <div className="side-panel-content">
-            <p className="side-panel-hint">选择3个不在场的好人角色作为伪装选项</p>
+      {/* ---- Demon Bluffs — fixed bottom-left widget ---- */}
+      <div className={`demon-bluffs-widget ${showDemonBluffs ? 'dbw-expanded' : ''}`}>
+        <div className="dbw-header" onClick={() => { setShowDemonBluffs(!showDemonBluffs); if (showDemonBluffs) setAssigningBluffIndex(null); }}>
+          <span>🎭 恶魔伪装</span>
+          <span className="dbw-toggle">{showDemonBluffs ? '▼' : '▲'}</span>
+        </div>
+        {showDemonBluffs && (
+          <div className="dbw-body">
             <div className="bluff-slots">
               {demonBluffs.map((bluffId, bi) => {
                 const ch = bluffId ? (charLookup[bluffId] || CHARACTERS[bluffId]) : null;
@@ -2511,7 +2537,7 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                         <span className="bluff-name">{ch.name}</span>
                       </>
                     ) : (
-                      <span className="bluff-empty">选择伪装 {bi + 1}</span>
+                      <span className="bluff-empty">伪装 {bi + 1}</span>
                     )}
                   </button>
                 );
@@ -2538,17 +2564,17 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                   ))}
               </div>
             )}
+            {demonBluffs.some(b => b) && (
+              <button
+                className="bluff-fullscreen-btn"
+                onClick={() => { setShowDemonBluffsFullscreen(true); setShowDemonBluffs(false); }}
+              >
+                📺 全屏展示
+              </button>
+            )}
           </div>
-          {demonBluffs.some(b => b) && (
-            <button
-              className="bluff-fullscreen-btn"
-              onClick={() => { setShowDemonBluffsFullscreen(true); setShowDemonBluffs(false); }}
-            >
-              📺 全屏展示给恶魔
-            </button>
-          )}
-        </div>
-      )}
+        )}
+      </div>
 
       {/* ---- Death Reason Picker ---- */}
       {showDeathPicker && deathSeatIndex !== null && (
