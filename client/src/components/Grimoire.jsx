@@ -1077,21 +1077,21 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
               try {
                 const result = await createRevealSession({
                   seats: seats.map(s => ({
-                    player: { id: s.player.id, name: s.player.name },
                     characterId: s.characterId,
                   })),
                   scriptName: selectedScript?.name || '自定义剧本',
+                  players: localPlayers.map(p => ({ id: p.id, name: p.name })),
                 });
                 setRevealCode(result.code);
                 setShowRevealCode(true);
-                addLog(`生成抽签码: ${result.code}`);
+                addLog(`生成抽取码: ${result.code}`);
               } catch (e) {
                 console.error('Failed to create reveal session:', e);
               }
               setRevealLoading(false);
             }}
           >
-            🎫 {revealCode ? '查看抽签码' : '生成抽签码'}
+            🎫 {revealCode ? '查看抽取码' : '生成抽取码'}
           </button>
         )}
         {phase === 'setup' && (

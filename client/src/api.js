@@ -194,7 +194,7 @@ export async function updateProfile(data) {
   });
 }
 
-// ---- Role Reveal ----
+// ---- Role Reveal (v2) ----
 export async function createRevealSession(data) {
   return request('/api/reveal', {
     method: 'POST',
@@ -206,9 +206,9 @@ export async function getRevealSession(code) {
   return request(`/api/reveal/${code}`);
 }
 
-export async function claimRevealSeat(code, seatIndex) {
-  return request(`/api/reveal/${code}/claim`, {
+export async function sitRevealSeat(code, { seatIndex, playerName, playerId }) {
+  return request(`/api/reveal/${code}/sit`, {
     method: 'POST',
-    body: JSON.stringify({ seatIndex }),
+    body: JSON.stringify({ seatIndex, playerName, playerId }),
   });
 }

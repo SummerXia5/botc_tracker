@@ -1,9 +1,15 @@
 /**
- * Reveal routes – ephemeral role-reveal sessions.
+ * Reveal routes – ephemeral role-reveal sessions (v2).
+ *
+ * New flow:
+ *   1. Storyteller creates session with characters assigned to seat numbers
+ *      (no players yet) + list of available player names from the group.
+ *   2. Players enter code, pick their name from the list, pick a seat.
+ *   3. Once seated, they see their character.
  *
  * POST   /api/reveal            – Create a reveal session (storyteller).
- * GET    /api/reveal/:code      – Get session info (players).
- * POST   /api/reveal/:code/claim – Claim a seat to see your character.
+ * GET    /api/reveal/:code      – Get session status (seats + available players).
+ * POST   /api/reveal/:code/sit  – Player picks name + seat → see character.
  * DELETE /api/reveal/:code      – Delete a session (storyteller cleanup).
  */
 
@@ -29,7 +35,6 @@ function generateCode() {
 
 /**
  * Check if a session has expired (> 2 hours old). Deletes it if so.
- * Returns the session if still valid, or null.
  */
 function getValidSession(code) {
   const session = sessions.get(code);
@@ -46,7 +51,7 @@ function getValidSession(code) {
 // ─── POST /api/reveal ───────────────────────────────────────────────────────────
 
 router.post('/', (req, res) => {
-  const { seats, scriptName } = req.body;
+  const { seats, scriptName, players } = req.body;
 
   if (!Array.isArray(seats) || seats.length === 0) {
     return res.status(400).json({ error: 'seats array is required and must not be empty.' });
@@ -58,10 +63,21 @@ router.post('/', (req, res) => {
 
   const code = generateCode();
 
+  // seats: [{ characterId: 'washerwoman' }, ...]  (no player info)
+  // players: [{ id: '...', name: 'Alice' }, ...]  (available player names from group)
   sessions.set(code, {
     scriptName,
-    seats,
-    claimed: new Array(seats.length).fill(false),
+    totalSeats: seats.length,
+    // Store character for each seat index
+    characters: seats.map(s => s.characterId),
+    // Track who sat where: index -> { playerName, playerId }
+    seated: new Array(seats.length).fill(null),
+    // Available player names (from group)
+    availablePlayers: Array.isArray(players) ? players.map(p => ({
+      id: p.id,
+      name: p.name,
+      taken: false,
+    })) : [],
     createdAt: Date.now(),
   });
 
@@ -73,43 +89,89 @@ router.post('/', (req, res) => {
 router.get('/:code', (req, res) => {
   const session = getValidSession(req.params.code);
   if (!session) {
-    return res.status(404).json({ error: 'Session not found.' });
+    return res.status(404).json({ error: '代码无效或已过期' });
   }
 
-  const players = session.seats.map((seat, index) => ({
+  // Return seat status (who's sitting where) + available players
+  const seats = session.characters.map((charId, index) => ({
     seatIndex: index,
-    name: seat.player?.name ?? null,
-    claimed: session.claimed[index],
+    seatNumber: index + 1,
+    occupied: session.seated[index] !== null,
+    playerName: session.seated[index]?.playerName || null,
   }));
 
-  res.json({ scriptName: session.scriptName, players });
-});
+  const availablePlayers = session.availablePlayers
+    .filter(p => !p.taken)
+    .map(p => ({ id: p.id, name: p.name }));
 
-// ─── POST /api/reveal/:code/claim ───────────────────────────────────────────────
-
-router.post('/:code/claim', (req, res) => {
-  const session = getValidSession(req.params.code);
-  if (!session) {
-    return res.status(404).json({ error: 'Session not found.' });
-  }
-
-  const { seatIndex } = req.body;
-
-  if (seatIndex == null || seatIndex < 0 || seatIndex >= session.seats.length) {
-    return res.status(400).json({ error: 'Invalid seatIndex.' });
-  }
-
-  if (session.claimed[seatIndex]) {
-    return res.status(409).json({ error: 'This seat has already been claimed.' });
-  }
-
-  session.claimed[seatIndex] = true;
-  const seat = session.seats[seatIndex];
+  const seatedCount = session.seated.filter(s => s !== null).length;
 
   res.json({
-    characterId: seat.characterId,
-    playerName: seat.player?.name ?? null,
+    scriptName: session.scriptName,
+    totalSeats: session.totalSeats,
+    seatedCount,
+    allSeated: seatedCount === session.totalSeats,
+    seats,
+    availablePlayers,
+  });
+});
+
+// ─── POST /api/reveal/:code/sit ─────────────────────────────────────────────────
+
+router.post('/:code/sit', (req, res) => {
+  const session = getValidSession(req.params.code);
+  if (!session) {
+    return res.status(404).json({ error: '代码无效或已过期' });
+  }
+
+  const { seatIndex, playerName, playerId } = req.body;
+
+  // Validate seat index
+  if (seatIndex == null || seatIndex < 0 || seatIndex >= session.totalSeats) {
+    return res.status(400).json({ error: '无效的座位号' });
+  }
+
+  // Check seat not taken
+  if (session.seated[seatIndex] !== null) {
+    return res.status(409).json({ error: '该座位已被占用' });
+  }
+
+  // Validate player name
+  if (!playerName || !playerName.trim()) {
+    return res.status(400).json({ error: '请选择或输入玩家名' });
+  }
+
+  // If playerId provided, mark that player as taken
+  if (playerId) {
+    const player = session.availablePlayers.find(p => p.id === playerId);
+    if (player) {
+      if (player.taken) {
+        return res.status(409).json({ error: '该玩家已入座' });
+      }
+      player.taken = true;
+    }
+  } else {
+    // Check if name already used by another seated player
+    const nameUsed = session.seated.some(s => s && s.playerName === playerName.trim());
+    if (nameUsed) {
+      return res.status(409).json({ error: '该玩家名已被使用' });
+    }
+  }
+
+  // Seat the player
+  session.seated[seatIndex] = {
+    playerName: playerName.trim(),
+    playerId: playerId || null,
+  };
+
+  // Return character info
+  const characterId = session.characters[seatIndex];
+
+  res.json({
+    characterId,
+    playerName: playerName.trim(),
     seatIndex,
+    seatNumber: seatIndex + 1,
   });
 });
 

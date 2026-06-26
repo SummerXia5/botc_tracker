@@ -292,6 +292,167 @@
 }
 
 /* Scrollbar */
-.reveal-player-list::-webkit-scrollbar { width: 4px; }
-.reveal-player-list::-webkit-scrollbar-track { background: transparent; }
-.reveal-player-list::-webkit-scrollbar-thumb { background: rgba(100, 80, 50, 0.3); border-radius: 2px; }
+.reveal-player-list::-webkit-scrollbar,
+.reveal-name-list::-webkit-scrollbar { width: 4px; }
+.reveal-player-list::-webkit-scrollbar-track,
+.reveal-name-list::-webkit-scrollbar-track { background: transparent; }
+.reveal-player-list::-webkit-scrollbar-thumb,
+.reveal-name-list::-webkit-scrollbar-thumb { background: rgba(100, 80, 50, 0.3); border-radius: 2px; }
+
+/* ---- v2: Seat card (wider) ---- */
+.reveal-seat-card {
+  max-width: 520px;
+}
+
+.reveal-progress {
+  font-size: 0.8rem;
+  color: #8a7a5a;
+  margin-bottom: 16px;
+  padding: 6px 16px;
+  border-radius: 999px;
+  background: rgba(100, 180, 100, 0.1);
+  border: 1px solid rgba(100, 180, 100, 0.2);
+  display: inline-block;
+}
+
+.reveal-section {
+  margin-bottom: 20px;
+  text-align: left;
+}
+
+.reveal-section-title {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #d4b878;
+  margin-bottom: 10px;
+  letter-spacing: 0.03em;
+}
+
+/* ---- Name picker ---- */
+.reveal-name-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  max-height: 120px;
+  overflow-y: auto;
+  margin-bottom: 8px;
+}
+
+.reveal-name-btn {
+  padding: 6px 14px;
+  border-radius: 8px;
+  border: 1px solid rgba(100, 80, 50, 0.2);
+  background: rgba(255, 255, 255, 0.04);
+  color: #d4c0a8;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 150ms;
+}
+
+.reveal-name-btn:hover {
+  background: rgba(212, 184, 120, 0.1);
+  border-color: rgba(212, 184, 120, 0.3);
+}
+
+.reveal-name-btn.active {
+  background: rgba(212, 184, 120, 0.2);
+  border-color: #d4b878;
+  color: #d4b878;
+  font-weight: 600;
+}
+
+.reveal-name-custom {
+  margin-top: 6px;
+}
+
+.reveal-name-input {
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(100, 80, 50, 0.2);
+  background: rgba(255, 255, 255, 0.04);
+  color: #d4c0a8;
+  font-size: 0.8rem;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.reveal-name-input::placeholder {
+  color: rgba(180, 160, 130, 0.3);
+}
+
+.reveal-name-input:focus {
+  border-color: rgba(212, 184, 120, 0.4);
+}
+
+.reveal-chosen-name {
+  font-size: 0.75rem;
+  color: #a0d4a0;
+  margin-top: 6px;
+}
+
+/* ---- Seat grid ---- */
+.reveal-seat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+  gap: 8px;
+}
+
+.reveal-seat-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 12px 8px;
+  border-radius: 12px;
+  border: 1px solid rgba(100, 80, 50, 0.2);
+  background: rgba(255, 255, 255, 0.04);
+  color: #d4c0a8;
+  cursor: pointer;
+  transition: all 150ms;
+}
+
+.reveal-seat-btn:hover:not(:disabled) {
+  background: rgba(212, 184, 120, 0.12);
+  border-color: rgba(212, 184, 120, 0.4);
+  transform: translateY(-2px);
+}
+
+.reveal-seat-btn:disabled {
+  cursor: not-allowed;
+}
+
+.reveal-seat-btn.occupied {
+  background: rgba(100, 80, 50, 0.08);
+  border-color: rgba(100, 80, 50, 0.1);
+  opacity: 0.5;
+}
+
+.reveal-seat-number {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #d4b878;
+}
+
+.reveal-seat-empty {
+  font-size: 0.65rem;
+  color: #6a8a6a;
+}
+
+.reveal-seat-taken {
+  font-size: 0.6rem;
+  color: #888;
+  max-width: 70px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.reveal-seat-badge {
+  font-size: 0.75rem;
+  color: #8a7a5a;
+  padding: 2px 12px;
+  border-radius: 999px;
+  background: rgba(100, 80, 50, 0.15);
+  margin-bottom: 8px;
+}
