@@ -636,7 +636,7 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
     // Revive
     setSeats(prev => prev.map((s, i) => {
       if (i !== index) return s;
-      addLog(`${s.player.name} 复活`);
+      addLog(`${s.player?.name || `座位${index+1}`} 复活`);
       return { ...s, alive: true, deathDay: null, deathCause: null };
     }));
   };
@@ -657,7 +657,7 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
       : DEATH_REASONS.find(r => r.id === reason)?.label || reason;
     setSeats(prev => prev.map((s, i) => {
       if (i !== deathSeatIndex) return s;
-      addLog(`${s.player.name} 死亡（${label}）`);
+      addLog(`${s.player?.name || `座位${deathSeatIndex+1}`} 死亡（${label}）`);
       return { ...s, alive: false, deathDay: dayNumber, deathCause: reason };
     }));
     setShowDeathPicker(false);
@@ -754,7 +754,7 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
         // survival_days: if alive at end, survived all days; if dead, died on deathDay
         const survivalDays = s.alive ? dayNumber : (s.deathDay || dayNumber);
         return {
-          player_id: s.player.id,
+          player_id: s.player?.id || null,
           role_type: ch?.type || 'townsfolk',
           character_id: s.characterId || null,
           survived: s.alive,
@@ -959,7 +959,7 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
 
             return (
               <div
-                key={seat.player.id}
+                key={seat.player?.id || `seat-${i}`}
                 className={[
                   'seat-token',
                   !seat.alive && 'dead',
@@ -1044,7 +1044,7 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                 {/* Seat label bar below token */}
                 <div className="seat-label">
                   <span className="seat-number">{i + 1}.</span>
-                  <span className="seat-player-name">{seat.player.name}</span>
+                  <span className="seat-player-name">{seat.player?.name || `玩家${i+1}`}</span>
                 </div>
 
                 {/* Ghost vote token (dead players only) */}
@@ -1054,7 +1054,7 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                     onClick={e => {
                       e.stopPropagation();
                       const newUsed = !seat.ghostVoteUsed;
-                      addLog(`${seat.player.name} ${newUsed ? '使用' : '恢复'}遗言票`);
+                      addLog(`${seat.player?.name || `座位${i+1}`} ${newUsed ? '使用' : '恢复'}遗言票`);
                       setSeats(prev => prev.map((s, si) =>
                         si === i ? { ...s, ghostVoteUsed: newUsed } : s
                       ));
@@ -1101,7 +1101,7 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                               zIndex: 10 - ri,
                             }}
                             onClick={() => {
-                              addLog(`${seat.player.name} 移除标记: ${label}`);
+                              addLog(`${seat.player?.name || `座位${i+1}`} 移除标记: ${label}`);
                               setSeatReminders(prev => ({
                                 ...prev,
                                 [i]: (prev[i] || []).filter((_, idx) => idx !== ri),
@@ -1259,7 +1259,7 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
               <h3>
                 分配角色
                 {assigningSeatIndex !== null && seats[assigningSeatIndex] && (
-                  <> — {seats[assigningSeatIndex].player.name}</>
+                  <> — {seats[assigningSeatIndex].player?.name || `座位${assigningSeatIndex+1}`}</>
                 )}
               </h3>
               <button className="role-panel-close" onClick={() => { setShowRolePanel(false); setAssigningSeatIndex(null); }}>✕</button>
@@ -1435,7 +1435,7 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
               <h3>管理玩家 ({seats.length} 人)</h3>
               <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
                 {(() => {
-                  const available = localPlayers.filter(p => !seats.some(s => s.player.id === p.id));
+                  const available = localPlayers.filter(p => !seats.some(s => s.player?.id === p.id));
                   return available.length > 0 && (
                     <button
                       className="pm-addall-btn"
@@ -1469,7 +1469,7 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
               <div className="pm-col pm-col-left">
                 <div className="pm-col-title">可选玩家</div>
                 <div className="pm-available-list">
-                  {localPlayers.filter(p => !seats.some(s => s.player.id === p.id)).map(p => (
+                  {localPlayers.filter(p => !seats.some(s => s.player?.id === p.id)).map(p => (
                     <div
                       key={p.id}
                       className="pm-available-item"
@@ -1487,7 +1487,7 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                       <span>{p.name}</span>
                     </div>
                   ))}
-                  {localPlayers.filter(p => !seats.some(s => s.player.id === p.id)).length === 0 && (
+                  {localPlayers.filter(p => !seats.some(s => s.player?.id === p.id)).length === 0 && (
                     <div className="pm-empty">所有玩家已添加</div>
                   )}
                 </div>
@@ -1524,7 +1524,7 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                   const source = e.dataTransfer.getData('source');
                   if (source === 'available' && playerId) {
                     const player = localPlayers.find(p => p.id === playerId);
-                    if (player && !seats.some(s => s.player.id === playerId)) {
+                    if (player && !seats.some(s => s.player?.id === playerId)) {
                       setSeats(prev => [...prev, { player, characterId: null, alive: true }]);
                       addLog(`添加玩家 ${player.name}`);
                     }
@@ -1535,7 +1535,7 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                 <div className="pm-seat-list">
                   {seats.map((seat, si) => (
                     <div
-                      key={seat.player.id}
+                      key={seat.player?.id || `seated-${idx}`}
                       draggable
                       onDragStart={() => setDragIndex(si)}
                       onDragOver={e => e.preventDefault()}
@@ -1546,7 +1546,7 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                         const source = e.dataTransfer.getData('source');
                         if (source === 'available' && playerId) {
                           const player = localPlayers.find(p => p.id === playerId);
-                          if (player && !seats.some(s => s.player.id === playerId)) {
+                          if (player && !seats.some(s => s.player?.id === playerId)) {
                             setSeats(prev => {
                               const next = [...prev];
                               next.splice(si, 0, { player, characterId: null, alive: true });
@@ -1571,14 +1571,14 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                     >
                       <span className="pm-drag-handle">☰</span>
                       <span className="pm-seat-num">{si + 1}</span>
-                      <span className="pm-seat-name">{seat.player.name}</span>
+                      <span className="pm-seat-name">{seat.player?.name || `玩家${idx+1}`}</span>
                       <button
                         className="pm-remove-btn"
                         title="移除"
                         onClick={e => {
                           e.stopPropagation();
                           setSeats(prev => prev.filter((_, idx) => idx !== si));
-                          addLog(`移除玩家 ${seat.player.name}`);
+                          addLog(`移除玩家 ${seat.player?.name || `座位${idx+1}`}`);
                         }}
                       >✕</button>
                     </div>
@@ -1610,7 +1610,7 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
               {!travellerPlayer && (
                 <>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 8 }}>
-                    {localPlayers.filter(p => !seats.some(s => s.player.id === p.id)).map(p => (
+                    {localPlayers.filter(p => !seats.some(s => s.player?.id === p.id)).map(p => (
                       <button
                         key={p.id}
                         style={{
@@ -1701,14 +1701,14 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                     ↑ 插入到最前面
                   </button>
                   {seats.map((seat, si) => (
-                    <div key={seat.player.id}>
+                    <div key={seat.player?.id || `night-${ni}`}>
                       <div style={{
                         padding: '4px 12px', borderRadius: 6, fontSize: '0.8rem',
                         background: 'rgba(255,255,255,0.04)', color: '#d4c0a8',
                         display: 'flex', alignItems: 'center', gap: 8,
                       }}>
                         <span style={{ color: '#888', minWidth: 20 }}>{si + 1}.</span>
-                        <span>{seat.player.name}</span>
+                        <span>{seat.player?.name || `座位${ni+1}`}</span>
                         {seat.characterId && (
                           <span style={{ fontSize: '0.65rem', color: '#888', marginLeft: 'auto' }}>
                             {charLookup[seat.characterId]?.name || seat.characterId}
