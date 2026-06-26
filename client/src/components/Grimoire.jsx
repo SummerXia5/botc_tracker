@@ -932,7 +932,7 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
   if (seats.length === 0) {
     return (
       <div className="grimoire">
-        <div className="grimoire-setup">
+        <div className="grimoire-setup-form">
           <div className="grimoire-setup-header">
             <h2 className="grimoire-title">说书人魔典 <span className="grimoire-beta-tag">Beta</span></h2>
             <p className="grimoire-subtitle">STORYTELLER GRIMOIRE</p>
@@ -1204,9 +1204,6 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
 
           <div className="sidebar-divider" />
 
-          <button className="sidebar-btn" onClick={() => setShowPlayerManager(!showPlayerManager)}>
-            👥 管理玩家
-          </button>
           <button className="sidebar-btn" onClick={() => setShowDemonBluffs(true)}>
             🎭 恶魔伪装
           </button>
