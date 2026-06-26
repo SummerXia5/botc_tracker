@@ -1364,17 +1364,17 @@
   transform: scale(1.15);
 }
 .seat-btn-left {
-  left: -8px;
-  top: 50%;
-  transform: translateY(-50%);
+  left: -4px;
+  bottom: -4px;
+  top: auto;
 }
-.seat-btn-left:hover { transform: translateY(-50%) scale(1.15); }
+.seat-btn-left:hover { transform: scale(1.15); }
 .seat-btn-right {
-  right: -8px;
-  top: 50%;
-  transform: translateY(-50%);
+  right: -4px;
+  bottom: -4px;
+  top: auto;
 }
-.seat-btn-right:hover { transform: translateY(-50%) scale(1.15); }
+.seat-btn-right:hover { transform: scale(1.15); }
 .seat-hover-label {
   font-size: 0.68rem;
   font-weight: 700;

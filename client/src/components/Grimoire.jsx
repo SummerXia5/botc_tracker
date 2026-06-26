@@ -1174,6 +1174,22 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                   setShowRevealCode(!showRevealCode);
                   return;
                 }
+                // Validate: characters that need perceived identity must have it set
+                const PERCEIVED_IDS = ['drunk', 'marionette', 'lunatic'];
+                const PERCEIVED_NAMES = ['酒鬼', '提线木偶', '疯子'];
+                const missing = seats
+                  .map((s, idx) => {
+                    if (!s.characterId) return null;
+                    const sch = charLookup[s.characterId] || CHARACTERS[s.characterId];
+                    const needs = PERCEIVED_IDS.some(pid => s.characterId.toLowerCase().includes(pid))
+                      || (sch && PERCEIVED_NAMES.some(pn => sch.name?.includes(pn)));
+                    return needs && !s.perceivedCharId ? { idx, name: sch?.name || s.characterId, player: s.player?.name || `座位${idx+1}` } : null;
+                  })
+                  .filter(Boolean);
+                if (missing.length > 0) {
+                  alert(`请先设置认知覆盖:\n${missing.map(m => `${m.player} (${m.name})`).join('\n')}`);
+                  return;
+                }
                 setRevealLoading(true);
                 try {
                   const result = await createRevealSession({
@@ -1380,24 +1396,31 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
 
 
                 {/* Small icon buttons around the token (distinct tap targets) */}
-                {seat.characterId && (
-                  <>
-                    {/* 🎭 Perceived identity — left side */}
-                    <div className="seat-side-btn seat-btn-left" onClick={(e) => {
-                      e.stopPropagation();
-                      setPerceivedSeatIndex(i);
-                      setShowPerceivedPicker(true);
-                    }}>🎭</div>
-                    {/* 📝 Reminders — right side (game only) */}
-                    {phase !== 'setup' && (
-                      <div className="seat-side-btn seat-btn-right" onClick={(e) => {
-                        e.stopPropagation();
-                        setReminderSeatIndex(i);
-                        setShowReminderPicker(true);
-                      }}>📝</div>
-                    )}
-                  </>
-                )}
+                {seat.characterId && (() => {
+                  // Only these characters need perceived identity
+                  const PERCEIVED_IDS = ['drunk', 'marionette', 'lunatic'];
+                  const PERCEIVED_NAMES = ['酒鬼', '提线木偶', '疯子'];
+                  const needsPerceived = PERCEIVED_IDS.some(pid => seat.characterId.toLowerCase().includes(pid))
+                    || (ch && PERCEIVED_NAMES.some(pn => ch.name?.includes(pn)));
+                  return (
+                    <>
+                      {needsPerceived && (
+                        <div className="seat-side-btn seat-btn-left" onClick={(e) => {
+                          e.stopPropagation();
+                          setPerceivedSeatIndex(i);
+                          setShowPerceivedPicker(true);
+                        }}>🎭</div>
+                      )}
+                      {phase !== 'setup' && (
+                        <div className="seat-side-btn seat-btn-right" onClick={(e) => {
+                          e.stopPropagation();
+                          setReminderSeatIndex(i);
+                          setShowReminderPicker(true);
+                        }}>📝</div>
+                      )}
+                    </>
+                  );
+                })()}
                 {/* Character content — flip display when perceived is set */}
                 {ch ? (() => {
                   const pch = seat.perceivedCharId ? (charLookup[seat.perceivedCharId] || CHARACTERS[seat.perceivedCharId]) : null;
