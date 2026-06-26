@@ -50,6 +50,7 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
   // ---- Demon bluffs ----
   const [demonBluffs, setDemonBluffs] = useState([null, null, null]);
   const [assigningBluffIndex, setAssigningBluffIndex] = useState(null);
+  const [showDemonBluffsFullscreen, setShowDemonBluffsFullscreen] = useState(false);
 
   // ---- Game log ----
   const [log, setLog] = useState([]);
@@ -1746,10 +1747,53 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
               </div>
             )}
           </div>
+          {demonBluffs.some(b => b) && (
+            <button
+              className="bluff-fullscreen-btn"
+              onClick={() => { setShowDemonBluffsFullscreen(true); setShowDemonBluffs(false); }}
+            >
+              📺 全屏展示给恶魔
+            </button>
+          )}
         </div>
       )}
 
-      {/* ---- End Game Dialog ---- */}
+      {/* ---- Demon Bluffs Fullscreen Display ---- */}
+      {showDemonBluffsFullscreen && (
+        <div className="demon-bluffs-fullscreen" onClick={() => setShowDemonBluffsFullscreen(false)}>
+          <div className="dbf-header">恶魔伪装</div>
+          <div className="dbf-subtitle">以下角色不在场，你可以声称自己是其中之一</div>
+          <div className="dbf-cards">
+            {demonBluffs.map((bluffId, bi) => {
+              const ch = bluffId ? (charLookup[bluffId] || CHARACTERS[bluffId]) : null;
+              if (!ch) return null;
+              return (
+                <div key={bi} className="dbf-card">
+                  <div className="dbf-card-icon" style={{
+                    borderColor: TYPE_COLORS[ch.type] || '#d4b878',
+                    boxShadow: `0 0 24px ${TYPE_COLORS[ch.type]}40`,
+                  }}>
+                    {ch.icon ? (
+                      <img src={ch.icon} alt={ch.name} className="dbf-card-img" />
+                    ) : (
+                      <span className="dbf-card-letter" style={{ color: TYPE_COLORS[ch.type] }}>
+                        {ch.name?.charAt(0)}
+                      </span>
+                    )}
+                  </div>
+                  <div className="dbf-card-name">{ch.name}</div>
+                  <div className="dbf-card-en">{ch.nameEn}</div>
+                  <div className="dbf-card-type" style={{ color: TYPE_COLORS[ch.type] }}>
+                    {TYPE_LABELS[ch.type]}
+                  </div>
+                  <div className="dbf-card-ability">{ch.ability}</div>
+                </div>
+              );
+            })}
+          </div>
+          <div className="dbf-hint">点击任意位置关闭</div>
+        </div>
+      )}
       {showEndDialog && (
         <div className="grimoire-panel-overlay" onClick={() => setShowEndDialog(false)}>
           <div className="grimoire-end-dialog" onClick={e => e.stopPropagation()}>

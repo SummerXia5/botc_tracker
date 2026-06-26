@@ -1391,6 +1391,150 @@
   background: rgba(60, 50, 35, 0.8);
 }
 
+.bluff-fullscreen-btn {
+  width: 100%;
+  padding: 12px 16px;
+  margin-top: 12px;
+  border: 1px solid rgba(180, 60, 60, 0.3);
+  border-radius: 12px;
+  background: rgba(180, 60, 60, 0.12);
+  color: #e06050;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 200ms;
+}
+
+.bluff-fullscreen-btn:hover {
+  background: rgba(180, 60, 60, 0.25);
+  border-color: rgba(180, 60, 60, 0.5);
+  transform: translateY(-1px);
+}
+
+/* ---- Demon Bluffs Fullscreen ---- */
+.demon-bluffs-fullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 9998;
+  background: rgba(8, 5, 12, 0.98);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  animation: dbfFadeIn 400ms ease;
+  padding: 24px;
+}
+
+@keyframes dbfFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.dbf-header {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #e06050;
+  letter-spacing: 0.15em;
+  margin-bottom: 6px;
+  text-shadow: 0 2px 12px rgba(224, 96, 80, 0.3);
+}
+
+.dbf-subtitle {
+  font-size: 0.8rem;
+  color: #8a6050;
+  margin-bottom: 28px;
+  text-align: center;
+}
+
+.dbf-cards {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  flex-wrap: wrap;
+  max-width: 700px;
+}
+
+.dbf-card {
+  flex: 1;
+  min-width: 160px;
+  max-width: 200px;
+  background: rgba(30, 25, 35, 0.9);
+  border: 1px solid rgba(100, 80, 50, 0.2);
+  border-radius: 16px;
+  padding: 24px 16px;
+  text-align: center;
+  animation: dbfCardIn 500ms ease both;
+}
+
+.dbf-card:nth-child(1) { animation-delay: 100ms; }
+.dbf-card:nth-child(2) { animation-delay: 250ms; }
+.dbf-card:nth-child(3) { animation-delay: 400ms; }
+
+@keyframes dbfCardIn {
+  from { opacity: 0; transform: translateY(20px) scale(0.9); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.dbf-card-icon {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  border: 2px solid #d4b878;
+  margin: 0 auto 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(15, 12, 20, 0.8);
+}
+
+.dbf-card-img {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.dbf-card-letter {
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.dbf-card-name {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #d4c0a8;
+  margin-bottom: 2px;
+}
+
+.dbf-card-en {
+  font-size: 0.7rem;
+  color: #6a5a3a;
+  margin-bottom: 8px;
+  font-style: italic;
+}
+
+.dbf-card-type {
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  margin-bottom: 10px;
+}
+
+.dbf-card-ability {
+  font-size: 0.7rem;
+  color: #908070;
+  line-height: 1.5;
+  text-align: left;
+}
+
+.dbf-hint {
+  margin-top: 28px;
+  font-size: 0.75rem;
+  color: #5a4a3a;
+  animation: maskHintPulse 2.5s ease-in-out infinite;
+}
+
 /* ============================================
    End Game Dialog
    ============================================ */
