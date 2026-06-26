@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
-import { createPortal } from 'react-dom';
+
 import { CHARACTERS, TYPE_COLORS, TYPE_LABELS, SCRIPTS, TRAVELLERS } from '../data/characters';
 import PlayerSelector from './PlayerSelector';
 import { createPlayer, createRevealSession, getRevealSession, sitRevealSeat } from '../api';
@@ -769,7 +769,7 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
   //  Render: Script + player selection (before seats exist)
   // ================================================================
   if (seats.length === 0 && !phase) {
-    return createPortal(
+    return (
       <div className="grimoire">
         <div className="grimoire-setup">
           <div className="grimoire-setup-header">
@@ -832,8 +832,7 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
             开始配置 ({selectedPlayerIds.length} 人)
           </button>
         </div>
-      </div>,
-      document.body
+      </div>
     );
   }
 
@@ -842,7 +841,7 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
   // ================================================================
   const allAssigned = seats.every(s => s.characterId);
 
-  return createPortal(
+  return (
     <div className={`grimoire grimoire-${phase}`}>
       {/* ---- Privacy Mask ---- */}
       {showMask && (
@@ -2190,7 +2189,6 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
           </div>
         </details>
       )}
-    </div>,
-    document.body
+    </div>
   );
 }

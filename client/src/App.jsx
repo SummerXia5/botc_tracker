@@ -195,6 +195,25 @@ export default function App() {
 
   const isGroupOwner = isStoryteller && selectedGroup?.created_by === user?.id;
 
+  // Show grimoire as standalone page
+  if (showGrimoire && isGroupOwner) {
+    return (
+      <Grimoire
+        players={players}
+        scripts={scripts}
+        groupId={selectedGroup.id}
+        onExportGame={(gameData) => {
+          setPrefillData(gameData);
+          setShowGrimoire(false);
+          setShowRecordGame(true);
+          toast.success('魔典数据已导入记录表，请确认后提交');
+        }}
+        onClose={() => setShowGrimoire(false)}
+        onRefreshPlayers={handleRefresh}
+      />
+    );
+  }
+
   return (
     <div className="app">
       <Header
@@ -273,24 +292,6 @@ export default function App() {
         />
       )}
 
-
-
-      {showGrimoire && isGroupOwner && (
-        <Grimoire
-          players={players}
-          scripts={scripts}
-          groupId={selectedGroup.id}
-          onExportGame={(gameData) => {
-            // Close grimoire, prefill RecordGameModal, open it
-            setPrefillData(gameData);
-            setShowGrimoire(false);
-            setShowRecordGame(true);
-            toast.success('魔典数据已导入记录表，请确认后提交');
-          }}
-          onClose={() => setShowGrimoire(false)}
-          onRefreshPlayers={handleRefresh}
-        />
-      )}
 
 
 
