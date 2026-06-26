@@ -1370,17 +1370,23 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
 
 
 
-                {/* Hover zone banners (only during game with assigned character) */}
-                {phase !== 'setup' && seat.characterId && (
+                {/* Hover zone banners */}
+                {seat.characterId && (
                   <>
-                    <div className="seat-hover-zone seat-hover-top">
-                      <span className="seat-hover-label">
-                        {seat.alive ? '💀 标记死亡' : '✨ 复活'}
-                      </span>
-                    </div>
-                    <div className="seat-hover-zone seat-hover-bottom">
-                      <span className="seat-hover-label">🔄 换角色</span>
-                    </div>
+                    {/* Kill/revive + change role - game only */}
+                    {phase !== 'setup' && (
+                      <>
+                        <div className="seat-hover-zone seat-hover-top">
+                          <span className="seat-hover-label">
+                            {seat.alive ? '💀 标记死亡' : '✨ 复活'}
+                          </span>
+                        </div>
+                        <div className="seat-hover-zone seat-hover-bottom">
+                          <span className="seat-hover-label">🔄 换角色</span>
+                        </div>
+                      </>
+                    )}
+                    {/* 🎭 Perceived identity - ALL phases */}
                     <div className="seat-hover-zone seat-hover-left" onClick={(e) => {
                       e.stopPropagation();
                       setPerceivedSeatIndex(i);
@@ -1390,45 +1396,51 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                     </div>
                   </>
                 )}
-                {/* Character content */}
-                {ch ? (
-                  <>
-                    {ch.ability && (
-                      <div className="seat-ability-tooltip">
-                        <div className="ability-tooltip-name">{ch.name}</div>
-                        <div className="ability-tooltip-text">{ch.ability}</div>
-                      </div>
-                    )}
-                    {ch.icon ? (
-                      <img className="seat-char-img" src={ch.icon} alt={ch.name} />
-                    ) : (
-                      <span className="seat-char-icon" style={{ color: TYPE_COLORS[ch.type] }}>
-                        {ch.name?.charAt(0)}
-                      </span>
-                    )}
-                    <span className="seat-char-name">{ch.name}</span>
-                    {/* Perceived identity — mini token overlay */}
-                    {seat.perceivedCharId && (() => {
-                      const pch = charLookup[seat.perceivedCharId] || CHARACTERS[seat.perceivedCharId];
-                      return pch ? (
+                {/* Character content — flip display when perceived is set */}
+                {ch ? (() => {
+                  const pch = seat.perceivedCharId ? (charLookup[seat.perceivedCharId] || CHARACTERS[seat.perceivedCharId]) : null;
+                  // Display char: show perceived as main when set, otherwise show real
+                  const displayCh = pch || ch;
+                  // Real char overlay: only show when perceived differs from real
+                  const realOverlay = pch ? ch : null;
+                  return (
+                    <>
+                      {displayCh.ability && (
+                        <div className="seat-ability-tooltip">
+                          <div className="ability-tooltip-name">{displayCh.name}</div>
+                          <div className="ability-tooltip-text">{displayCh.ability}</div>
+                          {realOverlay && (
+                            <div className="ability-tooltip-real">真实身份: {realOverlay.name}</div>
+                          )}
+                        </div>
+                      )}
+                      {displayCh.icon ? (
+                        <img className="seat-char-img" src={displayCh.icon} alt={displayCh.name} />
+                      ) : (
+                        <span className="seat-char-icon" style={{ color: TYPE_COLORS[displayCh.type] }}>
+                          {displayCh.name?.charAt(0)}
+                        </span>
+                      )}
+                      <span className="seat-char-name">{displayCh.name}</span>
+                      {/* Real identity — small overlay token (only when perceived is set) */}
+                      {realOverlay && (
                         <div
                           className="perceived-token"
-                          title={`玩家认为自己是: ${pch.name}`}
+                          title={`真实身份: ${realOverlay.name}`}
                           onClick={(e) => {
                             e.stopPropagation();
                             setPerceivedSeatIndex(i);
                             setShowPerceivedPicker(true);
                           }}
                         >
-                          {pch.icon ? (
-                            <img src={pch.icon} alt={pch.name} className="perceived-token-icon" />
+                          {realOverlay.icon ? (
+                            <img src={realOverlay.icon} alt={realOverlay.name} className="perceived-token-icon" />
                           ) : (
-                            <span className="perceived-token-letter" style={{ color: TYPE_COLORS[pch.type] }}>{pch.name?.charAt(0)}</span>
+                            <span className="perceived-token-letter" style={{ color: TYPE_COLORS[realOverlay.type] }}>{realOverlay.name?.charAt(0)}</span>
                           )}
-                          <span className="perceived-token-name">{pch.name}</span>
+                          <span className="perceived-token-name">{realOverlay.name}</span>
                         </div>
-                      ) : null;
-                    })()}
+                      )}
                     {/* Night order badges - centered vertically */}
                     {(nightOrderBadges.firstNight[seat.characterId] || nightOrderBadges.otherNight[seat.characterId]) && (
                       <div className="night-badges-row">
@@ -1451,7 +1463,8 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                       </div>
                     )}
                   </>
-                ) : (
+                  );
+                })() : (
                   <span className="seat-empty">?</span>
                 )}
 
