@@ -444,6 +444,7 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
           label: text,
           charName: ch.name,
           charIcon: ch.icon,
+          charId: ch.id,
           global,
         });
       }
@@ -2043,67 +2044,48 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
               <button className="modal-close" onClick={() => setShowReminderPicker(false)}>✕</button>
             </div>
             <div className="reminder-grid">
-              {REMINDER_TOKENS.filter(t => t.id !== 'custom').map(token => {
-                const isActive = (seatReminders[reminderSeatIndex] || []).includes(token.id);
-                return (
-                  <button
-                    key={token.id}
-                    className={`reminder-token ${isActive ? 'reminder-active' : ''}`}
-                    style={{ '--token-color': token.color }}
-                    onClick={() => toggleReminder(reminderSeatIndex, token.id)}
-                  >
-                    <span className="reminder-token-icon">{token.icon}</span>
-                    <span className="reminder-token-label">{token.label}</span>
-                  </button>
-                );
-              })}
+              {/* Filter: global tokens always show, per-character only when character is in play */}
+              {scriptReminderTokens
+                .filter(token => {
+                  if (token.global) return true;
+                  // Check if this character is assigned to any seat
+                  return seats.some(s => s.characterId === token.charId);
+                })
+                .map(token => {
+                  const isActive = (seatReminders[reminderSeatIndex] || []).includes(token.id);
+                  return (
+                    <button
+                      key={token.id}
+                      className={`reminder-token ${isActive ? 'reminder-active' : ''}`}
+                      style={{
+                        '--token-color': '#c7a',
+                        position: 'relative',
+                        overflow: 'hidden',
+                      }}
+                      onClick={() => toggleReminder(reminderSeatIndex, token.id)}
+                      title={`${token.charName}: ${token.label}${token.global ? ' (全局)' : ''}`}
+                    >
+                      {token.charIcon ? (
+                        <span className="reminder-token-icon" style={{
+                          display: 'inline-block',
+                          width: 24, height: 24,
+                          backgroundImage: `url(${token.charIcon})`,
+                          backgroundSize: 'cover',
+                          backgroundPosition: 'center',
+                          borderRadius: '50%',
+                          opacity: 0.85,
+                        }} />
+                      ) : (
+                        <span className="reminder-token-icon">📌</span>
+                      )}
+                      <span className="reminder-token-label" style={{ fontSize: '0.62rem' }}>
+                        {token.label}
+                      </span>
+                    </button>
+                  );
+                })
+              }
             </div>
-            {/* Script character reminder tokens */}
-            {scriptReminderTokens.length > 0 && (
-              <>
-                <div style={{
-                  fontSize: '0.7rem', color: '#8a7a5a', margin: '10px 0 6px',
-                  fontWeight: 600, borderTop: '1px solid rgba(100,80,50,0.15)', paddingTop: 8,
-                }}>
-                  📜 剧本角色标记
-                </div>
-                <div className="reminder-grid">
-                  {scriptReminderTokens.map(token => {
-                    const isActive = (seatReminders[reminderSeatIndex] || []).includes(token.id);
-                    return (
-                      <button
-                        key={token.id}
-                        className={`reminder-token ${isActive ? 'reminder-active' : ''}`}
-                        style={{
-                          '--token-color': '#c7a',
-                          position: 'relative',
-                          overflow: 'hidden',
-                        }}
-                        onClick={() => toggleReminder(reminderSeatIndex, token.id)}
-                        title={`${token.charName}: ${token.label}${token.global ? ' (全局)' : ''}`}
-                      >
-                        {token.charIcon ? (
-                          <span className="reminder-token-icon" style={{
-                            display: 'inline-block',
-                            width: 24, height: 24,
-                            backgroundImage: `url(${token.charIcon})`,
-                            backgroundSize: 'cover',
-                            backgroundPosition: 'center',
-                            borderRadius: '50%',
-                            opacity: 0.85,
-                          }} />
-                        ) : (
-                          <span className="reminder-token-icon">📌</span>
-                        )}
-                        <span className="reminder-token-label" style={{ fontSize: '0.62rem' }}>
-                          {token.label}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </>
-            )}
             {/* Custom reminder input */}
             <div className="reminder-custom-input">
               <input
