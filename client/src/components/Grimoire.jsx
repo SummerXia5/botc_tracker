@@ -2233,32 +2233,66 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
 
       {/* ---- Night Order Panel (slide-in right) ---- */}
       {showNightOrder && (
-        <div className="grimoire-side-panel">
+        <div className="grimoire-side-panel night-order-panel-wide">
           <div className="side-panel-header">
-            <h3>{dayNumber === 0 ? '首夜顺序' : '其他夜晚顺序'}</h3>
+            <h3>🌙 夜晚顺序表</h3>
             <button className="side-panel-close" onClick={() => setShowNightOrder(false)}>✕</button>
           </div>
-          <div className="side-panel-content">
-            {nightOrder.length === 0 ? (
-              <p className="side-panel-empty">暂无需要唤醒的角色</p>
-            ) : (
-              nightOrder.map((ch, i) => {
-                const order = dayNumber === 0 ? ch.firstNight : ch.otherNights;
-                return (
-                  <div key={ch.id} className="night-order-item">
-                    <span className="night-order-num">{i + 1}</span>
-                    <span className="night-order-indicator" style={{ background: TYPE_COLORS[ch.type] }} />
-                    <div className="night-order-info">
-                      <span className="night-order-name" style={{ color: TYPE_COLORS[ch.type] }}>{ch.name}</span>
-                      {ch.ability && (
-                        <span className="night-order-ability">{ch.ability}</span>
+          <div className="night-order-columns">
+            {/* First Night Column */}
+            <div className="night-order-col">
+              <div className="night-col-header night-col-first">首个夜晚</div>
+              {scriptCharacters
+                .filter(ch => ch.firstNight > 0)
+                .sort((a, b) => a.firstNight - b.firstNight)
+                .map(ch => {
+                  const inPlaySeats = seats
+                    .map((s, si) => ({ ...s, seatIdx: si }))
+                    .filter(s => s.characterId === ch.id);
+                  const isInPlay = inPlaySeats.length > 0;
+                  return (
+                    <div key={ch.id} className={`night-row ${isInPlay ? 'night-row-active' : 'night-row-dim'}`}>
+                      <div className={`night-row-bar ${isInPlay ? 'night-bar-first' : ''}`} />
+                      <span className="night-row-name">{ch.name}</span>
+                      {ch.icon && (
+                        <img className="night-row-icon" src={ch.icon} alt="" />
+                      )}
+                      {isInPlay && (
+                        <span className="night-row-seat">
+                          {inPlaySeats.map(s => `${s.seatIdx + 1}. ${s.player?.name || '空座位'}`).join(', ')}
+                        </span>
                       )}
                     </div>
-                    <span className="night-order-original">({order})</span>
-                  </div>
-                );
-              })
-            )}
+                  );
+                })}
+            </div>
+            {/* Other Night Column */}
+            <div className="night-order-col">
+              <div className="night-col-header night-col-other">其他夜晚</div>
+              {scriptCharacters
+                .filter(ch => (ch.otherNight || ch.otherNights) > 0)
+                .sort((a, b) => (a.otherNight || a.otherNights) - (b.otherNight || b.otherNights))
+                .map(ch => {
+                  const inPlaySeats = seats
+                    .map((s, si) => ({ ...s, seatIdx: si }))
+                    .filter(s => s.characterId === ch.id);
+                  const isInPlay = inPlaySeats.length > 0;
+                  return (
+                    <div key={ch.id} className={`night-row ${isInPlay ? 'night-row-active' : 'night-row-dim'}`}>
+                      <div className={`night-row-bar ${isInPlay ? 'night-bar-other' : ''}`} />
+                      <span className="night-row-name">{ch.name}</span>
+                      {ch.icon && (
+                        <img className="night-row-icon" src={ch.icon} alt="" />
+                      )}
+                      {isInPlay && (
+                        <span className="night-row-seat">
+                          {inPlaySeats.map(s => `${s.seatIdx + 1}. ${s.player?.name || '空座位'}`).join(', ')}
+                        </span>
+                      )}
+                    </div>
+                  );
+                })}
+            </div>
           </div>
         </div>
       )}

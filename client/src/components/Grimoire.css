@@ -1346,6 +1346,111 @@
   margin-top: 3px;
 }
 
+/* ---- Night Order Panel (wide dual-column) ---- */
+.night-order-panel-wide {
+  width: 580px;
+  max-width: 92vw;
+}
+
+.night-order-columns {
+  display: flex;
+  gap: 0;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.night-order-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.night-col-header {
+  text-align: center;
+  font-size: 0.82rem;
+  font-weight: 700;
+  padding: 10px 8px;
+  letter-spacing: 1px;
+  border-bottom: 2px solid rgba(100, 80, 50, 0.3);
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: rgba(20, 22, 28, 0.98);
+}
+
+.night-col-first {
+  color: #6ab0f3;
+}
+
+.night-col-other {
+  color: #f36a6a;
+  border-left: 1px solid rgba(100, 80, 50, 0.15);
+}
+
+.night-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  border-bottom: 1px solid rgba(100, 80, 50, 0.08);
+  min-height: 36px;
+  position: relative;
+}
+
+.night-row-active {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.night-row-dim {
+  opacity: 0.35;
+}
+
+.night-row-bar {
+  width: 4px;
+  align-self: stretch;
+  border-radius: 2px;
+  flex-shrink: 0;
+  background: rgba(60, 55, 45, 0.3);
+}
+
+.night-bar-first {
+  background: linear-gradient(180deg, #2a6cb8, #4a9cf3);
+}
+
+.night-bar-other {
+  background: linear-gradient(180deg, #b82a2a, #f34a4a);
+}
+
+.night-row-name {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #e8dcc8;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.night-row-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 1px solid rgba(100, 80, 50, 0.3);
+}
+
+.night-row-seat {
+  font-size: 0.62rem;
+  color: #d4b878;
+  background: rgba(60, 50, 35, 0.6);
+  padding: 2px 6px;
+  border-radius: 4px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
 /* ============================================
    Demon Bluffs
    ============================================ */
