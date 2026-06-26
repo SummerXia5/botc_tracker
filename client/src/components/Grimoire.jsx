@@ -1033,7 +1033,7 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
           <div className="mask-hint">点击任意位置解锁</div>
         </div>
       )}
-      {/* ---- Compact top-right bar ---- */}
+      {/* ---- Top-right: Phase pill + close + menu ---- */}
       <div className="grimoire-topbar">
         <div className={`grimoire-phase-pill phase-${phase}`}>
           {phase === 'setup' && '⚙ 配置中'}
@@ -1090,17 +1090,15 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
           </div>
         )}
 
-        <button className="topbar-menu-btn" onClick={() => setShowMenu(!showMenu)}>⚙</button>
+        {/* Gear menu button - only during game (day/night) */}
+        {phase !== 'setup' && (
+          <button className="topbar-menu-btn" onClick={() => setShowMenu(!showMenu)}>⚙</button>
+        )}
         <button className="grimoire-close-btn grimoire-close-ingame" onClick={onClose}>✕</button>
 
-        {showMenu && (
+        {/* Dropdown menu - day/night only */}
+        {phase !== 'setup' && showMenu && (
           <div className="topbar-dropdown">
-            {/* Phase transition */}
-            {phase === 'setup' && allAssigned && seats.every(s => s.player) && (
-              <button className="dropdown-item dropdown-primary" onClick={() => { handleStartFirstNight(); setShowMenu(false); }}>
-                🌙 开始游戏（夜晚）
-              </button>
-            )}
             {phase === 'day' && (
               <button className="dropdown-item dropdown-primary" onClick={() => { handleStartNight(); setShowMenu(false); }}>
                 🌙 开始夜晚
@@ -1112,88 +1110,17 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
               </button>
             )}
 
-            {/* Setup hints */}
-            {phase === 'setup' && !allAssigned && (
-              <div className="dropdown-hint">
-                还需分配 {seats.filter(s => !s.characterId).length} 个角色
-              </div>
-            )}
-            {phase === 'setup' && allAssigned && !seats.every(s => s.player) && revealSession && (
-              <div className="dropdown-hint">
-                ⏳ 等待玩家入座 ({revealSession.seatedCount}/{revealSession.totalSeats})
-              </div>
-            )}
-
             <div className="dropdown-divider" />
 
-            {/* Role assignment / distribution */}
-            {phase === 'setup' ? (
-              <button className="dropdown-item" onClick={() => { handleOpenDistribution(); setShowMenu(false); }}>
-                🎭 分配角色
-              </button>
-            ) : (
-              <button className="dropdown-item" onClick={() => { setShowDistribution(!showDistribution); setShowMenu(false); }}>
-                📜 查看配版
-              </button>
-            )}
-
-            {/* Reveal code - setup only when allAssigned */}
-            {phase === 'setup' && allAssigned && (
-              <button
-                className="dropdown-item"
-                disabled={revealLoading}
-                onClick={async () => {
-                  setShowMenu(false);
-                  if (revealCode) {
-                    setShowRevealCode(!showRevealCode);
-                    return;
-                  }
-                  setRevealLoading(true);
-                  try {
-                    const result = await createRevealSession({
-                      seats: seats.map(s => {
-                        const revealId = s.perceivedCharId || s.characterId;
-                        const ch = charLookup[revealId] || CHARACTERS[revealId];
-                        return {
-                          characterId: revealId,
-                          characterName: ch?.name || revealId,
-                          characterNameEn: ch?.nameEn || '',
-                          characterIcon: ch?.icon || '',
-                          characterAbility: ch?.ability || '',
-                          characterType: ch?.type || 'townsfolk',
-                        };
-                      }),
-                      scriptName: selectedScript?.name || '自定义剧本',
-                      players: localPlayers.map(p => ({ id: p.id, name: p.name })),
-                    });
-                    setRevealCode(result.code);
-                    setShowRevealCode(true);
-                    addLog(`生成抽取码: ${result.code}`);
-                  } catch (e) {
-                    console.error('Failed to create reveal session:', e);
-                  }
-                  setRevealLoading(false);
-                }}
-              >
-                🎫 {revealCode ? '查看抽取码' : '生成抽取码'}
-              </button>
-            )}
-
-            <div className="dropdown-divider" />
-
-            {/* Night order */}
+            <button className="dropdown-item" onClick={() => { setShowDistribution(!showDistribution); setShowMenu(false); }}>
+              📜 查看配版
+            </button>
             <button className="dropdown-item" onClick={() => { setShowNightOrder(!showNightOrder); setShowMenu(false); }}>
               🌃 夜晚顺序
             </button>
-
-            {/* Player manager - setup only */}
-            {phase === 'setup' && (
-              <button className="dropdown-item" onClick={() => { setShowPlayerManager(!showPlayerManager); setShowMenu(false); }}>
-                👥 管理玩家
-              </button>
-            )}
-
-            {/* Traveller */}
+            <button className="dropdown-item" onClick={() => { setShowDemonBluffs(true); setShowMenu(false); }}>
+              🎭 恶魔伪装
+            </button>
             <button className="dropdown-item" onClick={() => {
               setShowTravellerPanel(!showTravellerPanel);
               setTravellerStep('player');
@@ -1204,21 +1131,109 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
             }}>
               🧳 旅行者
             </button>
-
-            {/* Mask */}
             <button className="dropdown-item" onClick={() => { setShowMask(true); setShowMenu(false); }}>
               🔒 遮罩
             </button>
 
             <div className="dropdown-divider" />
 
-            {/* End game */}
             <button className="dropdown-item dropdown-danger" onClick={() => { setShowEndDialog(true); setShowMenu(false); }}>
               ⛔ 结束对局
             </button>
           </div>
         )}
       </div>
+
+      {/* ---- Setup phase: Right sidebar with all actions ---- */}
+      {phase === 'setup' && (
+        <div className="setup-sidebar">
+          {/* Setup hints */}
+          {!allAssigned && (
+            <div className="sidebar-hint">
+              还需分配 {seats.filter(s => !s.characterId).length} 个角色
+            </div>
+          )}
+          {allAssigned && !seats.every(s => s.player) && revealSession && (
+            <div className="sidebar-hint">
+              ⏳ 等待入座 ({revealSession.seatedCount}/{revealSession.totalSeats})
+            </div>
+          )}
+
+          <button className="sidebar-btn sidebar-primary" onClick={handleOpenDistribution}>
+            🎭 分配角色
+          </button>
+
+          {allAssigned && (
+            <button
+              className="sidebar-btn sidebar-primary"
+              disabled={revealLoading}
+              onClick={async () => {
+                if (revealCode) {
+                  setShowRevealCode(!showRevealCode);
+                  return;
+                }
+                setRevealLoading(true);
+                try {
+                  const result = await createRevealSession({
+                    seats: seats.map(s => {
+                      const revealId = s.perceivedCharId || s.characterId;
+                      const ch = charLookup[revealId] || CHARACTERS[revealId];
+                      return {
+                        characterId: revealId,
+                        characterName: ch?.name || revealId,
+                        characterNameEn: ch?.nameEn || '',
+                        characterIcon: ch?.icon || '',
+                        characterAbility: ch?.ability || '',
+                        characterType: ch?.type || 'townsfolk',
+                      };
+                    }),
+                    scriptName: selectedScript?.name || '自定义剧本',
+                    players: localPlayers.map(p => ({ id: p.id, name: p.name })),
+                  });
+                  setRevealCode(result.code);
+                  setShowRevealCode(true);
+                  addLog(`生成抽取码: ${result.code}`);
+                } catch (e) {
+                  console.error('Failed to create reveal session:', e);
+                }
+                setRevealLoading(false);
+              }}
+            >
+              🎫 {revealCode ? '查看抽取码' : '生成抽取码'}
+            </button>
+          )}
+
+          {allAssigned && seats.every(s => s.player) && (
+            <button className="sidebar-btn sidebar-start" onClick={handleStartFirstNight}>
+              🌙 开始游戏
+            </button>
+          )}
+
+          <div className="sidebar-divider" />
+
+          <button className="sidebar-btn" onClick={() => setShowPlayerManager(!showPlayerManager)}>
+            👥 管理玩家
+          </button>
+          <button className="sidebar-btn" onClick={() => setShowDemonBluffs(true)}>
+            🎭 恶魔伪装
+          </button>
+          <button className="sidebar-btn" onClick={() => { setShowNightOrder(!showNightOrder); }}>
+            🌃 夜晚顺序
+          </button>
+          <button className="sidebar-btn" onClick={() => {
+            setShowTravellerPanel(!showTravellerPanel);
+            setTravellerStep('player');
+            setTravellerPlayer(null);
+            setTravellerCharId(null);
+            setNewTravellerName('');
+          }}>
+            🧳 旅行者
+          </button>
+          <button className="sidebar-btn" onClick={() => setShowMask(true)}>
+            🔒 遮罩
+          </button>
+        </div>
+      )}
 
       {/* ---- Top-left: Script composition info ---- */}
       <div className="grimoire-comp-info">
@@ -1275,6 +1290,7 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                   'seat-token',
                   !seat.alive && 'dead',
                   ch && `type-${ch.type}`,
+                  y < 40 && 'seat-top',
                   circleDragIdx === i && 'seat-dragging',
                   circleDropIdx === i && circleDragIdx !== null && circleDragIdx !== i && 'seat-drop-target',
                 ].filter(Boolean).join(' ')}

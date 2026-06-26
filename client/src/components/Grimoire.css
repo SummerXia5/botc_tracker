@@ -155,8 +155,17 @@
   transition: opacity 200ms ease;
   box-shadow: 0 4px 16px rgba(0,0,0,0.5);
 }
+/* For top-half seats, show tooltip below */
+.seat-top .seat-ability-tooltip {
+  bottom: auto;
+  top: calc(100% + 8px);
+}
 .seat-token:hover .seat-ability-tooltip {
   opacity: 1;
+}
+/* Night order data-tip tooltips must appear above ability tooltips */
+.seat-token:hover .night-order-badge[data-tip]::after {
+  z-index: 40;
 }
 .ability-tooltip-name {
   font-size: 0.72rem;
@@ -170,6 +179,74 @@
   color: #b0a090;
   line-height: 1.4;
   text-align: center;
+}
+
+/* ---- Setup phase: Right sidebar ---- */
+.setup-sidebar {
+  position: fixed;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 220;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: rgba(15, 12, 8, 0.8);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(180, 150, 100, 0.15);
+  border-radius: 10px;
+  padding: 10px;
+  min-width: 130px;
+}
+.sidebar-hint {
+  font-size: 0.72rem;
+  color: #8a7a5a;
+  font-style: italic;
+  padding: 2px 4px;
+  text-align: center;
+}
+.sidebar-btn {
+  display: block;
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid rgba(120, 100, 60, 0.2);
+  border-radius: 7px;
+  background: rgba(40, 35, 28, 0.5);
+  color: #c4b08a;
+  font-size: 0.78rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 150ms ease;
+  text-align: left;
+  white-space: nowrap;
+}
+.sidebar-btn:hover {
+  background: rgba(60, 50, 35, 0.8);
+  border-color: rgba(180, 150, 100, 0.3);
+}
+.sidebar-btn.sidebar-primary {
+  color: #e8c864;
+  font-weight: 600;
+  border-color: rgba(200, 160, 60, 0.3);
+}
+.sidebar-btn.sidebar-start {
+  background: rgba(60, 140, 60, 0.2);
+  border-color: rgba(60, 180, 60, 0.4);
+  color: #80e080;
+  font-weight: 700;
+}
+.sidebar-btn.sidebar-start:hover {
+  background: rgba(60, 140, 60, 0.35);
+}
+.sidebar-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.sidebar-divider {
+  height: 1px;
+  background: rgba(180, 150, 100, 0.12);
+  margin: 2px 0;
 }
 
 /* ---- Privacy Mask ---- */
