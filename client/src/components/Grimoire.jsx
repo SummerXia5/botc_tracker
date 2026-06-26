@@ -833,7 +833,9 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
 
       {/* ---- Circular seating chart ---- */}
       <div className="grimoire-circle-container">
-        <div className="grimoire-circle" style={{ '--seat-size': seats.length <= 10 ? '100px' : seats.length <= 13 ? '90px' : '78px' }}>
+        <div className="grimoire-circle" style={{
+          '--seat-size': seats.length <= 10 ? '100px' : seats.length <= 13 ? '90px' : seats.length <= 15 ? '78px' : '66px'
+        }}>
           {/* Center decorative area */}
           <div className="grimoire-center">
             <div className="grimoire-center-name">{selectedScript?.name}</div>
@@ -845,7 +847,7 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
             const seatCount = seats.length;
             const angle = (i / seatCount) * 2 * Math.PI - Math.PI / 2;
             // Dynamic radius: expand for more players
-            const radius = seatCount <= 10 ? 36 : seatCount <= 13 ? 40 : 43;
+            const radius = seatCount <= 10 ? 36 : seatCount <= 13 ? 40 : seatCount <= 15 ? 43 : 45;
             const x = 50 + radius * Math.cos(angle);
             const y = 50 + radius * Math.sin(angle);
             const ch = seat.characterId ? (charLookup[seat.characterId] || CHARACTERS[seat.characterId]) : null;

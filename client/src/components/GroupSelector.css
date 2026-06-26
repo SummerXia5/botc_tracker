@@ -265,3 +265,120 @@
   font-size: 0.72rem;
   font-weight: 600;
 }
+
+/* ---- Role Reveal Section on Landing ---- */
+.group-reveal-section {
+  padding: 0 var(--space-lg) var(--space-xl);
+  max-width: 560px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.group-reveal-card {
+  background: linear-gradient(135deg, #1e1928, #14121c);
+  border: 1px solid rgba(212, 184, 120, 0.15);
+  border-radius: 16px;
+  padding: 24px 24px 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+.group-reveal-card::before {
+  content: '';
+  position: absolute;
+  top: -40px;
+  right: -40px;
+  width: 160px;
+  height: 160px;
+  background: radial-gradient(circle, rgba(212, 184, 120, 0.08) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.group-reveal-left {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.group-reveal-icon {
+  font-size: 1.8rem;
+  flex-shrink: 0;
+  width: 46px;
+  height: 46px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(212, 184, 120, 0.08);
+  border-radius: 12px;
+  border: 1px solid rgba(212, 184, 120, 0.12);
+}
+
+.group-reveal-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #d4b878;
+  margin: 0 0 3px;
+  letter-spacing: 0.03em;
+}
+
+.group-reveal-desc {
+  font-size: 0.75rem;
+  color: #8a7a5a;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.group-reveal-steps {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+.group-reveal-step {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 10px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(100, 80, 50, 0.1);
+  font-size: 0.7rem;
+  color: #9a8a6a;
+  flex: 1;
+  min-width: 120px;
+}
+
+.group-step-num {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: rgba(212, 184, 120, 0.12);
+  color: #d4b878;
+  font-size: 0.6rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.group-reveal-btn {
+  width: 100%;
+  padding: 11px 16px;
+  border: none;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  background: linear-gradient(135deg, #d4b878, #c4a060);
+  color: #1a1510;
+  transition: all 200ms;
+  letter-spacing: 0.05em;
+}
+
+.group-reveal-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(212, 184, 120, 0.25);
+}

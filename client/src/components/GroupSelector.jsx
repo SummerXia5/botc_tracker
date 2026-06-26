@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { createGroup, joinGroup } from '../api';
 import { useToast } from './Toast';
 import LoginModal from './LoginModal';
+import RoleReveal from './RoleReveal';
 import './GroupSelector.css';
 
 export default function GroupSelector({ groups, onSelectGroup, onRefresh, myGroupIds = [], onOpenProfile, onRefreshGroups }) {
@@ -13,6 +14,7 @@ export default function GroupSelector({ groups, onSelectGroup, onRefresh, myGrou
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [saving, setSaving] = useState(false);
+  const [showRoleReveal, setShowRoleReveal] = useState(false);
 
   const handleCreate = async (e) => {
     e.preventDefault();
@@ -152,8 +154,43 @@ export default function GroupSelector({ groups, onSelectGroup, onRefresh, myGrou
           )}
         </div>
       </div>
+      {/* ---- Role Reveal Quick Access ---- */}
+      <div className="group-reveal-section">
+        <div className="group-reveal-card">
+          <div className="group-reveal-left">
+            <div className="group-reveal-icon">🔮</div>
+            <div>
+              <h3 className="group-reveal-title">角色抽取</h3>
+              <p className="group-reveal-desc">
+                说书人生成专属抽签码后，玩家通过输入代码私密查看自己的角色身份
+              </p>
+            </div>
+          </div>
+          <div className="group-reveal-steps">
+            <div className="group-reveal-step">
+              <span className="group-step-num">1</span>
+              <span>从说书人处获取4位抽签码</span>
+            </div>
+            <div className="group-reveal-step">
+              <span className="group-step-num">2</span>
+              <span>选择你的玩家名称</span>
+            </div>
+            <div className="group-reveal-step">
+              <span className="group-step-num">3</span>
+              <span>私密查看你的角色与技能</span>
+            </div>
+          </div>
+          <button
+            className="group-reveal-btn"
+            onClick={() => setShowRoleReveal(true)}
+          >
+            🎴 输入抽签码
+          </button>
+        </div>
+      </div>
 
       {showLogin && <LoginModal onClose={() => setShowLogin(false)} />}
+      {showRoleReveal && <RoleReveal onClose={() => setShowRoleReveal(false)} />}
     </div>
   );
 }
