@@ -381,7 +381,11 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
         return {
           ...normalized,
           id, // keep original ID for assignment tracking
-          icon: m.image || normalized.icon, // prefer script image if available
+          icon: m.image || normalized.icon,
+          firstNight: m.firstNight || 0,
+          otherNight: m.otherNight || 0,
+          firstNightReminder: m.firstNightReminder || '',
+          otherNightReminder: m.otherNightReminder || '',
           reminders: m.reminders || [],
           remindersGlobal: m.remindersGlobal || [],
         };
@@ -395,6 +399,10 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
         type: teamMap[m.team] || 'townsfolk',
         ability: m.ability || '',
         icon: m.image || null,
+        firstNight: m.firstNight || 0,
+        otherNight: m.otherNight || 0,
+        firstNightReminder: m.firstNightReminder || '',
+        otherNightReminder: m.otherNightReminder || '',
         reminders: m.reminders || [],
         remindersGlobal: m.remindersGlobal || [],
         _unknown: true,
@@ -456,6 +464,41 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
   const assignedCharIds = useMemo(() => {
     return new Set(seats.map(s => s.characterId).filter(Boolean));
   }, [seats]);
+
+  // Night order badges: ranked positions among in-play characters
+  const nightOrderBadges = useMemo(() => {
+    // Map charId -> char data from charLookup
+    const inPlay = seats
+      .filter(s => s.characterId)
+      .map(s => ({ charId: s.characterId, ch: charLookup[s.characterId] }))
+      .filter(x => x.ch);
+
+    // First night: sort by firstNight value (> 0 only), assign rank
+    const firstNighters = inPlay
+      .filter(x => x.ch.firstNight > 0)
+      .sort((a, b) => a.ch.firstNight - b.ch.firstNight);
+    const firstNightMap = {};
+    firstNighters.forEach((x, i) => {
+      firstNightMap[x.charId] = {
+        rank: i + 1,
+        reminder: x.ch.firstNightReminder || '',
+      };
+    });
+
+    // Other night: sort by otherNight value (> 0 only), assign rank
+    const otherNighters = inPlay
+      .filter(x => x.ch.otherNight > 0)
+      .sort((a, b) => a.ch.otherNight - b.ch.otherNight);
+    const otherNightMap = {};
+    otherNighters.forEach((x, i) => {
+      otherNightMap[x.charId] = {
+        rank: i + 1,
+        reminder: x.ch.otherNightReminder || '',
+      };
+    });
+
+    return { firstNight: firstNightMap, otherNight: otherNightMap };
+  }, [seats, charLookup]);
 
   // ----------------------------------------------------------------
   //  Night order (for the night-order panel)
@@ -655,14 +698,27 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
   // ----------------------------------------------------------------
   //  Role assignment
   // ----------------------------------------------------------------
-  const handleSeatClick = (index) => {
+  const handleSeatClick = (index, event) => {
     // If in setup phase and no character yet, open role panel
     if (phase === 'setup' || !seats[index].characterId) {
       setAssigningSeatIndex(index);
       setShowRolePanel(true);
       return;
     }
-    // If alive → show death reason picker; if dead → revive directly
+
+    // During game: detect top/bottom half click on the seat token
+    const rect = event.currentTarget.getBoundingClientRect();
+    const clickY = event.clientY - rect.top;
+    const isBottomHalf = clickY > rect.height * 0.5;
+
+    if (isBottomHalf) {
+      // Bottom half → change character
+      setAssigningSeatIndex(index);
+      setShowRolePanel(true);
+      return;
+    }
+
+    // Top half → death/revive
     if (seats[index].alive) {
       setDeathSeatIndex(index);
       setShowDeathPicker(true);
@@ -701,6 +757,8 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
   };
   const handleAssignRole = (charId) => {
     if (assigningSeatIndex === null) return;
+    const oldCharId = seats[assigningSeatIndex]?.characterId;
+    const oldCh = oldCharId ? (charLookup[oldCharId] || CHARACTERS[oldCharId]) : null;
     setSeats(prev => prev.map((s, i) => {
       if (i !== assigningSeatIndex) return s;
       return { ...s, characterId: charId };
@@ -708,7 +766,11 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
     const ch = charLookup[charId] || CHARACTERS[charId];
     const seatPlayer = seats[assigningSeatIndex]?.player;
     if (ch && seatPlayer) {
-      addLog(`${seatPlayer.name} → ${ch.name}`);
+      if (oldCh && phase !== 'setup') {
+        addLog(`${seatPlayer.name} 角色变更: ${oldCh.name} → ${ch.name}`);
+      } else {
+        addLog(`${seatPlayer.name} → ${ch.name}`);
+      }
     }
     setShowRolePanel(false);
     setAssigningSeatIndex(null);
@@ -1044,7 +1106,7 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                   setCircleDragIdx(null);
                   setCircleDropIdx(null);
                 }}
-                onClick={() => handleSeatClick(i)}
+                onClick={(e) => handleSeatClick(i, e)}
               >
                 {/* Dead shroud overlay */}
                 {!seat.alive && (
@@ -1074,6 +1136,23 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                       </span>
                     )}
                     <span className="seat-char-name">{ch.name}</span>
+                    {/* Night order badges */}
+                    {nightOrderBadges.firstNight[seat.characterId] && (
+                      <div
+                        className="night-order-badge night-order-first"
+                        title={`首夜 #${nightOrderBadges.firstNight[seat.characterId].rank}: ${nightOrderBadges.firstNight[seat.characterId].reminder || '无提示'}`}
+                      >
+                        {nightOrderBadges.firstNight[seat.characterId].rank}
+                      </div>
+                    )}
+                    {nightOrderBadges.otherNight[seat.characterId] && (
+                      <div
+                        className="night-order-badge night-order-other"
+                        title={`其他夜 #${nightOrderBadges.otherNight[seat.characterId].rank}: ${nightOrderBadges.otherNight[seat.characterId].reminder || '无提示'}`}
+                      >
+                        {nightOrderBadges.otherNight[seat.characterId].rank}
+                      </div>
+                    )}
                   </>
                 ) : (
                   <span className="seat-empty">?</span>

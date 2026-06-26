@@ -36,6 +36,8 @@ function parseScriptJSON(jsonStr) {
           if (item.edition) meta.edition = item.edition;
           if (item.firstNight) meta.firstNight = item.firstNight;
           if (item.otherNight) meta.otherNight = item.otherNight;
+          if (item.firstNightReminder) meta.firstNightReminder = item.firstNightReminder;
+          if (item.otherNightReminder) meta.otherNightReminder = item.otherNightReminder;
           if (Array.isArray(item.reminders) && item.reminders.length) meta.reminders = item.reminders;
           if (Array.isArray(item.remindersGlobal) && item.remindersGlobal.length) meta.remindersGlobal = item.remindersGlobal;
           if (Object.keys(meta).length > 0) {
@@ -57,6 +59,10 @@ function parseScriptJSON(jsonStr) {
           if (c.team) meta.team = c.team;
           if (c.image) meta.image = c.image;
           if (c.ability) meta.ability = c.ability;
+          if (c.firstNight) meta.firstNight = c.firstNight;
+          if (c.otherNight) meta.otherNight = c.otherNight;
+          if (c.firstNightReminder) meta.firstNightReminder = c.firstNightReminder;
+          if (c.otherNightReminder) meta.otherNightReminder = c.otherNightReminder;
           if (Array.isArray(c.reminders) && c.reminders.length) meta.reminders = c.reminders;
           if (Array.isArray(c.remindersGlobal) && c.remindersGlobal.length) meta.remindersGlobal = c.remindersGlobal;
           if (Object.keys(meta).length > 0) {
