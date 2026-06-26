@@ -481,23 +481,115 @@
 }
 
 /* ============================================
-   Phase Bar (top)
+   Compact Top-right Bar + Dropdown
    ============================================ */
-.grimoire-phase-bar {
+.grimoire-topbar {
   position: fixed;
   top: 0;
-  left: 0;
   right: 0;
-  height: 48px;
-  background: rgba(20, 22, 28, 0.95);
+  z-index: 250;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+}
+
+.topbar-menu-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(15, 12, 8, 0.7);
+  border: 1px solid rgba(180, 150, 100, 0.2);
+  color: #c4b08a;
+  font-size: 1rem;
+  cursor: pointer;
   backdrop-filter: blur(8px);
-  border-bottom: 1px solid rgba(100, 80, 50, 0.3);
+  -webkit-backdrop-filter: blur(8px);
+  transition: all 200ms ease;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 16px;
-  z-index: 210;
-  flex-shrink: 0;
+}
+
+.topbar-menu-btn:hover {
+  background: rgba(60, 50, 35, 0.85);
+  border-color: rgba(180, 150, 100, 0.4);
+  color: #e8d4a8;
+}
+
+.grimoire-close-ingame {
+  position: static;
+}
+
+.topbar-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 4px;
+  background: rgba(15, 12, 8, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(180, 150, 100, 0.2);
+  border-radius: 10px;
+  padding: 6px;
+  min-width: 190px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  animation: dropdownIn 150ms ease-out;
+}
+
+@keyframes dropdownIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.dropdown-item {
+  display: block;
+  width: 100%;
+  padding: 8px 14px;
+  text-align: left;
+  border: none;
+  background: none;
+  color: #c4b08a;
+  font-size: 0.82rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 150ms ease;
+}
+
+.dropdown-item:hover {
+  background: rgba(100, 80, 50, 0.3);
+}
+
+.dropdown-item:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.dropdown-item.dropdown-primary {
+  color: #e8c864;
+  font-weight: 600;
+}
+
+.dropdown-item.dropdown-danger {
+  color: #c07070;
+}
+
+.dropdown-item.dropdown-danger:hover {
+  color: #e05050;
+  background: rgba(180, 40, 40, 0.15);
+}
+
+.dropdown-hint {
+  padding: 6px 14px;
+  font-size: 0.75rem;
+  color: #8a7a5a;
+  font-style: italic;
+}
+
+.dropdown-divider {
+  height: 1px;
+  background: rgba(180, 150, 100, 0.15);
+  margin: 4px 8px;
 }
 
 .grimoire-phase-pill {
@@ -628,10 +720,10 @@
    ============================================ */
 .grimoire-circle-container {
   position: fixed;
-  top: 48px;
+  top: 0;
   left: 0;
   right: 0;
-  bottom: 70px;
+  bottom: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1131,103 +1223,7 @@
   color: #fff;
 }
 
-/* ============================================
-   Bottom Action Bar
-   ============================================ */
-.grimoire-action-bar {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  min-height: 64px;
-  background: rgba(15, 17, 22, 0.98);
-  backdrop-filter: blur(12px);
-  border-top: 2px solid rgba(120, 100, 60, 0.4);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  padding: 10px 16px;
-  z-index: 250;
-  flex-shrink: 0;
-  flex-wrap: wrap;
-}
-
-.grimoire-action-btn,
-.action-bar-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  background: rgba(60, 50, 35, 0.8);
-  border: 1px solid rgba(120, 100, 60, 0.4);
-  color: #c4b08a;
-  padding: 10px 18px;
-  border-radius: 8px;
-  font-size: 0.85rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 200ms ease;
-  white-space: nowrap;
-}
-
-.grimoire-action-btn:hover,
-.action-bar-btn:hover {
-  background: rgba(80, 65, 40, 0.9);
-  border-color: rgba(180, 150, 80, 0.6);
-  color: #e8d4a8;
-}
-
-.action-bar-btn.action-primary {
-  background: linear-gradient(135deg, rgba(200, 60, 40, 0.9), rgba(160, 40, 25, 0.9));
-  border: 2px solid rgba(255, 100, 60, 0.6);
-  color: #fff;
-  font-weight: 700;
-  font-size: 1rem;
-  padding: 12px 28px;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
-  box-shadow: 0 0 16px rgba(200, 60, 40, 0.4), 0 2px 8px rgba(0, 0, 0, 0.3);
-  animation: pulseGlow 2s infinite;
-}
-
-@keyframes pulseGlow {
-  0%, 100% { box-shadow: 0 0 16px rgba(200, 60, 40, 0.4), 0 2px 8px rgba(0, 0, 0, 0.3); }
-  50% { box-shadow: 0 0 24px rgba(200, 60, 40, 0.7), 0 2px 12px rgba(0, 0, 0, 0.4); }
-}
-
-.action-bar-btn.action-primary:hover {
-  background: linear-gradient(135deg, rgba(220, 70, 45, 0.95), rgba(180, 50, 30, 0.95));
-  border-color: rgba(255, 120, 70, 0.8);
-  box-shadow: 0 0 28px rgba(220, 70, 45, 0.6), 0 4px 12px rgba(0, 0, 0, 0.4);
-  transform: scale(1.05);
-}
-
-.action-bar-btn.action-active {
-  background: rgba(59, 100, 160, 0.3);
-  border-color: rgba(59, 122, 181, 0.5);
-  color: #8ab4d8;
-}
-
-.action-bar-btn.action-end {
-  color: #6a5a3a;
-}
-
-.action-bar-btn.action-end:hover {
-  color: #b72a2a;
-  border-color: rgba(183, 42, 42, 0.4);
-}
-
-.action-bar-hint {
-  font-size: 0.78rem;
-  color: #8a7a5a;
-  font-style: italic;
-}
-
-.action-bar-divider {
-  width: 1px;
-  height: 20px;
-  background: rgba(100, 80, 50, 0.3);
-  flex-shrink: 0;
-}
+/* (Bottom Action Bar removed — moved to topbar dropdown) */
 
 /* ============================================
    Role Assignment Panel (slide-up)
@@ -2402,7 +2398,7 @@
    ============================================ */
 .grimoire-log {
   position: fixed;
-  bottom: 70px;
+  bottom: 16px;
   right: 16px;
   z-index: 210;
   max-width: 280px;
@@ -2516,21 +2512,7 @@
     bottom: -36px;
   }
 
-  .grimoire-action-bar {
-    flex-wrap: wrap;
-    gap: 6px;
-    height: auto;
-    padding: 8px 12px;
-  }
 
-  .action-bar-btn {
-    font-size: 0.72rem;
-    padding: 6px 12px;
-  }
-
-  .action-bar-divider {
-    display: none;
-  }
 
   .grimoire-role-panel {
     max-height: 75vh;
@@ -2548,7 +2530,7 @@
   .grimoire-log {
     right: 8px;
     max-width: 240px;
-    bottom: 80px;
+    bottom: 16px;
   }
 
   .grimoire-player-grid {
