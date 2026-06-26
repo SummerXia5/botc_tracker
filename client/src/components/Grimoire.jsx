@@ -569,45 +569,83 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
   };
 
   const [showDistribution, setShowDistribution] = useState(false);
-  const [selectedCharPool, setSelectedCharPool] = useState(new Set());
-
+  // Map<charId, count> — supports duplicate characters
+  const [selectedCharPool, setSelectedCharPool] = useState(new Map());
+  const [allowDuplicates, setAllowDuplicates] = useState(false);
 
 
   // Deselect all
   const deselectAllChars = useCallback(() => {
-    setSelectedCharPool(new Set());
+    setSelectedCharPool(new Map());
   }, []);
 
   const toggleCharInPool = (charId) => {
     setSelectedCharPool(prev => {
-      const next = new Set(prev);
+      const next = new Map(prev);
       if (next.has(charId)) {
         next.delete(charId);
       } else {
         // Enforce per-type limit (fabled has no limit)
         const ch = charLookup[charId];
         if (ch && ch.type !== 'fabled' && currentDistribution[ch.type] !== undefined) {
-          const currentCount = [...next].filter(id => {
+          let currentCount = 0;
+          for (const [id, cnt] of next) {
             const c = charLookup[id];
-            return c && c.type === ch.type;
-          }).length;
+            if (c && c.type === ch.type) currentCount += cnt;
+          }
           if (currentCount >= currentDistribution[ch.type]) {
-            return prev; // Already at limit for this type
+            return prev;
           }
         }
-        next.add(charId);
+        next.set(charId, 1);
       }
       return next;
     });
   };
 
+  const adjustCharCount = (charId, delta) => {
+    setSelectedCharPool(prev => {
+      const next = new Map(prev);
+      const current = next.get(charId) || 0;
+      const newCount = current + delta;
+      if (newCount <= 0) {
+        next.delete(charId);
+      } else {
+        // Check type limit
+        const ch = charLookup[charId];
+        if (ch && ch.type !== 'fabled' && currentDistribution[ch.type] !== undefined && delta > 0) {
+          let typeTotal = 0;
+          for (const [id, cnt] of next) {
+            const c = charLookup[id];
+            if (c && c.type === ch.type) typeTotal += cnt;
+          }
+          // typeTotal already includes the old count for this char
+          if (typeTotal - current + newCount > currentDistribution[ch.type]) {
+            return prev;
+          }
+        }
+        next.set(charId, newCount);
+      }
+      return next;
+    });
+  };
+
+  // Helper: expand pool map to array of IDs (with duplicates)
+  const expandPool = useCallback((pool) => {
+    const result = [];
+    for (const [id, count] of pool) {
+      for (let i = 0; i < count; i++) result.push(id);
+    }
+    return result;
+  }, []);
+
   // Count SELECTED characters per type (characters user picked to be "in play")
   const selectedCountByType = useMemo(() => {
     const counts = { townsfolk: 0, outsider: 0, minion: 0, demon: 0 };
-    for (const id of selectedCharPool) {
+    for (const [id, cnt] of selectedCharPool) {
       const ch = charLookup[id];
       if (ch && counts[ch.type] !== undefined) {
-        counts[ch.type]++;
+        counts[ch.type] += cnt;
       }
     }
     return counts;
@@ -618,35 +656,16 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
     return ROLE_DISTRIBUTION[count] || ROLE_DISTRIBUTION[Math.min(count, 15)] || { townsfolk: 3, outsider: 0, minion: 1, demon: 1 };
   }, [seats.length]);
 
-  // Custom overrides (user can +/- each type)
   const [distOverride, setDistOverride] = useState(null);
+  const currentDistribution = distOverride || baseDistribution;
 
-  // Effective distribution = base + overrides
-  const currentDistribution = useMemo(() => {
-    if (!distOverride) return baseDistribution;
-    return { ...baseDistribution, ...distOverride };
-  }, [baseDistribution, distOverride]);
-
-  // Reset overrides when seat count changes
   const adjustDist = (type, delta) => {
     setDistOverride(prev => {
-      const current = { ...baseDistribution, ...prev };
-      const newVal = Math.max(0, (current[type] || 0) + delta);
-      // Auto-adjust townsfolk to keep total = seats.length
-      const nonTownsfolk = (type === 'outsider' ? newVal : current.outsider) +
-                           (type === 'minion' ? newVal : current.minion) +
-                           (type === 'demon' ? newVal : current.demon);
-      const autoTownsfolk = type === 'townsfolk' ? newVal : Math.max(0, seats.length - nonTownsfolk);
-      return {
-        townsfolk: autoTownsfolk,
-        outsider: type === 'outsider' ? newVal : current.outsider,
-        minion: type === 'minion' ? newVal : current.minion,
-        demon: type === 'demon' ? newVal : current.demon,
-      };
+      const base = prev || { ...baseDistribution };
+      return { ...base, [type]: Math.max(0, (base[type] || 0) + delta) };
     });
   };
 
-  // Shuffle helper
   const shuffle = (arr) => {
     const a = [...arr];
     for (let i = a.length - 1; i > 0; i--) {
@@ -660,24 +679,27 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
   const handleAutoPickAndAssign = () => {
     if (!selectedScript || seats.length < 5) return;
     const dist = currentDistribution;
-    const picked = new Set();
+    const picked = new Map();
 
     for (const type of ['townsfolk', 'outsider', 'minion', 'demon']) {
       const available = shuffle(charactersByType[type] || []);
       const needed = dist[type] || 0;
       for (let i = 0; i < Math.min(needed, available.length); i++) {
-        picked.add(available[i].id);
+        picked.set(available[i].id, 1);
       }
     }
 
     setSelectedCharPool(picked);
-    addLog(`随机配版：已选 ${picked.size} 个角色`);
+    let total = 0;
+    for (const cnt of picked.values()) total += cnt;
+    addLog(`随机配版：已选 ${total} 个角色`);
   };
 
   // Mode 2: "随机发放" — take the manually selected characters and randomly assign to seats
   const handleDistributeSelected = () => {
     // Only non-fabled characters get assigned to seats
-    const nonFabled = [...selectedCharPool].filter(id => {
+    const allIds = expandPool(selectedCharPool);
+    const nonFabled = allIds.filter(id => {
       const ch = charLookup[id];
       return ch && ch.type !== 'fabled';
     });
@@ -1527,18 +1549,19 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                 {['townsfolk', 'outsider', 'minion', 'demon', 'traveller', ...(charactersByType.fabled?.length ? ['fabled'] : [])].map(type => (
                   (charactersByType[type] || []).map(ch => {
                     const isSelected = selectedCharPool.has(ch.id);
+                    const charCount = selectedCharPool.get(ch.id) || 0;
                     const isAssigned = assignedCharIds.has(ch.id);
                     return (
                       <div
                         key={ch.id}
                         className={`dist-token ${isSelected ? 'selected' : 'deselected'} ${isAssigned ? 'assigned' : ''}`}
                         style={{
+                          cursor: phase === 'setup' ? 'pointer' : 'default',
                           borderColor: isSelected ? TYPE_COLORS[ch.type] : 'rgba(100,80,50,0.2)',
                           boxShadow: isSelected ? `0 0 8px ${TYPE_COLORS[ch.type]}50` : 'none',
                         }}
                         title={`${ch.name} (${ch.nameEn}) — ${TYPE_LABELS[ch.type]}\n${ch.ability}`}
                         onClick={() => { if (phase === 'setup') toggleCharInPool(ch.id); }}
-                        style={{ cursor: phase === 'setup' ? 'pointer' : 'default' }}
                       >
                         {ch.icon ? (
                           <img className="dist-token-img" src={ch.icon} alt={ch.name} style={{ opacity: isSelected ? 1 : 0.3 }} />
@@ -1549,6 +1572,14 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                         )}
                         <span className="dist-token-name" style={{ opacity: isSelected ? 1 : 0.4 }}>{ch.name}</span>
                         {isAssigned && <div className="dist-token-check">✓</div>}
+                        {/* +/- buttons for duplicates */}
+                        {phase === 'setup' && isSelected && allowDuplicates && (
+                          <div className="dist-token-controls" onClick={e => e.stopPropagation()}>
+                            <button className="dist-pm-btn" onClick={() => adjustCharCount(ch.id, -1)}>−</button>
+                            {charCount > 1 && <span className="dist-count-badge">{charCount}</span>}
+                            <button className="dist-pm-btn" onClick={() => adjustCharCount(ch.id, 1)}>+</button>
+                          </div>
+                        )}
                       </div>
                     );
                   })
@@ -1558,11 +1589,17 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
 
             {phase === 'setup' && (
             <div className="distribution-actions">
+              {/* Allow duplicates toggle */}
+              <label className="dist-dup-toggle" style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
+                <input type="checkbox" checked={allowDuplicates} onChange={e => setAllowDuplicates(e.target.checked)} />
+                <span style={{ fontSize: '0.78rem', color: '#d4b878' }}>允许重复角色</span>
+              </label>
               <button className="action-bar-btn action-primary" onClick={handleAutoPickAndAssign}>
                 🎲 随机配版
               </button>
               {(() => {
-                const nonFabledCount = [...selectedCharPool].filter(id => {
+                const allIds = expandPool(selectedCharPool);
+                const nonFabledCount = allIds.filter(id => {
                   const ch = charLookup[id];
                   return ch && ch.type !== 'fabled';
                 }).length;

@@ -2555,12 +2555,52 @@
   text-align: center;
 }
 
+/* +/- controls for duplicate characters */
+.dist-token-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  margin-top: 2px;
+}
+
+.dist-pm-btn {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1px solid rgba(100, 80, 50, 0.4);
+  background: rgba(30, 25, 20, 0.6);
+  color: #c4b090;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 150ms ease;
+}
+.dist-pm-btn:hover {
+  background: rgba(60, 50, 35, 0.8);
+  color: #e8d4a8;
+  border-color: rgba(180, 150, 90, 0.5);
+}
+
+.dist-count-badge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #d4b878;
+  min-width: 14px;
+  text-align: center;
+}
+
 .distribution-actions {
   display: flex;
   gap: 10px;
   padding: 12px 20px;
   border-top: 1px solid rgba(100, 80, 50, 0.3);
   justify-content: center;
+  flex-wrap: wrap;
+  align-items: center;
 }
 
 @media (max-width: 520px) {
