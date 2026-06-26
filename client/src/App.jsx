@@ -14,6 +14,7 @@ import AdminPanel from './components/AdminPanel';
 import Grimoire from './components/Grimoire';
 import MyProfile from './components/MyProfile';
 import ClaimPlayerModal from './components/ClaimPlayerModal';
+import RoleReveal from './components/RoleReveal';
 import { useToast } from './components/Toast';
 import './App.css';
 
@@ -39,6 +40,7 @@ export default function App() {
   const [showGrimoire, setShowGrimoire] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [showClaimPlayer, setShowClaimPlayer] = useState(false);
+  const [showRoleReveal, setShowRoleReveal] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
   const [prefillData, setPrefillData] = useState(null);
   const [myGroupIds, setMyGroupIds] = useState([]);
@@ -251,6 +253,12 @@ export default function App() {
       <footer className="app-footer">
         <p>血染钟楼 · {selectedGroup.name}</p>
         <p className="footer-sub">Made for Blood on the Clocktower fans</p>
+        <button
+          className="reveal-entry-btn"
+          onClick={() => setShowRoleReveal(true)}
+        >
+          🔮 抽取角色
+        </button>
       </footer>
 
       {/* Modals */}
@@ -300,6 +308,10 @@ export default function App() {
           onClose={() => setShowClaimPlayer(false)}
           onClaimed={() => { handleRefresh(); setShowClaimPlayer(false); }}
         />
+      )}
+
+      {showRoleReveal && (
+        <RoleReveal onClose={() => setShowRoleReveal(false)} />
       )}
     </div>
   );

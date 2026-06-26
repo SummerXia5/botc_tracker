@@ -35,6 +35,7 @@ import playerRoutes from './routes/players.js';
 import gameRoutes from './routes/games.js';
 import groupRoutes from './routes/groups.js';
 import scriptRoutes from './routes/scripts.js';
+import revealRoutes from './routes/reveal.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -68,6 +69,7 @@ app.use('/api/groups', groupRoutes);
 app.use('/api/players', playerRoutes);
 app.use('/api/games', gameRoutes);
 app.use('/api/scripts', scriptRoutes);
+app.use('/api/reveal', revealRoutes);
 
 // Health-check endpoint
 app.get('/api/health', (_req, res) => {

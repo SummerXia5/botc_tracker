@@ -95,6 +95,28 @@
   letter-spacing: 0.03em;
 }
 
+.reveal-entry-btn {
+  display: inline-block;
+  margin-top: 12px;
+  padding: 10px 28px;
+  border: 1px solid rgba(212, 184, 120, 0.3);
+  border-radius: 999px;
+  background: rgba(212, 184, 120, 0.08);
+  color: #d4b878;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 200ms;
+  letter-spacing: 0.05em;
+}
+
+.reveal-entry-btn:hover {
+  background: rgba(212, 184, 120, 0.2);
+  border-color: rgba(212, 184, 120, 0.5);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(212, 184, 120, 0.15);
+}
+
 /* ---- Mobile ---- */
 @media (max-width: 768px) {
   .app-main {

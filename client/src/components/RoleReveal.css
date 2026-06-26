@@ -1,0 +1,297 @@
+/* ============================================
+   RoleReveal — Player role claim page
+   ============================================ */
+
+.reveal-page {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  background: #0f1116;
+  background-image:
+    radial-gradient(ellipse at 50% 30%, rgba(30, 20, 60, 0.6) 0%, transparent 70%),
+    radial-gradient(ellipse at center, rgba(15, 17, 22, 0.95), rgba(8, 9, 12, 1));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  padding: 16px;
+}
+
+.reveal-card {
+  width: 100%;
+  max-width: 420px;
+  background: rgba(30, 28, 35, 0.9);
+  border: 1px solid rgba(100, 80, 50, 0.2);
+  border-radius: 20px;
+  padding: 32px 28px;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(10px);
+  animation: revealCardIn 400ms ease;
+}
+
+@keyframes revealCardIn {
+  from { opacity: 0; transform: translateY(20px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.reveal-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #d4b878;
+  margin: 0 0 8px;
+  letter-spacing: 0.05em;
+}
+
+.reveal-subtitle {
+  font-size: 0.85rem;
+  color: #8a7a5a;
+  margin: 0 0 24px;
+}
+
+.reveal-script {
+  font-size: 0.8rem;
+  color: #8a7a5a;
+  margin-bottom: 16px;
+  padding: 6px 16px;
+  border-radius: 999px;
+  background: rgba(100, 80, 50, 0.15);
+  display: inline-block;
+}
+
+.reveal-error {
+  font-size: 0.8rem;
+  color: #e06050;
+  background: rgba(224, 96, 80, 0.1);
+  border: 1px solid rgba(224, 96, 80, 0.2);
+  border-radius: 8px;
+  padding: 8px 14px;
+  margin-bottom: 16px;
+}
+
+/* ---- Code input ---- */
+.reveal-code-input {
+  margin-bottom: 20px;
+}
+
+.reveal-code-field {
+  width: 200px;
+  padding: 16px 20px;
+  font-size: 2rem;
+  font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+  font-weight: 700;
+  letter-spacing: 0.4em;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.05);
+  border: 2px solid rgba(212, 184, 120, 0.3);
+  border-radius: 12px;
+  color: #d4b878;
+  outline: none;
+  transition: border-color 200ms;
+}
+
+.reveal-code-field::placeholder {
+  color: rgba(212, 184, 120, 0.2);
+  letter-spacing: 0.4em;
+}
+
+.reveal-code-field:focus {
+  border-color: #d4b878;
+  box-shadow: 0 0 20px rgba(212, 184, 120, 0.2);
+}
+
+/* ---- Buttons ---- */
+.reveal-btn {
+  display: block;
+  width: 100%;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  background: linear-gradient(135deg, #d4b878, #c4a060);
+  color: #1a1510;
+  transition: all 200ms;
+  margin-top: 8px;
+}
+
+.reveal-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(212, 184, 120, 0.3);
+}
+
+.reveal-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.reveal-btn-back {
+  background: transparent;
+  border: 1px solid rgba(100, 80, 50, 0.3);
+  color: #8a7a5a;
+  font-weight: 500;
+}
+
+.reveal-btn-back:hover {
+  background: rgba(100, 80, 50, 0.1);
+}
+
+/* ---- Player list ---- */
+.reveal-player-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 400px;
+  overflow-y: auto;
+  margin-bottom: 16px;
+  padding-right: 4px;
+}
+
+.reveal-player-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(100, 80, 50, 0.2);
+  background: rgba(255, 255, 255, 0.04);
+  color: #d4c0a8;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 150ms;
+  text-align: left;
+}
+
+.reveal-player-btn:hover:not(:disabled) {
+  background: rgba(212, 184, 120, 0.1);
+  border-color: rgba(212, 184, 120, 0.3);
+  transform: translateX(4px);
+}
+
+.reveal-player-btn.claimed {
+  opacity: 0.4;
+  cursor: not-allowed;
+  background: rgba(100, 80, 50, 0.05);
+}
+
+.reveal-seat-num {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(212, 184, 120, 0.15);
+  color: #d4b878;
+  font-size: 0.75rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.reveal-player-label {
+  flex: 1;
+  font-weight: 500;
+}
+
+.reveal-claimed-tag {
+  font-size: 0.65rem;
+  color: #888;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+/* ---- Result card ---- */
+.reveal-result {
+  animation: revealResultIn 600ms ease;
+}
+
+@keyframes revealResultIn {
+  from { opacity: 0; transform: scale(0.8); }
+  50% { transform: scale(1.03); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.reveal-result-icon {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  border: 3px solid #d4b878;
+  margin: 0 auto 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(20, 18, 25, 0.8);
+  animation: revealGlow 2s ease-in-out infinite alternate;
+}
+
+@keyframes revealGlow {
+  from { box-shadow: 0 0 20px rgba(212, 184, 120, 0.3); }
+  to { box-shadow: 0 0 40px rgba(212, 184, 120, 0.6); }
+}
+
+.reveal-char-img {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.reveal-char-letter {
+  font-size: 3rem;
+  font-weight: 700;
+  color: #d4b878;
+}
+
+.reveal-player-name {
+  font-size: 0.85rem;
+  color: #8a7a5a;
+  margin-bottom: 8px;
+}
+
+.reveal-char-name {
+  font-size: 1.6rem;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.reveal-char-en {
+  font-size: 0.8rem;
+  color: #6a5a3a;
+  margin-bottom: 12px;
+  font-style: italic;
+}
+
+.reveal-char-type {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 3px 14px;
+  border-radius: 999px;
+  border: 1px solid;
+  margin-bottom: 16px;
+  letter-spacing: 0.1em;
+}
+
+.reveal-char-ability {
+  font-size: 0.8rem;
+  color: #a09080;
+  line-height: 1.5;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 10px;
+  margin-bottom: 16px;
+  text-align: left;
+}
+
+.reveal-warning {
+  font-size: 0.75rem;
+  color: #e0a050;
+  margin-bottom: 12px;
+}
+
+/* Scrollbar */
+.reveal-player-list::-webkit-scrollbar { width: 4px; }
+.reveal-player-list::-webkit-scrollbar-track { background: transparent; }
+.reveal-player-list::-webkit-scrollbar-thumb { background: rgba(100, 80, 50, 0.3); border-radius: 2px; }

@@ -193,3 +193,22 @@ export async function updateProfile(data) {
     body: JSON.stringify(data),
   });
 }
+
+// ---- Role Reveal ----
+export async function createRevealSession(data) {
+  return request('/api/reveal', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function getRevealSession(code) {
+  return request(`/api/reveal/${code}`);
+}
+
+export async function claimRevealSeat(code, seatIndex) {
+  return request(`/api/reveal/${code}/claim`, {
+    method: 'POST',
+    body: JSON.stringify({ seatIndex }),
+  });
+}

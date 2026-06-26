@@ -1,7 +1,7 @@
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import { CHARACTERS, TYPE_COLORS, TYPE_LABELS, SCRIPTS, TRAVELLERS } from '../data/characters';
 import PlayerSelector from './PlayerSelector';
-import { createPlayer } from '../api';
+import { createPlayer, createRevealSession } from '../api';
 import './Grimoire.css';
 
 const REMINDER_TOKENS = [
@@ -77,6 +77,11 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
 
   // ---- Privacy mask ----
   const [showMask, setShowMask] = useState(false);
+
+  // ---- Role reveal code ----
+  const [revealCode, setRevealCode] = useState(null);
+  const [showRevealCode, setShowRevealCode] = useState(false);
+  const [revealLoading, setRevealLoading] = useState(false);
 
   // ---- Day timer (供料计时) ----
   const [timerDuration, setTimerDuration] = useState(8 * 60); // seconds, default 8 min
@@ -953,6 +958,36 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
             开始游戏（夜晚）
           </button>
         )}
+        {phase === 'setup' && allAssigned && (
+          <button
+            className={`action-bar-btn ${showRevealCode ? 'action-active' : ''}`}
+            disabled={revealLoading}
+            onClick={async () => {
+              if (revealCode) {
+                setShowRevealCode(!showRevealCode);
+                return;
+              }
+              setRevealLoading(true);
+              try {
+                const result = await createRevealSession({
+                  seats: seats.map(s => ({
+                    player: { id: s.player.id, name: s.player.name },
+                    characterId: s.characterId,
+                  })),
+                  scriptName: selectedScript?.name || '自定义剧本',
+                });
+                setRevealCode(result.code);
+                setShowRevealCode(true);
+                addLog(`生成抽签码: ${result.code}`);
+              } catch (e) {
+                console.error('Failed to create reveal session:', e);
+              }
+              setRevealLoading(false);
+            }}
+          >
+            🎫 {revealCode ? '查看抽签码' : '生成抽签码'}
+          </button>
+        )}
         {phase === 'setup' && (
           <>
             <button
@@ -1501,6 +1536,44 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                 </button>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* ---- Reveal Code Display ---- */}
+      {showRevealCode && revealCode && (
+        <div className="grimoire-panel-overlay" onClick={() => setShowRevealCode(false)}>
+          <div className="reveal-code-display" onClick={e => e.stopPropagation()}>
+            <h3 style={{ color: '#d4b878', margin: '0 0 8px' }}>🎫 角色抽签码</h3>
+            <p style={{ fontSize: '0.8rem', color: '#8a7a5a', margin: '0 0 20px' }}>
+              将此代码分享给玩家，玩家访问同一网站后点击"🔮 抽取角色"
+            </p>
+            <div style={{
+              fontSize: '3rem', fontWeight: 700, letterSpacing: '0.3em',
+              fontFamily: "'SF Mono', 'Fira Code', monospace",
+              color: '#d4b878', padding: '16px 32px', borderRadius: 16,
+              background: 'rgba(212,184,120,0.1)', border: '2px solid rgba(212,184,120,0.3)',
+              marginBottom: 20, textAlign: 'center',
+              textShadow: '0 2px 12px rgba(212,184,120,0.3)',
+            }}>
+              {revealCode}
+            </div>
+            <button
+              className="action-bar-btn"
+              style={{ margin: '0 auto', display: 'block' }}
+              onClick={() => {
+                navigator.clipboard?.writeText(revealCode);
+              }}
+            >
+              📋 复制代码
+            </button>
+            <button
+              className="action-bar-btn"
+              style={{ margin: '8px auto 0', display: 'block', fontSize: '0.75rem' }}
+              onClick={() => setShowRevealCode(false)}
+            >
+              关闭
+            </button>
           </div>
         </div>
       )}
