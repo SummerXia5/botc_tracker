@@ -940,7 +940,23 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                   <span className="seat-player-name">{seat.player.name}</span>
                 </div>
 
-                {/* Vote marker */}
+                {/* Ghost vote token (dead players only) */}
+                {!seat.alive && phase !== 'setup' && (
+                  <div
+                    className={`ghost-vote-token ${seat.ghostVoteUsed ? 'ghost-vote-used' : ''}`}
+                    onClick={e => {
+                      e.stopPropagation();
+                      const newUsed = !seat.ghostVoteUsed;
+                      addLog(`${seat.player.name} ${newUsed ? '使用' : '恢复'}遗言票`);
+                      setSeats(prev => prev.map((s, si) =>
+                        si === i ? { ...s, ghostVoteUsed: newUsed } : s
+                      ));
+                    }}
+                    title={seat.ghostVoteUsed ? '遗言票已使用' : '点击使用遗言票'}
+                  >
+                    {seat.ghostVoteUsed ? '🚫' : '🗳️'}
+                  </div>
+                )}
 
 
                 {/* Hover "+" button to add reminders (only after game starts) */}
