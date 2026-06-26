@@ -1388,12 +1388,12 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                       </span>
                     )}
                     <span className="seat-char-name">{ch.name}</span>
-                    {/* Perceived identity indicator */}
+                    {/* Perceived identity — mini token overlay */}
                     {seat.perceivedCharId && (() => {
                       const pch = charLookup[seat.perceivedCharId] || CHARACTERS[seat.perceivedCharId];
                       return pch ? (
                         <div
-                          className="perceived-badge"
+                          className="perceived-token"
                           title={`玩家认为自己是: ${pch.name}`}
                           onClick={(e) => {
                             e.stopPropagation();
@@ -1402,11 +1402,11 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                           }}
                         >
                           {pch.icon ? (
-                            <img src={pch.icon} alt={pch.name} className="perceived-badge-icon" />
+                            <img src={pch.icon} alt={pch.name} className="perceived-token-icon" />
                           ) : (
-                            <span>{pch.name?.charAt(0)}</span>
+                            <span className="perceived-token-letter" style={{ color: TYPE_COLORS[pch.type] }}>{pch.name?.charAt(0)}</span>
                           )}
-                          <span className="perceived-badge-label">{pch.name}</span>
+                          <span className="perceived-token-name">{pch.name}</span>
                         </div>
                       ) : null;
                     })()}
