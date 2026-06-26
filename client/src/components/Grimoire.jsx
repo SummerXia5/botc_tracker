@@ -6,18 +6,48 @@ import { createPlayer, createRevealSession } from '../api';
 import './Grimoire.css';
 
 const REMINDER_TOKENS = [
+  // ---- 状态类 ----
   { id: 'dead', label: '死亡', icon: '💀', color: '#d44' },
-  { id: 'nodeath', label: '不会死亡', icon: '🛡️', color: '#4a9' },
-  { id: 'drunk', label: '醉酒', icon: '🍺', color: '#c7a' },
+  { id: 'alive_protected', label: '被保护', icon: '🛡️', color: '#4a9' },
+  { id: 'drunk', label: '是酒鬼', icon: '🍺', color: '#c7a' },
   { id: 'poisoned', label: '中毒', icon: '☠️', color: '#9a4' },
-  { id: 'noability', label: '失去能力', icon: '🔇', color: '#888' },
-  { id: 'chosen', label: '被选择', icon: '👆', color: '#48c' },
   { id: 'mad', label: '疯狂', icon: '🤪', color: '#e84' },
+  { id: 'noability', label: '失去能力', icon: '🔇', color: '#888' },
+  // ---- 身份标记 ----
+  { id: 'is_drunk', label: '是真酒鬼', icon: '🍻', color: '#d4a' },
+  { id: 'is_redhering', label: '是干扰项', icon: '🐟', color: '#e65' },
+  { id: 'is_evil_twin', label: '邪恶双胞胎', icon: '👥', color: '#d44' },
+  { id: 'is_good_twin', label: '善良双胞胎', icon: '👥', color: '#4a9' },
+  { id: 'is_mastermind', label: '幕后主使', icon: '🎭', color: '#a4d' },
+  // ---- 阵营标记 ----
   { id: 'good', label: '善良', icon: '😇', color: '#4a9' },
   { id: 'evil', label: '邪恶', icon: '😈', color: '#d44' },
-  { id: 'used', label: '已使用', icon: '✓', color: '#888' },
-  { id: 'ghost_vote', label: '投过票', icon: '👻', color: '#97c' },
+  { id: 'changed_alignment', label: '阵营转变', icon: '🔄', color: '#da4' },
+  // ---- 能力/行动类 ----
+  { id: 'chosen', label: '被选择', icon: '👆', color: '#48c' },
+  { id: 'attacked', label: '被攻击', icon: '⚔️', color: '#d44' },
+  { id: 'nominated', label: '被提名', icon: '📢', color: '#c84' },
+  { id: 'executed', label: '被处决', icon: '⚖️', color: '#a44' },
+  { id: 'protected', label: '被僧侣保护', icon: '✝️', color: '#4a9' },
+  { id: 'poisoner_target', label: '中毒目标', icon: '🧪', color: '#9a4' },
+  { id: 'slayer_used', label: '杀手已用', icon: '🔫', color: '#888' },
+  { id: 'used', label: '已使用能力', icon: '✓', color: '#888' },
+  // ---- 夜间信息类 ----
+  { id: 'woke', label: '今晚醒来', icon: '👁️', color: '#48c' },
+  { id: 'sees_wrong', label: '得到错误信息', icon: '❌', color: '#d44' },
+  { id: 'sees_right', label: '得到正确信息', icon: '✅', color: '#4a9' },
+  { id: 'fortune_teller_red', label: '占卜师干扰项', icon: '🔮', color: '#e65' },
+  // ---- 投票/死亡类 ----
+  { id: 'ghost_vote', label: '已投幽灵票', icon: '👻', color: '#97c' },
+  { id: 'about_to_die', label: '即将死亡', icon: '💔', color: '#d44' },
+  { id: 'cannot_die', label: '不会死亡', icon: '♾️', color: '#4a9' },
+  { id: 'cannot_vote', label: '不能投票', icon: '🚫', color: '#888' },
+  // ---- 特殊角色标记 ----
   { id: 'grandchild', label: '孙子', icon: '👶', color: '#48c' },
+  { id: 'demon_info', label: '恶魔已知', icon: '🔥', color: '#d44' },
+  { id: 'minion_info', label: '爪牙已知', icon: '🦇', color: '#a4d' },
+  { id: 'lunatic_target', label: '疯子目标', icon: '🌙', color: '#97c' },
+  // ---- 通用 ----
   { id: 'custom', label: '自定义', icon: '📝', color: '#c7a' },
 ];
 
