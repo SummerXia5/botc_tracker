@@ -19,6 +19,7 @@ export default function RoleReveal({ onClose }) {
   const [revealedInfo, setRevealedInfo] = useState(null);
   const [mySeatIndex, setMySeatIndex] = useState(null); // seat I claimed
   const [myPlayerName, setMyPlayerName] = useState('');
+  const [showingChar, setShowingChar] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const pollRef = useRef(null);
@@ -92,8 +93,8 @@ export default function RoleReveal({ onClose }) {
     setLoading(false);
   };
 
-  // ── Step 3a: Seated, waiting for everyone ──
-  if (mySeatIndex !== null && !revealedChar && session) {
+  // ── Step 3a: Seated, waiting / ready ──
+  if (mySeatIndex !== null && !(revealedChar && showingChar) && session) {
     return (
       <div className="reveal-page">
         <div className="reveal-card" style={{ textAlign: 'center' }}>
@@ -132,6 +133,11 @@ export default function RoleReveal({ onClose }) {
               className="reveal-btn"
               style={{ fontSize: '1.1rem', padding: '14px 32px', background: 'rgba(100,180,100,0.2)', borderColor: 'rgba(100,180,100,0.5)' }}
               onClick={async () => {
+                if (revealedChar) {
+                  // Already fetched, just show
+                  setShowingChar(true);
+                  return;
+                }
                 setLoading(true);
                 try {
                   const charData = await getMyChar(code, mySeatIndex);
@@ -148,6 +154,7 @@ export default function RoleReveal({ onClose }) {
                     seatIndex: mySeatIndex,
                     seatNumber: mySeatIndex + 1,
                   });
+                  setShowingChar(true);
                   if (pollRef.current) clearInterval(pollRef.current);
                 } catch (e) {
                   setError('获取角色失败，请重试');
@@ -212,10 +219,8 @@ export default function RoleReveal({ onClose }) {
             {TYPE_LABELS[revealedChar.type] || revealedChar.type}
           </div>
           <div className="reveal-char-ability">{revealedChar.ability}</div>
-          <div className="reveal-warning">
-            ⚠ 请记住你的角色，此页面关闭后无法再次查看
-          </div>
-          <button className="reveal-btn" onClick={onClose}>关闭</button>
+
+          <button className="reveal-btn" onClick={() => setShowingChar(false)}>🔒 隐藏</button>
         </div>
       </div>
     );
