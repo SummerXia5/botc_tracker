@@ -187,6 +187,7 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
 
   // ---- Setup: player selection ----
   const [selectedPlayerIds, setSelectedPlayerIds] = useState([]);
+  const [playerCount, setPlayerCount] = useState(7);
   // ================================================================
   //  Lock body scroll while Grimoire is open
   // ================================================================
@@ -457,16 +458,19 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
   //  Setup: start game (populate seats)
   // ----------------------------------------------------------------
   const handleStartSetup = () => {
-    if (!selectedScript || selectedPlayerIds.length < 5) return;
+    if (!selectedScript || playerCount < 5) return;
     // Clear any old saved state
     clearSavedState();
-    // Start with empty seats — players will be on the left side of the manager
-    setSeats([]);
+    // Create numbered seats without players
+    const newSeats = Array.from({ length: playerCount }, (_, i) => ({
+      player: null,
+      characterId: null,
+      alive: true,
+    }));
+    setSeats(newSeats);
     setPhase('setup');
     setDayNumber(0);
-    addLog(`开始配置 · ${selectedScript.name} · ${selectedPlayerIds.length} 名可选玩家`);
-    // Auto-open player manager so user can arrange seats
-    setShowPlayerManager(true);
+    addLog(`开始配置 · ${selectedScript.name} · ${playerCount} 人`);
   };
 
   // ----------------------------------------------------------------
@@ -806,30 +810,51 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
             </div>
           </div>
 
-          {/* Step 2: Select players */}
+          {/* Step 2: Select player count */}
           <div className="grimoire-setup-section">
-            <PlayerSelector
-              players={localPlayers}
-              selectedIds={selectedPlayerIds}
-              onToggle={togglePlayer}
-              groupId={groupId}
-              label="选择玩家"
-              minCount={5}
-              variant="dark"
-              onPlayerCreated={(newPlayer) => {
-                setLocalPlayers(prev => [...prev, newPlayer]);
-                onRefreshPlayers?.();
-              }}
-            />
+            <label className="grimoire-label">选择玩家人数</label>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 8 }}>
+              {[5,6,7,8,9,10,11,12,13,14,15].map(n => (
+                <button
+                  key={n}
+                  type="button"
+                  style={{
+                    width: 44, height: 44, borderRadius: 10,
+                    border: playerCount === n ? '2px solid #d4b878' : '1px solid rgba(100,80,50,0.3)',
+                    background: playerCount === n ? 'rgba(212,184,120,0.2)' : 'rgba(255,255,255,0.04)',
+                    color: playerCount === n ? '#d4b878' : '#8a7a5a',
+                    fontSize: '1rem', fontWeight: 700,
+                    cursor: 'pointer',
+                  }}
+                  onClick={() => setPlayerCount(n)}
+                >
+                  {n}
+                </button>
+              ))}
+            </div>
+            {/* Role distribution preview */}
+            {selectedScript && ROLE_DISTRIBUTION[playerCount] && (
+              <div style={{
+                marginTop: 10, padding: '8px 12px', borderRadius: 8,
+                background: 'rgba(255,255,255,0.03)',
+                fontSize: '0.75rem', color: '#8a7a5a',
+                display: 'flex', gap: 12,
+              }}>
+                <span>👼 镇民 {ROLE_DISTRIBUTION[playerCount].townsfolk}</span>
+                <span>🤷 外来者 {ROLE_DISTRIBUTION[playerCount].outsider}</span>
+                <span>🦹 爪牙 {ROLE_DISTRIBUTION[playerCount].minion}</span>
+                <span>😈 恶魔 {ROLE_DISTRIBUTION[playerCount].demon}</span>
+              </div>
+            )}
           </div>
 
           {/* Start button */}
           <button
             className="grimoire-start-btn"
-            disabled={!selectedScript || selectedPlayerIds.length < 5}
+            disabled={!selectedScript || playerCount < 5}
             onClick={handleStartSetup}
           >
-            开始配置 ({selectedPlayerIds.length} 人)
+            开始配置 ({playerCount} 人)
           </button>
         </div>
       </div>
