@@ -1323,7 +1323,20 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
           <div className="player-manager-panel" onClick={e => e.stopPropagation()}>
             <div className="pm-header">
               <h3>管理玩家 ({seats.length} 人)</h3>
-              <button className="modal-close" onClick={() => setShowPlayerManager(false)}>✕</button>
+              <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                {seats.length > 0 && (
+                  <button
+                    className="pm-reset-btn"
+                    onClick={() => {
+                      setSeats([]);
+                      addLog('重置所有座位');
+                    }}
+                  >
+                    全部移出
+                  </button>
+                )}
+                <button className="modal-close" onClick={() => setShowPlayerManager(false)}>✕</button>
+              </div>
             </div>
 
             <div className="pm-columns">
@@ -1332,9 +1345,14 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                 <div className="pm-col-title">可选玩家</div>
                 <div className="pm-available-list">
                   {localPlayers.filter(p => !seats.some(s => s.player.id === p.id)).map(p => (
-                    <button
+                    <div
                       key={p.id}
                       className="pm-available-item"
+                      draggable
+                      onDragStart={e => {
+                        e.dataTransfer.setData('playerId', p.id);
+                        e.dataTransfer.setData('source', 'available');
+                      }}
                       onClick={() => {
                         setSeats(prev => [...prev, { player: p, characterId: null, alive: true }]);
                         addLog(`添加玩家 ${p.name}`);
@@ -1342,7 +1360,7 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                     >
                       <span className="pm-add-icon">+</span>
                       <span>{p.name}</span>
-                    </button>
+                    </div>
                   ))}
                   {localPlayers.filter(p => !seats.some(s => s.player.id === p.id)).length === 0 && (
                     <div className="pm-empty">所有玩家已添加</div>
@@ -1373,7 +1391,21 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
               </div>
 
               {/* Right: Current seat order */}
-              <div className="pm-col pm-col-right">
+              <div
+                className="pm-col pm-col-right"
+                onDragOver={e => e.preventDefault()}
+                onDrop={e => {
+                  const playerId = e.dataTransfer.getData('playerId');
+                  const source = e.dataTransfer.getData('source');
+                  if (source === 'available' && playerId) {
+                    const player = localPlayers.find(p => p.id === playerId);
+                    if (player && !seats.some(s => s.player.id === playerId)) {
+                      setSeats(prev => [...prev, { player, characterId: null, alive: true }]);
+                      addLog(`添加玩家 ${player.name}`);
+                    }
+                  }
+                }}
+              >
                 <div className="pm-col-title">座位顺序 <span className="pm-hint">（拖拽排序）</span></div>
                 <div className="pm-seat-list">
                   {seats.map((seat, si) => (
@@ -1382,7 +1414,24 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                       draggable
                       onDragStart={() => setDragIndex(si)}
                       onDragOver={e => e.preventDefault()}
-                      onDrop={() => {
+                      onDrop={e => {
+                        e.stopPropagation();
+                        // Handle drop from available list at specific position
+                        const playerId = e.dataTransfer.getData('playerId');
+                        const source = e.dataTransfer.getData('source');
+                        if (source === 'available' && playerId) {
+                          const player = localPlayers.find(p => p.id === playerId);
+                          if (player && !seats.some(s => s.player.id === playerId)) {
+                            setSeats(prev => {
+                              const next = [...prev];
+                              next.splice(si, 0, { player, characterId: null, alive: true });
+                              return next;
+                            });
+                            addLog(`添加玩家 ${player.name} (位置 ${si + 1})`);
+                          }
+                          return;
+                        }
+                        // Handle reorder within seats
                         if (dragIndex === null || dragIndex === si) return;
                         setSeats(prev => {
                           const next = [...prev];
@@ -1410,7 +1459,7 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                     </div>
                   ))}
                   {seats.length === 0 && (
-                    <div className="pm-empty">← 从左侧添加玩家</div>
+                    <div className="pm-empty">← 从左侧拖拽或点击添加玩家</div>
                   )}
                 </div>
               </div>

@@ -1572,6 +1572,22 @@
   color: #d4b878;
 }
 
+.pm-reset-btn {
+  padding: 4px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(180, 60, 60, 0.3);
+  background: rgba(180, 60, 60, 0.1);
+  color: #e06050;
+  font-size: 0.7rem;
+  cursor: pointer;
+  transition: all 150ms;
+  white-space: nowrap;
+}
+
+.pm-reset-btn:hover {
+  background: rgba(180, 60, 60, 0.2);
+}
+
 .pm-columns {
   display: flex;
   flex: 1;
@@ -1625,7 +1641,7 @@
   background: rgba(100, 180, 100, 0.06);
   color: #a0d4a0;
   font-size: 0.8rem;
-  cursor: pointer;
+  cursor: grab;
   transition: all 150ms;
   text-align: left;
 }
