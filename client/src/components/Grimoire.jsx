@@ -68,6 +68,13 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
   const [circleDragIdx, setCircleDragIdx] = useState(null);
   const [circleDropIdx, setCircleDropIdx] = useState(null);
 
+  // ---- Traveller insertion ----
+  const [showTravellerPanel, setShowTravellerPanel] = useState(false);
+  const [travellerStep, setTravellerStep] = useState('player'); // 'player' | 'character' | 'position'
+  const [travellerPlayer, setTravellerPlayer] = useState(null);
+  const [travellerCharId, setTravellerCharId] = useState(null);
+  const [newTravellerName, setNewTravellerName] = useState('');
+
   // ---- Setup: player selection ----
   const [selectedPlayerIds, setSelectedPlayerIds] = useState([]);
 
@@ -775,6 +782,14 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
             </button>
           </>
         )}
+        {phase !== 'setup' && (
+          <button
+            className={`action-bar-btn ${showDistribution ? 'action-active' : ''}`}
+            onClick={() => setShowDistribution(!showDistribution)}
+          >
+            📜 查看配版
+          </button>
+        )}
         {phase === 'setup' && !allAssigned && (
           <span className="action-bar-hint">
             还需分配 {seats.filter(s => !s.characterId).length} 个角色
@@ -814,6 +829,18 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
             管理玩家
           </button>
         )}
+        <button
+          className={`action-bar-btn ${showTravellerPanel ? 'action-active' : ''}`}
+          onClick={() => {
+            setShowTravellerPanel(!showTravellerPanel);
+            setTravellerStep('player');
+            setTravellerPlayer(null);
+            setTravellerCharId(null);
+            setNewTravellerName('');
+          }}
+        >
+          🧳 旅行者
+        </button>
         <button
           className="action-bar-btn action-end"
           onClick={() => setShowEndDialog(true)}
@@ -878,14 +905,14 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
         <div className="grimoire-panel-overlay" onClick={() => setShowDistribution(false)}>
           <div className="grimoire-distribution-panel" onClick={e => e.stopPropagation()}>
             <div className="role-panel-header">
-              <h3>为当前 {seats.length} 个玩家选择角色:</h3>
+              <h3>{phase === 'setup' ? `为当前 ${seats.length} 个玩家选择角色:` : `配版查看（只读）`}</h3>
               <button className="role-panel-close" onClick={() => setShowDistribution(false)}>✕</button>
             </div>
 
             <div className="distribution-body">
               {/* Left: type count indicators */}
               <div className="distribution-counts">
-                {['townsfolk', 'outsider', 'minion', 'demon'].map(type => {
+              {phase === 'setup' && ['townsfolk', 'outsider', 'minion', 'demon'].map(type => {
                   const needed = currentDistribution[type] || 0;
                   const selected = selectedCountByType[type] || 0;
                   const enough = selected >= needed;
@@ -945,7 +972,8 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                           boxShadow: isSelected ? `0 0 8px ${TYPE_COLORS[ch.type]}50` : 'none',
                         }}
                         title={`${ch.name} (${ch.nameEn}) — ${TYPE_LABELS[ch.type]}\n${ch.ability}`}
-                        onClick={() => toggleCharInPool(ch.id)}
+                        onClick={() => { if (phase === 'setup') toggleCharInPool(ch.id); }}
+                        style={{ cursor: phase === 'setup' ? 'pointer' : 'default' }}
                       >
                         {ch.icon ? (
                           <img className="dist-token-img" src={ch.icon} alt={ch.name} style={{ opacity: isSelected ? 1 : 0.3 }} />
@@ -963,6 +991,7 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
               </div>
             </div>
 
+            {phase === 'setup' && (
             <div className="distribution-actions">
               <button className="action-bar-btn action-primary" onClick={handleAutoPickAndAssign}>
                 🎲 随机配版
@@ -991,6 +1020,7 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                 清空选择
               </button>
             </div>
+            )}
           </div>
         </div>
       )}
@@ -1117,6 +1147,172 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                 <button type="submit" className="reminder-custom-add">创建并添加</button>
               </form>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ---- Traveller Insertion Panel ---- */}
+      {showTravellerPanel && (
+        <div className="grimoire-panel-overlay" onClick={() => setShowTravellerPanel(false)}>
+          <div className="reminder-picker" style={{ maxWidth: 500 }} onClick={e => e.stopPropagation()}>
+            <div className="reminder-picker-header">
+              <h3>🧳 添加旅行者</h3>
+              <button className="modal-close" onClick={() => setShowTravellerPanel(false)}>✕</button>
+            </div>
+
+            {/* Step 1: Select or create player */}
+            <div style={{ marginBottom: 16 }}>
+              <div style={{ fontSize: '0.75rem', color: '#a09080', marginBottom: 8 }}>
+                第一步：选择玩家 {travellerPlayer && `✓ ${travellerPlayer.name}`}
+              </div>
+              {!travellerPlayer && (
+                <>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 8 }}>
+                    {localPlayers.filter(p => !seats.some(s => s.player.id === p.id)).map(p => (
+                      <button
+                        key={p.id}
+                        style={{
+                          padding: '5px 14px', borderRadius: 8, fontSize: '0.8rem',
+                          background: 'rgba(124,58,237,0.15)', border: '1px solid rgba(124,58,237,0.3)',
+                          color: '#c4a0ff', cursor: 'pointer',
+                        }}
+                        onClick={() => { setTravellerPlayer(p); setTravellerStep('character'); }}
+                      >
+                        {p.name}
+                      </button>
+                    ))}
+                  </div>
+                  <form style={{ display: 'flex', gap: 6 }} onSubmit={async e => {
+                    e.preventDefault();
+                    const name = newTravellerName.trim();
+                    if (!name) return;
+                    try {
+                      const result = await createPlayer({ name, group_id: groupId });
+                      const np = result.player;
+                      setLocalPlayers(prev => [...prev, np]);
+                      setTravellerPlayer(np);
+                      setTravellerStep('character');
+                      setNewTravellerName('');
+                    } catch (err) { console.error(err); }
+                  }}>
+                    <input
+                      type="text" value={newTravellerName}
+                      onChange={e => setNewTravellerName(e.target.value)}
+                      placeholder="或输入新玩家名..."
+                      className="reminder-custom-field" style={{ flex: 1 }}
+                    />
+                    <button type="submit" className="reminder-custom-add">创建</button>
+                  </form>
+                </>
+              )}
+            </div>
+
+            {/* Step 2: Select traveller character */}
+            {travellerPlayer && !travellerCharId && (
+              <div style={{ marginBottom: 16 }}>
+                <div style={{ fontSize: '0.75rem', color: '#a09080', marginBottom: 8 }}>
+                  第二步：选择旅行者角色
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: 6 }}>
+                  {Object.values(TRAVELLERS).map(ch => (
+                    <button
+                      key={ch.id}
+                      style={{
+                        padding: '8px', borderRadius: 8, fontSize: '0.78rem', textAlign: 'left',
+                        background: 'rgba(124,58,237,0.1)', border: '1px solid rgba(124,58,237,0.25)',
+                        color: '#d4c0a8', cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: 2,
+                      }}
+                      title={ch.ability}
+                      onClick={() => { setTravellerCharId(ch.id); setTravellerStep('position'); }}
+                    >
+                      <span style={{ color: '#c4a0ff', fontWeight: 600 }}>{ch.name}</span>
+                      <span style={{ fontSize: '0.65rem', color: '#888' }}>{ch.nameEn}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Step 3: Pick insertion position */}
+            {travellerPlayer && travellerCharId && (
+              <div>
+                <div style={{ fontSize: '0.75rem', color: '#a09080', marginBottom: 8 }}>
+                  第三步：选择插入位置（点击两个玩家之间的位置）
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  {/* Insert at beginning */}
+                  <button
+                    style={{
+                      padding: '6px 12px', borderRadius: 6, fontSize: '0.75rem',
+                      background: 'rgba(124,58,237,0.15)', border: '1px dashed rgba(124,58,237,0.4)',
+                      color: '#c4a0ff', cursor: 'pointer', textAlign: 'center',
+                    }}
+                    onClick={() => {
+                      setSeats(prev => {
+                        const newSeat = { player: travellerPlayer, characterId: travellerCharId, alive: true };
+                        return [newSeat, ...prev];
+                      });
+                      addLog(`旅行者 ${travellerPlayer.name} 加入（${TRAVELLERS[travellerCharId]?.name}）· 位置 1`);
+                      setShowTravellerPanel(false);
+                    }}
+                  >
+                    ↑ 插入到最前面
+                  </button>
+                  {seats.map((seat, si) => (
+                    <div key={seat.player.id}>
+                      <div style={{
+                        padding: '4px 12px', borderRadius: 6, fontSize: '0.8rem',
+                        background: 'rgba(255,255,255,0.04)', color: '#d4c0a8',
+                        display: 'flex', alignItems: 'center', gap: 8,
+                      }}>
+                        <span style={{ color: '#888', minWidth: 20 }}>{si + 1}.</span>
+                        <span>{seat.player.name}</span>
+                        {seat.characterId && (
+                          <span style={{ fontSize: '0.65rem', color: '#888', marginLeft: 'auto' }}>
+                            {charLookup[seat.characterId]?.name || seat.characterId}
+                          </span>
+                        )}
+                      </div>
+                      <button
+                        style={{
+                          width: '100%', padding: '4px 12px', borderRadius: 6, fontSize: '0.7rem',
+                          background: 'rgba(124,58,237,0.08)', border: '1px dashed rgba(124,58,237,0.3)',
+                          color: '#a080d0', cursor: 'pointer', textAlign: 'center', marginTop: 2,
+                        }}
+                        onClick={() => {
+                          setSeats(prev => {
+                            const newSeat = { player: travellerPlayer, characterId: travellerCharId, alive: true };
+                            const next = [...prev];
+                            next.splice(si + 1, 0, newSeat);
+                            return next;
+                          });
+                          addLog(`旅行者 ${travellerPlayer.name} 加入（${TRAVELLERS[travellerCharId]?.name}）· 位置 ${si + 2}`);
+                          setShowTravellerPanel(false);
+                        }}
+                      >
+                        ↓ 插入此处
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Reset / back button */}
+            {travellerPlayer && (
+              <div style={{ marginTop: 12, display: 'flex', gap: 8 }}>
+                <button
+                  className="action-bar-btn"
+                  style={{ fontSize: '0.75rem' }}
+                  onClick={() => {
+                    if (travellerCharId) { setTravellerCharId(null); setTravellerStep('character'); }
+                    else { setTravellerPlayer(null); setTravellerStep('player'); }
+                  }}
+                >
+                  ← 返回上一步
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}
