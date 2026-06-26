@@ -1675,7 +1675,7 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
 
               {/* Right: character grid */}
               <div className="distribution-grid">
-                {['townsfolk', 'outsider', 'minion', 'demon', 'traveller', ...(charactersByType.fabled?.length ? ['fabled'] : [])].map(type => (
+                {['townsfolk', 'outsider', 'minion', 'demon'].map(type => (
                   (charactersByType[type] || []).map(ch => {
                     const isSelected = selectedCharPool.has(ch.id);
                     const charCount = selectedCharPool.get(ch.id) || 0;
