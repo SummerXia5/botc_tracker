@@ -84,6 +84,25 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
   const [timerRunning, setTimerRunning] = useState(false);
   const timerRef = useRef(null);
 
+  // Play beep sound via Web Audio API
+  const playAlarm = useCallback((count = 3, freq = 880) => {
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      for (let i = 0; i < count; i++) {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.frequency.value = freq;
+        osc.type = 'sine';
+        gain.gain.setValueAtTime(0.3, ctx.currentTime + i * 0.4);
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + i * 0.4 + 0.35);
+        osc.start(ctx.currentTime + i * 0.4);
+        osc.stop(ctx.currentTime + i * 0.4 + 0.35);
+      }
+    } catch (e) { /* ignore audio errors */ }
+  }, []);
+
   // Timer tick effect
   useEffect(() => {
     if (timerRunning && timerSeconds > 0) {
@@ -92,19 +111,31 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
           if (prev <= 1) {
             setTimerRunning(false);
             clearInterval(timerRef.current);
+            // Play alarm when time's up
+            playAlarm(4, 880);
             return 0;
+          }
+          // Warning beep at 30s
+          if (prev === 31) {
+            playAlarm(1, 660);
+          }
+          // Warning beep at 10s
+          if (prev === 11) {
+            playAlarm(2, 770);
           }
           return prev - 1;
         });
       }, 1000);
     }
     return () => clearInterval(timerRef.current);
-  }, [timerRunning]);
+  }, [timerRunning, playAlarm]);
 
-  // Reset timer when switching to day
+  // Auto-start timer when switching to day
   useEffect(() => {
     if (phase === 'day') {
       setTimerSeconds(timerDuration);
+      setTimerRunning(true); // Auto-start
+    } else {
       setTimerRunning(false);
     }
   }, [phase, dayNumber]);
