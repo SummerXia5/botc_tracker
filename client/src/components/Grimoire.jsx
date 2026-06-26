@@ -1140,7 +1140,7 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
       {/* ---- Setup phase: Right sidebar with all actions ---- */}
       {phase === 'setup' && (
         <div className="setup-sidebar">
-          {/* Setup hints */}
+          <button className="sidebar-close-btn" onClick={onClose}>✕ 退出</button>
           {!allAssigned && (
             <div className="sidebar-hint">
               还需分配 {seats.filter(s => !s.characterId).length} 个角色

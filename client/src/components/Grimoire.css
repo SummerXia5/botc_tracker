@@ -248,6 +248,24 @@
   background: rgba(180, 150, 100, 0.12);
   margin: 2px 0;
 }
+.sidebar-close-btn {
+  display: block;
+  width: 100%;
+  padding: 6px 12px;
+  border: 1px solid rgba(180, 80, 80, 0.25);
+  border-radius: 7px;
+  background: rgba(80, 30, 25, 0.3);
+  color: #c07060;
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 150ms ease;
+  text-align: center;
+}
+.sidebar-close-btn:hover {
+  background: rgba(100, 40, 30, 0.5);
+  color: #e08070;
+}
 
 /* ---- Privacy Mask ---- */
 .grimoire-mask {
