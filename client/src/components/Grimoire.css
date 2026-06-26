@@ -733,7 +733,7 @@
 .grimoire-circle {
   position: relative;
   width: min(900px, calc(100vw - 16px));
-  height: min(900px, calc(100vh - 126px));
+  height: min(900px, calc(100vh - 30px));
 }
 
 /* ---- Center of circle ---- */
