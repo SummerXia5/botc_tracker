@@ -118,6 +118,8 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
   // ---- Perceived identity (deception characters) ----
   const [showPerceivedPicker, setShowPerceivedPicker] = useState(false);
   const [perceivedSeatIndex, setPerceivedSeatIndex] = useState(null);
+  // ---- Tap-triggered seat action menu (iPad compatible) ----
+  const [activeSeatMenu, setActiveSeatMenu] = useState(null); // seat index or null
 
   // ---- Role reveal code ----
   const [revealCode, setRevealCode] = useState(null);
@@ -731,36 +733,18 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
   // ----------------------------------------------------------------
   const handleSeatClick = (index, event) => {
     // If in setup phase and no character yet, open role panel
-    if (phase === 'setup' || !seats[index].characterId) {
+    if (phase === 'setup' && !seats[index].characterId) {
       setAssigningSeatIndex(index);
       setShowRolePanel(true);
       return;
     }
 
-    // During game: detect top/bottom half click on the seat token
-    const rect = event.currentTarget.getBoundingClientRect();
-    const clickY = event.clientY - rect.top;
-    const isBottomHalf = clickY > rect.height * 0.5;
-
-    if (isBottomHalf) {
-      // Bottom half → change character
-      setAssigningSeatIndex(index);
-      setShowRolePanel(true);
-      return;
+    // Toggle action menu for this seat
+    if (activeSeatMenu === index) {
+      setActiveSeatMenu(null); // close if same
+    } else {
+      setActiveSeatMenu(index); // open for this seat
     }
-
-    // Top half → death/revive
-    if (seats[index].alive) {
-      setDeathSeatIndex(index);
-      setShowDeathPicker(true);
-      return;
-    }
-    // Revive
-    setSeats(prev => prev.map((s, i) => {
-      if (i !== index) return s;
-      addLog(`${s.player?.name || `座位${index+1}`} 复活`);
-      return { ...s, alive: true, deathDay: null, deathCause: null };
-    }));
   };
 
   const DEATH_REASONS = [
@@ -1024,7 +1008,7 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
   const allAssigned = seats.every(s => s.characterId);
 
   return (
-    <div className={`grimoire grimoire-${phase}`}>
+    <div className={`grimoire grimoire-${phase}`} onClick={() => activeSeatMenu !== null && setActiveSeatMenu(null)}>
       {/* ---- Privacy Mask ---- */}
       {showMask && (
         <div className="grimoire-mask" onClick={() => setShowMask(false)}>
@@ -1370,31 +1354,47 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
 
 
 
-                {/* Hover zone banners */}
-                {seat.characterId && (
-                  <>
-                    {/* Kill/revive + change role - game only */}
+                {/* Tap-triggered action menu (iPad compatible) */}
+                {activeSeatMenu === i && seat.characterId && (
+                  <div className="seat-action-menu" onClick={(e) => e.stopPropagation()}>
                     {phase !== 'setup' && (
                       <>
-                        <div className="seat-hover-zone seat-hover-top">
-                          <span className="seat-hover-label">
-                            {seat.alive ? '💀 标记死亡' : '✨ 复活'}
-                          </span>
-                        </div>
-                        <div className="seat-hover-zone seat-hover-bottom">
-                          <span className="seat-hover-label">🔄 换角色</span>
-                        </div>
+                        {seat.alive ? (
+                          <button className="seat-action-btn action-danger" onClick={() => {
+                            setDeathSeatIndex(i);
+                            setShowDeathPicker(true);
+                            setActiveSeatMenu(null);
+                          }}>💀 标记死亡</button>
+                        ) : (
+                          <button className="seat-action-btn action-success" onClick={() => {
+                            setSeats(prev => prev.map((s, si) => {
+                              if (si !== i) return s;
+                              addLog(`${s.player?.name || `座位${i+1}`} 复活`);
+                              return { ...s, alive: true, deathDay: null, deathCause: null };
+                            }));
+                            setActiveSeatMenu(null);
+                          }}>✨ 复活</button>
+                        )}
                       </>
                     )}
-                    {/* 🎭 Perceived identity - ALL phases */}
-                    <div className="seat-hover-zone seat-hover-left" onClick={(e) => {
-                      e.stopPropagation();
+                    <button className="seat-action-btn" onClick={() => {
+                      setAssigningSeatIndex(i);
+                      setShowRolePanel(true);
+                      setActiveSeatMenu(null);
+                    }}>🔄 换角色</button>
+                    <button className="seat-action-btn" onClick={() => {
                       setPerceivedSeatIndex(i);
                       setShowPerceivedPicker(true);
-                    }}>
-                      <span className="seat-hover-label">🎭</span>
-                    </div>
-                  </>
+                      setActiveSeatMenu(null);
+                    }}>🎭 认知覆盖</button>
+                    {phase !== 'setup' && (
+                      <button className="seat-action-btn" onClick={() => {
+                        setReminderSeatIndex(i);
+                        setShowReminderPicker(true);
+                        setActiveSeatMenu(null);
+                      }}>📝 备忘标记</button>
+                    )}
+                  </div>
                 )}
                 {/* Character content — flip display when perceived is set */}
                 {ch ? (() => {

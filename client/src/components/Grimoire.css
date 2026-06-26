@@ -1333,50 +1333,59 @@
   white-space: nowrap;
 }
 
-/* ---- Alive indicator (green dot) ---- */
-/* ---- Hover zone overlays (top = kill, bottom = change char) ---- */
-.seat-hover-zone {
+/* ---- Tap-triggered seat action menu (iPad compatible) ---- */
+.seat-action-menu {
   position: absolute;
-  left: 0;
-  right: 0;
+  top: calc(100% + 4px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 50;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0;
-  transition: opacity 150ms ease;
-  pointer-events: none;
-  z-index: 12;
+  flex-direction: column;
+  gap: 3px;
+  background: rgba(15, 12, 8, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(180, 150, 100, 0.25);
+  border-radius: 10px;
+  padding: 6px;
+  min-width: 120px;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.6);
+  animation: seatMenuIn 120ms ease-out;
 }
-.seat-hover-top {
-  top: 0;
-  height: 50%;
-  border-radius: 50% 50% 0 0;
-  background: linear-gradient(180deg, rgba(180, 30, 30, 0.7) 0%, rgba(180, 30, 30, 0.2) 80%, transparent 100%);
+@keyframes seatMenuIn {
+  from { opacity: 0; transform: translateX(-50%) translateY(-4px) scale(0.95); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
 }
-.seat-hover-bottom {
-  bottom: 0;
-  height: 50%;
-  border-radius: 0 0 50% 50%;
-  background: linear-gradient(0deg, rgba(40, 100, 180, 0.6) 0%, rgba(40, 100, 180, 0.15) 80%, transparent 100%);
-}
-.seat-hover-left {
-  top: 50%;
-  transform: translateY(-50%);
-  left: -6px;
-  right: auto;
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: rgba(120, 60, 160, 0.8);
-  border: 1.5px solid rgba(180, 140, 220, 0.5);
+.seat-action-btn {
+  display: block;
+  width: 100%;
+  padding: 7px 12px;
+  border: none;
+  border-radius: 7px;
+  background: rgba(255,255,255,0.06);
+  color: #c4b08a;
+  font-size: 0.78rem;
+  font-weight: 600;
   cursor: pointer;
+  transition: background 120ms ease;
+  text-align: left;
+  white-space: nowrap;
 }
-.seat-hover-left:hover {
-  background: rgba(140, 80, 180, 0.95);
+.seat-action-btn:hover, .seat-action-btn:active {
+  background: rgba(255,255,255,0.12);
 }
-.seat-token:hover .seat-hover-zone {
-  opacity: 1;
-  pointer-events: auto;
+.seat-action-btn.action-danger {
+  color: #e08070;
+}
+.seat-action-btn.action-danger:hover {
+  background: rgba(200, 60, 40, 0.2);
+}
+.seat-action-btn.action-success {
+  color: #70d080;
+}
+.seat-action-btn.action-success:hover {
+  background: rgba(40, 160, 60, 0.2);
 }
 .seat-hover-label {
   font-size: 0.68rem;
