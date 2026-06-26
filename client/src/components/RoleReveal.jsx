@@ -1,13 +1,14 @@
 import { useState, useEffect, useRef } from 'react';
-import { getRevealSession, sitRevealSeat, unseatRevealSeat } from '../api';
+import { getRevealSession, sitRevealSeat, unseatRevealSeat, getMyChar } from '../api';
 import { CHARACTERS, TYPE_COLORS, TYPE_LABELS, TRAVELLERS } from '../data/characters';
 import './RoleReveal.css';
 
 /**
- * RoleReveal v2 — new flow:
+ * RoleReveal v3 — deferred reveal:
  *   1. Enter 4-digit code
- *   2. See seat map (available/taken) + pick your name from group list
- *   3. Pick an available seat → see your character
+ *   2. Pick name + seat
+ *   3. Wait for ALL players to be seated
+ *   4. Character auto-revealed when everyone is ready
  */
 export default function RoleReveal({ onClose }) {
   const [code, setCode] = useState('');
@@ -16,6 +17,8 @@ export default function RoleReveal({ onClose }) {
   const [customName, setCustomName] = useState('');
   const [revealedChar, setRevealedChar] = useState(null);
   const [revealedInfo, setRevealedInfo] = useState(null);
+  const [mySeatIndex, setMySeatIndex] = useState(null); // seat I claimed
+  const [myPlayerName, setMyPlayerName] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const pollRef = useRef(null);
@@ -23,19 +26,40 @@ export default function RoleReveal({ onClose }) {
   const allChars = { ...CHARACTERS, ...TRAVELLERS };
 
   // Poll session every 3 seconds for real-time updates
+  // If seated but not revealed, also check for allSeated → auto fetch char
   useEffect(() => {
     if (!session || revealedChar) return;
     const poll = async () => {
       try {
         const data = await getRevealSession(code);
         setSession(data);
+        // If I'm seated and everyone is seated, fetch my character
+        if (mySeatIndex !== null && data.allSeated) {
+          try {
+            const charData = await getMyChar(code, mySeatIndex);
+            setRevealedChar({
+              name: charData.characterName,
+              nameEn: charData.characterNameEn,
+              icon: charData.characterIcon,
+              ability: charData.characterAbility,
+              type: charData.characterType,
+              id: charData.characterId,
+            });
+            setRevealedInfo({
+              playerName: myPlayerName,
+              seatIndex: mySeatIndex,
+              seatNumber: mySeatIndex + 1,
+            });
+            if (pollRef.current) clearInterval(pollRef.current);
+          } catch (_) {}
+        }
       } catch (e) {
         // session expired
       }
     };
     pollRef.current = setInterval(poll, 3000);
     return () => clearInterval(pollRef.current);
-  }, [session, code, revealedChar]);
+  }, [session, code, revealedChar, mySeatIndex, myPlayerName]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -72,13 +96,34 @@ export default function RoleReveal({ onClose }) {
         playerName,
         playerId: selectedPlayer?.id || null,
       });
-      const ch = allChars[data.characterId];
-      setRevealedChar(ch || { name: data.characterId, type: 'townsfolk' });
-      setRevealedInfo(data);
-      if (pollRef.current) clearInterval(pollRef.current);
+      // Seated but no character yet — wait for everyone
+      setMySeatIndex(data.seatIndex);
+      setMyPlayerName(data.playerName);
+      // If already all seated, immediately fetch character
+      if (data.allSeated) {
+        try {
+          const charData = await getMyChar(code, data.seatIndex);
+          setRevealedChar({
+            name: charData.characterName,
+            nameEn: charData.characterNameEn,
+            icon: charData.characterIcon,
+            ability: charData.characterAbility,
+            type: charData.characterType,
+            id: charData.characterId,
+          });
+          setRevealedInfo({
+            playerName: data.playerName,
+            seatIndex: data.seatIndex,
+            seatNumber: data.seatNumber,
+          });
+          if (pollRef.current) clearInterval(pollRef.current);
+        } catch (_) {}
+      }
+      // Refresh session
+      const refreshed = await getRevealSession(code);
+      setSession(refreshed);
     } catch (e) {
       setError(e.message || '入座失败');
-      // Refresh session
       try {
         const refreshed = await getRevealSession(code);
         setSession(refreshed);
@@ -87,7 +132,66 @@ export default function RoleReveal({ onClose }) {
     setLoading(false);
   };
 
-  // ── Step 3: Character revealed ──
+  // ── Step 3a: Seated, waiting for everyone ──
+  if (mySeatIndex !== null && !revealedChar && session) {
+    return (
+      <div className="reveal-page">
+        <div className="reveal-card" style={{ textAlign: 'center' }}>
+          <h2 className="reveal-title">⏳ 等待中...</h2>
+          <div style={{ fontSize: '0.85rem', color: '#8a7a5a', marginBottom: 16 }}>
+            {myPlayerName} · 座位 {mySeatIndex + 1}
+          </div>
+          <div style={{
+            fontSize: '0.9rem', fontWeight: 600,
+            color: session.allSeated ? '#a0d4a0' : '#d4b878',
+            marginBottom: 12,
+          }}>
+            {session.allSeated
+              ? '✅ 所有玩家已入座！正在获取角色...'
+              : `入座进度: ${session.seatedCount} / ${session.totalSeats}`
+            }
+          </div>
+          <div style={{
+            display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(90px, 1fr))',
+            gap: 6, textAlign: 'left', marginBottom: 16,
+          }}>
+            {session.seats.map(seat => (
+              <div key={seat.seatIndex} style={{
+                padding: '6px 8px', borderRadius: 8, fontSize: '0.7rem',
+                background: seat.occupied ? 'rgba(100,180,100,0.1)' : 'rgba(255,255,255,0.03)',
+                border: `1px solid ${seat.occupied ? 'rgba(100,180,100,0.3)' : 'rgba(100,80,50,0.15)'}`,
+                color: seat.occupied ? '#a0d4a0' : '#6a5a3a',
+              }}>
+                <span style={{ fontWeight: 700 }}>{seat.seatNumber}.</span>{' '}
+                {seat.occupied ? seat.playerName : '空座'}
+              </div>
+            ))}
+          </div>
+          <button
+            className="reveal-btn"
+            style={{ background: 'rgba(180,80,80,0.3)', borderColor: 'rgba(180,80,80,0.5)' }}
+            onClick={async () => {
+              if (window.confirm('确定要起立吗？')) {
+                try {
+                  await unseatRevealSeat(code, mySeatIndex);
+                  setMySeatIndex(null);
+                  setMyPlayerName('');
+                  setSelectedPlayer(null);
+                  setCustomName('');
+                  const data = await getRevealSession(code);
+                  setSession(data);
+                } catch (e) { console.error('Unseat failed:', e); }
+              }
+            }}
+          >
+            🚶 起立
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Step 3b: Character revealed ──
   if (revealedChar) {
     return (
       <div className="reveal-page">

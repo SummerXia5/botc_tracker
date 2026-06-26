@@ -68,8 +68,15 @@ router.post('/', (req, res) => {
   sessions.set(code, {
     scriptName,
     totalSeats: seats.length,
-    // Store character for each seat index
-    characters: seats.map(s => s.characterId),
+    // Store full character info for each seat index
+    characters: seats.map(s => ({
+      id: s.characterId,
+      name: s.characterName || s.characterId,
+      nameEn: s.characterNameEn || '',
+      icon: s.characterIcon || '',
+      ability: s.characterAbility || '',
+      type: s.characterType || 'townsfolk',
+    })),
     // Track who sat where: index -> { playerName, playerId }
     seated: new Array(seats.length).fill(null),
     // Available player names (from group)
@@ -158,18 +165,51 @@ router.post('/:code/sit', (req, res) => {
     }
   }
 
-  // Seat the player
+  // Seat the player — do NOT return character yet
   session.seated[seatIndex] = {
     playerName: playerName.trim(),
     playerId: playerId || null,
   };
 
-  // Return character info
-  const characterId = session.characters[seatIndex];
+  const allSeated = session.seated.every(s => s !== null);
 
   res.json({
-    characterId,
+    seated: true,
     playerName: playerName.trim(),
+    seatIndex,
+    seatNumber: seatIndex + 1,
+    allSeated,
+  });
+});
+
+// ─── GET /api/reveal/:code/mychar/:seatIndex ────────────────────────────────────
+// Returns character for a seat. Only works when ALL players are seated.
+
+router.get('/:code/mychar/:seatIndex', (req, res) => {
+  const session = getValidSession(req.params.code);
+  if (!session) {
+    return res.status(404).json({ error: '代码无效或已过期' });
+  }
+
+  const seatIndex = parseInt(req.params.seatIndex, 10);
+  if (isNaN(seatIndex) || seatIndex < 0 || seatIndex >= session.totalSeats) {
+    return res.status(400).json({ error: '无效的座位号' });
+  }
+
+  // Only reveal when all seated
+  const allSeated = session.seated.every(s => s !== null);
+  if (!allSeated) {
+    return res.status(403).json({ error: '等待所有玩家入座后才能查看角色' });
+  }
+
+  const character = session.characters[seatIndex];
+  res.json({
+    characterId: character.id,
+    characterName: character.name,
+    characterNameEn: character.nameEn,
+    characterIcon: character.icon,
+    characterAbility: character.ability,
+    characterType: character.type,
     seatIndex,
     seatNumber: seatIndex + 1,
   });

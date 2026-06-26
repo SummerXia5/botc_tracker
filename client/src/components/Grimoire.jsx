@@ -1154,9 +1154,17 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
               setRevealLoading(true);
               try {
                 const result = await createRevealSession({
-                  seats: seats.map(s => ({
-                    characterId: s.characterId,
-                  })),
+                  seats: seats.map(s => {
+                    const ch = charLookup[s.characterId] || CHARACTERS[s.characterId];
+                    return {
+                      characterId: s.characterId,
+                      characterName: ch?.name || s.characterId,
+                      characterNameEn: ch?.nameEn || '',
+                      characterIcon: ch?.icon || '',
+                      characterAbility: ch?.ability || '',
+                      characterType: ch?.type || 'townsfolk',
+                    };
+                  }),
                   scriptName: selectedScript?.name || '自定义剧本',
                   players: localPlayers.map(p => ({ id: p.id, name: p.name })),
                 });

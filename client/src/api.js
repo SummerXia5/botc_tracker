@@ -219,3 +219,7 @@ export async function unseatRevealSeat(code, seatIndex) {
     body: JSON.stringify({ seatIndex }),
   });
 }
+
+export async function getMyChar(code, seatIndex) {
+  return request(`/api/reveal/${code}/mychar/${seatIndex}`);
+}
