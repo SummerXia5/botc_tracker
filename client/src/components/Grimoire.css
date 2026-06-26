@@ -1661,133 +1661,158 @@
 /* ============================================
    Demon Bluffs
    ============================================ */
-/* ---- Demon Bluffs Widget (bottom-left) ---- */
-.demon-bluffs-widget {
-  position: fixed;
-  bottom: 74px;
-  left: 12px;
-  z-index: 220;
-  background: rgba(15, 12, 8, 0.88);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+/* ---- Demon Bluffs Panel (fullscreen overlay) ---- */
+.demon-bluffs-panel {
+  background: rgba(15, 12, 8, 0.95);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   border: 1px solid rgba(180, 150, 100, 0.2);
-  border-radius: 10px;
-  min-width: 140px;
-  max-width: 260px;
-  overflow: hidden;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
-}
-.dbw-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 7px 12px;
-  cursor: pointer;
-  font-size: 0.78rem;
-  font-weight: 600;
-  color: #c4b08a;
-  background: rgba(80, 30, 25, 0.25);
-  border-bottom: 1px solid rgba(180, 150, 100, 0.1);
-  user-select: none;
-}
-.dbw-header:hover {
-  background: rgba(80, 30, 25, 0.4);
-}
-.dbw-toggle {
-  font-size: 0.6rem;
-  color: #8a7a5a;
-}
-.dbw-body {
-  padding: 8px 10px;
-  max-height: 350px;
+  border-radius: 16px;
+  padding: 24px 32px;
+  max-width: 600px;
+  width: 90vw;
+  max-height: 80vh;
   overflow-y: auto;
+  box-shadow: 0 12px 48px rgba(0,0,0,0.6);
 }
 
-.bluff-slots {
+.dbf-panel-header {
+  position: relative;
+  margin-bottom: 20px;
+}
+.dbf-panel-header h3 {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #d4c4a0;
+  margin: 0 0 4px 0;
+}
+.dbf-panel-hint {
+  font-size: 0.78rem;
+  color: #8a7a5a;
+  margin: 0;
+}
+.dbf-panel-header .side-panel-close {
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+
+/* 3 bluff slots — horizontal row */
+.dbf-slots-row {
   display: flex;
-  flex-direction: column;
-  gap: 6px;
-  margin-bottom: 14px;
+  gap: 12px;
+  margin-bottom: 24px;
 }
-
-.bluff-slot {
+.dbf-slot {
+  flex: 1;
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 12px 14px;
-  border-radius: 8px;
-  background: rgba(40, 35, 28, 0.6);
-  border: 1px solid rgba(80, 65, 40, 0.3);
+  padding: 14px 16px;
+  border-radius: 10px;
+  background: rgba(40, 35, 28, 0.5);
+  border: 2px solid rgba(80, 65, 40, 0.3);
   cursor: pointer;
   transition: all 200ms ease;
   text-align: left;
 }
-
-.bluff-slot:hover {
+.dbf-slot:hover {
   border-color: rgba(120, 100, 60, 0.5);
-  background: rgba(60, 50, 35, 0.8);
+  background: rgba(60, 50, 35, 0.7);
 }
-
-.bluff-slot.bluff-selecting {
-  border-color: rgba(183, 42, 42, 0.5);
-  background: rgba(80, 30, 25, 0.3);
+.dbf-slot.dbf-slot-active {
+  border-color: rgba(200, 160, 60, 0.6);
+  background: rgba(80, 60, 30, 0.4);
+  box-shadow: 0 0 12px rgba(200, 160, 60, 0.15);
 }
-
-.bluff-indicator {
-  width: 8px;
-  height: 8px;
+.dbf-slot-icon {
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
+  object-fit: cover;
   flex-shrink: 0;
 }
-
-.bluff-name {
-  font-size: 0.85rem;
-  font-weight: 500;
+.dbf-slot-letter {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(40, 35, 28, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.dbf-slot-name {
+  font-size: 0.9rem;
+  font-weight: 600;
   color: #c4b08a;
 }
-
-.bluff-empty {
-  font-size: 0.82rem;
+.dbf-slot-empty {
+  font-size: 0.85rem;
   color: #6a5a3a;
   font-style: italic;
 }
 
-.bluff-picker {
+/* Picker grid — large items */
+.dbf-picker-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-  gap: 4px;
-  max-height: 200px;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 8px;
+  max-height: 300px;
   overflow-y: auto;
-  padding-right: 4px;
+  padding: 4px 2px;
+  margin-bottom: 16px;
 }
-
-.bluff-picker-item {
+.dbf-picker-item {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 10px;
-  border-radius: 6px;
-  background: rgba(40, 35, 28, 0.6);
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: rgba(40, 35, 28, 0.5);
   border: 1px solid rgba(80, 65, 40, 0.3);
   cursor: pointer;
   transition: all 150ms ease;
-  font-size: 0.78rem;
-  font-weight: 500;
-  color: #c4b08a;
   text-align: left;
 }
-
-.bluff-picker-item:hover {
+.dbf-picker-item:hover {
   border-color: rgba(120, 100, 60, 0.5);
   background: rgba(60, 50, 35, 0.8);
+  transform: translateY(-1px);
+}
+.dbf-picker-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+.dbf-picker-letter {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(40, 35, 28, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.dbf-picker-name {
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: #c4b08a;
 }
 
-.bluff-fullscreen-btn {
+/* Show to demon button */
+.dbf-show-btn {
   width: 100%;
   padding: 12px 16px;
-  margin-top: 12px;
   border: 1px solid rgba(180, 60, 60, 0.3);
-  border-radius: 12px;
+  border-radius: 10px;
   background: rgba(180, 60, 60, 0.12);
   color: #e06050;
   font-size: 0.9rem;
@@ -1795,11 +1820,9 @@
   cursor: pointer;
   transition: all 200ms;
 }
-
-.bluff-fullscreen-btn:hover {
+.dbf-show-btn:hover {
   background: rgba(180, 60, 60, 0.25);
   border-color: rgba(180, 60, 60, 0.5);
-  transform: translateY(-1px);
 }
 
 /* ---- Demon Bluffs Fullscreen ---- */
@@ -2619,12 +2642,14 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 90%;
-  max-width: 700px;
-  max-height: 80vh;
-  background: rgba(25, 28, 35, 0.98);
+  width: 92%;
+  max-width: 800px;
+  max-height: 85vh;
+  background: rgba(20, 18, 14, 0.97);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border: 1px solid rgba(120, 100, 60, 0.4);
-  border-radius: 12px;
+  border-radius: 14px;
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -2670,8 +2695,8 @@
 }
 
 .dist-token {
-  width: 72px;
-  height: 72px;
+  width: 90px;
+  height: 90px;
   border-radius: 50%;
   background: radial-gradient(circle, #e8dcc8 0%, #d4c4a8 60%, #c4b08a 100%);
   border: 2px solid;
@@ -2681,6 +2706,7 @@
   justify-content: center;
   cursor: default;
   transition: all 200ms;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
 }
 
 .dist-token.assigned {
@@ -2689,17 +2715,17 @@
 }
 
 .dist-token-icon {
-  font-size: 1.1rem;
+  font-size: 1.3rem;
   font-weight: 800;
   line-height: 1;
 }
 
 .dist-token-name {
-  font-size: 0.55rem;
-  font-weight: 600;
-  color: #3a3020;
-  margin-top: 2px;
-  max-width: 60px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #2a2015;
+  margin-top: 3px;
+  max-width: 75px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

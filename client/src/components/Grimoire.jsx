@@ -2511,71 +2511,78 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
         </div>
       )}
 
-      {/* ---- Demon Bluffs — fixed bottom-left widget ---- */}
-      <div className={`demon-bluffs-widget ${showDemonBluffs ? 'dbw-expanded' : ''}`}>
-        <div className="dbw-header" onClick={() => { setShowDemonBluffs(!showDemonBluffs); if (showDemonBluffs) setAssigningBluffIndex(null); }}>
-          <span>🎭 恶魔伪装</span>
-          <span className="dbw-toggle">{showDemonBluffs ? '▼' : '▲'}</span>
-        </div>
-        {showDemonBluffs && (
-          <div className="dbw-body">
-            <div className="bluff-slots">
+      {/* ---- Demon Bluffs — fullscreen panel ---- */}
+      {showDemonBluffs && (
+        <div className="grimoire-panel-overlay" onClick={() => { setShowDemonBluffs(false); setAssigningBluffIndex(null); }}>
+          <div className="demon-bluffs-panel" onClick={e => e.stopPropagation()}>
+            <div className="dbf-panel-header">
+              <h3>🎭 恶魔伪装</h3>
+              <p className="dbf-panel-hint">选择3个不在场的好人角色作为伪装选项</p>
+              <button className="side-panel-close" onClick={() => { setShowDemonBluffs(false); setAssigningBluffIndex(null); }}>✕</button>
+            </div>
+
+            {/* 3 bluff slots */}
+            <div className="dbf-slots-row">
               {demonBluffs.map((bluffId, bi) => {
                 const ch = bluffId ? (charLookup[bluffId] || CHARACTERS[bluffId]) : null;
                 return (
                   <button
                     key={bi}
-                    className={`bluff-slot ${assigningBluffIndex === bi ? 'bluff-selecting' : ''}`}
+                    className={`dbf-slot ${assigningBluffIndex === bi ? 'dbf-slot-active' : ''}`}
                     onClick={() => setAssigningBluffIndex(assigningBluffIndex === bi ? null : bi)}
                   >
                     {ch ? (
                       <>
                         {ch.icon ? (
-                          <img className="bluff-icon" src={ch.icon} alt={ch.name} />
+                          <img className="dbf-slot-icon" src={ch.icon} alt={ch.name} />
                         ) : (
-                          <span className="bluff-indicator" style={{ background: TYPE_COLORS[ch.type] }} />
+                          <span className="dbf-slot-letter" style={{ color: TYPE_COLORS[ch.type] }}>{ch.name?.charAt(0)}</span>
                         )}
-                        <span className="bluff-name">{ch.name}</span>
+                        <span className="dbf-slot-name">{ch.name}</span>
                       </>
                     ) : (
-                      <span className="bluff-empty">伪装 {bi + 1}</span>
+                      <span className="dbf-slot-empty">伪装 {bi + 1}</span>
                     )}
                   </button>
                 );
               })}
             </div>
+
+            {/* Character picker grid */}
             {assigningBluffIndex !== null && (
-              <div className="bluff-picker">
+              <div className="dbf-picker-grid">
                 {scriptCharacters
                   .filter(ch => ch.type === 'townsfolk' || ch.type === 'outsider')
                   .filter(ch => !assignedCharIds.has(ch.id))
                   .map(ch => (
                     <button
                       key={ch.id}
-                      className="bluff-picker-item"
+                      className="dbf-picker-item"
                       onClick={() => handleAssignBluff(ch.id)}
                     >
                       {ch.icon ? (
-                        <img className="role-item-icon" src={ch.icon} alt={ch.name} />
+                        <img className="dbf-picker-icon" src={ch.icon} alt={ch.name} />
                       ) : (
-                        <span className="role-item-indicator" style={{ background: TYPE_COLORS[ch.type] }} />
+                        <span className="dbf-picker-letter" style={{ color: TYPE_COLORS[ch.type] }}>{ch.name?.charAt(0)}</span>
                       )}
-                      <span>{ch.name}</span>
+                      <span className="dbf-picker-name">{ch.name}</span>
                     </button>
                   ))}
               </div>
             )}
+
+            {/* Fullscreen show button */}
             {demonBluffs.some(b => b) && (
               <button
-                className="bluff-fullscreen-btn"
+                className="dbf-show-btn"
                 onClick={() => { setShowDemonBluffsFullscreen(true); setShowDemonBluffs(false); }}
               >
-                📺 全屏展示
+                📺 全屏展示给恶魔
               </button>
             )}
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* ---- Death Reason Picker ---- */}
       {showDeathPicker && deathSeatIndex !== null && (
