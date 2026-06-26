@@ -15,6 +15,138 @@
   overflow: hidden;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   color: #c4b08a;
+  transition: background 800ms ease, background-image 800ms ease;
+}
+
+/* ---- Day phase — warm amber/golden sky ---- */
+.grimoire-day {
+  background: #2a2218;
+  background-image:
+    radial-gradient(ellipse at 50% 30%, rgba(80, 60, 20, 0.5) 0%, transparent 70%),
+    radial-gradient(ellipse at center, rgba(50, 40, 25, 0.9), rgba(25, 20, 14, 1)),
+    linear-gradient(180deg, #3a2e1a 0%, #1e1810 100%);
+}
+
+/* Subtle sun glow */
+.grimoire-day .grimoire-circle-container::before {
+  content: '';
+  position: absolute;
+  top: -30%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 300px;
+  height: 300px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 200, 80, 0.08) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ---- Night phase — deep midnight blue + stars ---- */
+.grimoire-night {
+  background: #0a0e1a;
+  background-image:
+    radial-gradient(ellipse at 50% 40%, rgba(15, 20, 50, 0.8) 0%, transparent 60%),
+    radial-gradient(ellipse at center, rgba(8, 12, 28, 0.95), rgba(4, 6, 14, 1)),
+    linear-gradient(180deg, #0e1228 0%, #060810 100%);
+}
+
+/* Subtle moon glow */
+.grimoire-night .grimoire-circle-container::before {
+  content: '';
+  position: absolute;
+  top: -20%;
+  right: 15%;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(180, 200, 255, 0.1) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Stars effect for night */
+.grimoire-night .grimoire-circle-container::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(1px 1px at 10% 15%, rgba(255, 255, 255, 0.4), transparent),
+    radial-gradient(1px 1px at 25% 40%, rgba(255, 255, 255, 0.3), transparent),
+    radial-gradient(1px 1px at 40% 10%, rgba(255, 255, 255, 0.5), transparent),
+    radial-gradient(1px 1px at 55% 30%, rgba(255, 255, 255, 0.2), transparent),
+    radial-gradient(1px 1px at 70% 55%, rgba(255, 255, 255, 0.4), transparent),
+    radial-gradient(1px 1px at 85% 20%, rgba(255, 255, 255, 0.3), transparent),
+    radial-gradient(1px 1px at 15% 60%, rgba(255, 255, 255, 0.2), transparent),
+    radial-gradient(1px 1px at 50% 70%, rgba(255, 255, 255, 0.35), transparent),
+    radial-gradient(1px 1px at 30% 80%, rgba(255, 255, 255, 0.25), transparent),
+    radial-gradient(1px 1px at 75% 75%, rgba(255, 255, 255, 0.3), transparent),
+    radial-gradient(1px 1px at 90% 45%, rgba(255, 255, 255, 0.4), transparent),
+    radial-gradient(1.5px 1.5px at 60% 85%, rgba(255, 255, 255, 0.5), transparent),
+    radial-gradient(1px 1px at 5% 90%, rgba(255, 255, 255, 0.2), transparent),
+    radial-gradient(1.5px 1.5px at 45% 50%, rgba(200, 220, 255, 0.45), transparent);
+  pointer-events: none;
+  z-index: 0;
+  animation: starTwinkle 4s ease-in-out infinite alternate;
+}
+
+@keyframes starTwinkle {
+  0% { opacity: 0.6; }
+  50% { opacity: 1; }
+  100% { opacity: 0.7; }
+}
+
+/* ---- Privacy Mask ---- */
+.grimoire-mask {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(10, 10, 15, 0.97);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  animation: maskFadeIn 300ms ease;
+}
+
+.mask-icon {
+  font-size: 4rem;
+  margin-bottom: 16px;
+  animation: maskPulse 2s ease-in-out infinite;
+}
+
+.mask-text {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #d4b878;
+  letter-spacing: 0.2em;
+  text-shadow: 0 2px 12px rgba(212, 184, 120, 0.3);
+}
+
+.mask-hint {
+  font-size: 0.85rem;
+  color: #6a5a3a;
+  margin-top: 12px;
+  letter-spacing: 0.1em;
+  animation: maskHintPulse 2.5s ease-in-out infinite;
+}
+
+@keyframes maskFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes maskPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+@keyframes maskHintPulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
 }
 
 /* ============================================

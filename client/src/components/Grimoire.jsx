@@ -75,6 +75,9 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
   const [travellerCharId, setTravellerCharId] = useState(null);
   const [newTravellerName, setNewTravellerName] = useState('');
 
+  // ---- Privacy mask ----
+  const [showMask, setShowMask] = useState(false);
+
   // ---- Setup: player selection ----
   const [selectedPlayerIds, setSelectedPlayerIds] = useState([]);
 
@@ -597,7 +600,15 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
   const allAssigned = seats.every(s => s.characterId);
 
   return (
-    <div className="grimoire">
+    <div className={`grimoire grimoire-${phase}`}>
+      {/* ---- Privacy Mask ---- */}
+      {showMask && (
+        <div className="grimoire-mask" onClick={() => setShowMask(false)}>
+          <div className="mask-icon">🔒</div>
+          <div className="mask-text">魔典已隐藏</div>
+          <div className="mask-hint">点击任意位置解锁</div>
+        </div>
+      )}
       {/* ---- Phase indicator (top bar) ---- */}
       <div className="grimoire-phase-bar">
         <div className={`grimoire-phase-pill phase-${phase}`}>
@@ -840,6 +851,13 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
           }}
         >
           🧳 旅行者
+        </button>
+        <button
+          className="action-bar-btn"
+          onClick={() => setShowMask(true)}
+          title="隐藏魔典信息"
+        >
+          🔒 遮罩
         </button>
         <button
           className="action-bar-btn action-end"
