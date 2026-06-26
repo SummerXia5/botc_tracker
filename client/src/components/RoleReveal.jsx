@@ -33,26 +33,6 @@ export default function RoleReveal({ onClose }) {
       try {
         const data = await getRevealSession(code);
         setSession(data);
-        // If I'm seated and everyone is seated, fetch my character
-        if (mySeatIndex !== null && data.allSeated) {
-          try {
-            const charData = await getMyChar(code, mySeatIndex);
-            setRevealedChar({
-              name: charData.characterName,
-              nameEn: charData.characterNameEn,
-              icon: charData.characterIcon,
-              ability: charData.characterAbility,
-              type: charData.characterType,
-              id: charData.characterId,
-            });
-            setRevealedInfo({
-              playerName: myPlayerName,
-              seatIndex: mySeatIndex,
-              seatNumber: mySeatIndex + 1,
-            });
-            if (pollRef.current) clearInterval(pollRef.current);
-          } catch (_) {}
-        }
       } catch (e) {
         // session expired
       }
@@ -99,26 +79,6 @@ export default function RoleReveal({ onClose }) {
       // Seated but no character yet — wait for everyone
       setMySeatIndex(data.seatIndex);
       setMyPlayerName(data.playerName);
-      // If already all seated, immediately fetch character
-      if (data.allSeated) {
-        try {
-          const charData = await getMyChar(code, data.seatIndex);
-          setRevealedChar({
-            name: charData.characterName,
-            nameEn: charData.characterNameEn,
-            icon: charData.characterIcon,
-            ability: charData.characterAbility,
-            type: charData.characterType,
-            id: charData.characterId,
-          });
-          setRevealedInfo({
-            playerName: data.playerName,
-            seatIndex: data.seatIndex,
-            seatNumber: data.seatNumber,
-          });
-          if (pollRef.current) clearInterval(pollRef.current);
-        } catch (_) {}
-      }
       // Refresh session
       const refreshed = await getRevealSession(code);
       setSession(refreshed);
@@ -147,8 +107,8 @@ export default function RoleReveal({ onClose }) {
             marginBottom: 12,
           }}>
             {session.allSeated
-              ? '✅ 所有玩家已入座！正在获取角色...'
-              : `入座进度: ${session.seatedCount} / ${session.totalSeats}`
+              ? '✅ 所有玩家已入座！'
+              : `⏳ 入座进度: ${session.seatedCount} / ${session.totalSeats}`
             }
           </div>
           <div style={{
@@ -167,25 +127,58 @@ export default function RoleReveal({ onClose }) {
               </div>
             ))}
           </div>
-          <button
-            className="reveal-btn"
-            style={{ background: 'rgba(180,80,80,0.3)', borderColor: 'rgba(180,80,80,0.5)' }}
-            onClick={async () => {
-              if (window.confirm('确定要起立吗？')) {
+          {session.allSeated ? (
+            <button
+              className="reveal-btn"
+              style={{ fontSize: '1.1rem', padding: '14px 32px', background: 'rgba(100,180,100,0.2)', borderColor: 'rgba(100,180,100,0.5)' }}
+              onClick={async () => {
+                setLoading(true);
                 try {
-                  await unseatRevealSeat(code, mySeatIndex);
-                  setMySeatIndex(null);
-                  setMyPlayerName('');
-                  setSelectedPlayer(null);
-                  setCustomName('');
-                  const data = await getRevealSession(code);
-                  setSession(data);
-                } catch (e) { console.error('Unseat failed:', e); }
-              }
-            }}
-          >
-            🚶 起立
-          </button>
+                  const charData = await getMyChar(code, mySeatIndex);
+                  setRevealedChar({
+                    name: charData.characterName,
+                    nameEn: charData.characterNameEn,
+                    icon: charData.characterIcon,
+                    ability: charData.characterAbility,
+                    type: charData.characterType,
+                    id: charData.characterId,
+                  });
+                  setRevealedInfo({
+                    playerName: myPlayerName,
+                    seatIndex: mySeatIndex,
+                    seatNumber: mySeatIndex + 1,
+                  });
+                  if (pollRef.current) clearInterval(pollRef.current);
+                } catch (e) {
+                  setError('获取角色失败，请重试');
+                }
+                setLoading(false);
+              }}
+              disabled={loading}
+            >
+              🔮 查看身份
+            </button>
+          ) : (
+            <button
+              className="reveal-btn"
+              style={{ background: 'rgba(180,80,80,0.3)', borderColor: 'rgba(180,80,80,0.5)' }}
+              onClick={async () => {
+                if (window.confirm('确定要起立吗？')) {
+                  try {
+                    await unseatRevealSeat(code, mySeatIndex);
+                    setMySeatIndex(null);
+                    setMyPlayerName('');
+                    setSelectedPlayer(null);
+                    setCustomName('');
+                    const data = await getRevealSession(code);
+                    setSession(data);
+                  } catch (e) { console.error('Unseat failed:', e); }
+                }
+              }}
+            >
+              🚶 起立
+            </button>
+          )}
         </div>
       </div>
     );
@@ -222,29 +215,7 @@ export default function RoleReveal({ onClose }) {
           <div className="reveal-warning">
             ⚠ 请记住你的角色，此页面关闭后无法再次查看
           </div>
-          <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
-            <button className="reveal-btn" onClick={onClose}>关闭</button>
-            <button
-              className="reveal-btn"
-              style={{ background: 'rgba(180,80,80,0.3)', borderColor: 'rgba(180,80,80,0.5)' }}
-              onClick={async () => {
-                if (window.confirm('确定要起立吗？你的角色信息将不再显示。')) {
-                  try {
-                    await unseatRevealSeat(code, revealedInfo.seatIndex);
-                    setRevealedChar(null);
-                    setRevealedInfo(null);
-                    setSelectedPlayer(null);
-                    setCustomName('');
-                    // Refresh session
-                    const data = await getRevealSession(code);
-                    setSession(data);
-                  } catch (e) { console.error('Unseat failed:', e); }
-                }
-              }}
-            >
-              🚶 起立
-            </button>
-          </div>
+          <button className="reveal-btn" onClick={onClose}>关闭</button>
         </div>
       </div>
     );
