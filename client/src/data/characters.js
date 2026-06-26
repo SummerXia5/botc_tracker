@@ -8,6 +8,7 @@ export const TYPE_COLORS = {
   outsider: '#46a86c',
   minion: '#c94922',
   demon: '#b72a2a',
+  traveller: '#7c3aed',
   fabled: '#9b59b6',
 };
 
@@ -16,6 +17,7 @@ export const TYPE_LABELS = {
   outsider: '外来者',
   minion: '爪牙',
   demon: '恶魔',
+  traveller: '旅行者',
   fabled: '奇遇',
 };
 
@@ -1090,6 +1092,149 @@ export const CHARACTERS = {
     edition: 'exp',
     ability: '每局游戏限一次，你可以向说书人许愿。如果愿望被实现，可能会伴随着代价和线索。',
     icon: '/icons/wizard.png',
+  },
+};
+
+// =============================================================================
+// Traveller Characters (旅行者)
+// Can be added freely to any game, not bound by script distribution
+// =============================================================================
+
+export const TRAVELLERS = {
+  // ---- Trouble Brewing Travellers ----
+  bureaucrat: {
+    id: 'bureaucrat',
+    name: '官僚',
+    nameEn: 'Bureaucrat',
+    type: 'traveller',
+    edition: 'tb',
+    ability: '每个夜晚，选择一名玩家（不能是你自己）：明天的处决中，他们的投票算作三票。',
+  },
+  thief: {
+    id: 'thief',
+    name: '窃贼',
+    nameEn: 'Thief',
+    type: 'traveller',
+    edition: 'tb',
+    ability: '每个夜晚，选择一名玩家（不能是你自己）：明天的处决中，他们的投票不算数。',
+  },
+  gunslinger: {
+    id: 'gunslinger',
+    name: '枪手',
+    nameEn: 'Gunslinger',
+    type: 'traveller',
+    edition: 'tb',
+    ability: '每天一次，你可以选择投票给处决的一名玩家。如果这么做，该玩家死亡。',
+  },
+  scapegoat: {
+    id: 'scapegoat',
+    name: '替罪羊',
+    nameEn: 'Scapegoat',
+    type: 'traveller',
+    edition: 'tb',
+    ability: '如果一名玩家通过处决死亡，而你认为你不该死，你可以自愿代替他们死亡。',
+  },
+  beggar: {
+    id: 'beggar',
+    name: '乞丐',
+    nameEn: 'Beggar',
+    type: 'traveller',
+    edition: 'tb',
+    ability: '你必须使用其他玩家给你的投票令牌来投票。如果恶魔杀死了你，一个爪牙会变为恶魔。',
+  },
+
+  // ---- Bad Moon Rising Travellers ----
+  apprentice: {
+    id: 'apprentice',
+    name: '学徒',
+    nameEn: 'Apprentice',
+    type: 'traveller',
+    edition: 'bmr',
+    ability: '在你的首个夜晚，说书人会分配给你一个不在场的镇民角色能力。如果是邪恶的，你是一个爪牙。',
+  },
+  matron: {
+    id: 'matron',
+    name: '女管家',
+    nameEn: 'Matron',
+    type: 'traveller',
+    edition: 'bmr',
+    ability: '每天一次，你可以选择让一名之前没发言的玩家立即开始发言。',
+  },
+  judge: {
+    id: 'judge',
+    name: '法官',
+    nameEn: 'Judge',
+    type: 'traveller',
+    edition: 'bmr',
+    ability: '每局游戏限一次，如果处决的另一个玩家的结果平票，你可以选择处决或不处决。',
+  },
+  bishop: {
+    id: 'bishop',
+    name: '主教',
+    nameEn: 'Bishop',
+    type: 'traveller',
+    edition: 'bmr',
+    ability: '只有说书人可以提名。至少一名镇民在被提名前被暗中告知被提名。',
+  },
+  voudon: {
+    id: 'voudon',
+    name: '巫毒师',
+    nameEn: 'Voudon',
+    type: 'traveller',
+    edition: 'bmr',
+    ability: '仅死亡玩家可以在处决中投票。它们不需要投票令牌来投票。',
+  },
+
+  // ---- Sects & Violets Travellers ----
+  barista: {
+    id: 'barista',
+    name: '咖啡师',
+    nameEn: 'Barista',
+    type: 'traveller',
+    edition: 'snv',
+    ability: '每个夜晚，说书人选择一名玩家使其能力生效两次，或者选择一名玩家使其中毒效果解除。',
+  },
+  harlot: {
+    id: 'harlot',
+    name: '妓女',
+    nameEn: 'Harlot',
+    type: 'traveller',
+    edition: 'snv',
+    ability: '每个夜晚*，选择一名存活的玩家：如果他们同意，你会得知他们的角色。你们中的任何一个或两个都可能死亡。',
+  },
+  butcher: {
+    id: 'butcher',
+    name: '屠夫',
+    nameEn: 'Butcher',
+    type: 'traveller',
+    edition: 'snv',
+    ability: '每天，在处决后，你可以提名另一个玩家进行第二次处决。',
+  },
+  bone_collector: {
+    id: 'bone_collector',
+    name: '收骨人',
+    nameEn: 'Bone Collector',
+    type: 'traveller',
+    edition: 'snv',
+    ability: '每局游戏限一次，在夜晚*，选择一名死亡玩家：他们会重新获得能力直到黄昏。',
+  },
+  deviant: {
+    id: 'deviant',
+    name: '怪人',
+    nameEn: 'Deviant',
+    type: 'traveller',
+    edition: 'snv',
+    ability: '如果你是滑稽的，你不能被放逐。',
+  },
+
+  // ---- Experimental / Generic Travellers ----
+  gangster: {
+    id: 'gangster',
+    name: '歹徒',
+    nameEn: 'Gangster',
+    type: 'traveller',
+    edition: 'exp',
+    ability: '每天一次，你可以选择杀死一名投了你放逐票的玩家。',
   },
 };
 

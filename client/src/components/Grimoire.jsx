@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback, useRef } from 'react';
-import { CHARACTERS, TYPE_COLORS, TYPE_LABELS, SCRIPTS } from '../data/characters';
+import { CHARACTERS, TYPE_COLORS, TYPE_LABELS, SCRIPTS, TRAVELLERS } from '../data/characters';
 import PlayerSelector from './PlayerSelector';
 import { createPlayer } from '../api';
 import './Grimoire.css';
@@ -140,7 +140,7 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
 
       // 3. Get metadata from imported script JSON
       const m = meta[id] || {};
-      const teamMap = { townsfolk: 'townsfolk', outsider: 'outsider', minion: 'minion', demon: 'demon', fabled: 'fabled', traveler: 'townsfolk' };
+      const teamMap = { townsfolk: 'townsfolk', outsider: 'outsider', minion: 'minion', demon: 'demon', fabled: 'fabled', traveler: 'traveller', traveller: 'traveller' };
 
       if (normalized) {
         // Merge: local data + script meta image as override
@@ -164,22 +164,27 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
     });
   }, [selectedScript]);
 
-  // Lookup map: charId -> character data (handles CustomVER normalized chars)
   const charLookup = useMemo(() => {
     const map = {};
     for (const ch of scriptCharacters) {
+      map[ch.id] = ch;
+    }
+    // Also include travellers
+    for (const ch of Object.values(TRAVELLERS)) {
       map[ch.id] = ch;
     }
     return map;
   }, [scriptCharacters]);
 
   const charactersByType = useMemo(() => {
-    const groups = { townsfolk: [], outsider: [], minion: [], demon: [], fabled: [] };
+    const groups = { townsfolk: [], outsider: [], minion: [], demon: [], traveller: [], fabled: [] };
     for (const ch of scriptCharacters) {
       if (groups[ch.type]) {
         groups[ch.type].push(ch);
       }
     }
+    // Always include all travellers regardless of script
+    groups.traveller = Object.values(TRAVELLERS);
     return groups;
   }, [scriptCharacters]);
 
@@ -595,7 +600,7 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
 
       {/* ---- Circular seating chart ---- */}
       <div className="grimoire-circle-container">
-        <div className="grimoire-circle">
+        <div className="grimoire-circle" style={{ '--seat-size': seats.length <= 10 ? '100px' : seats.length <= 13 ? '90px' : '78px' }}>
           {/* Center decorative area */}
           <div className="grimoire-center">
             <div className="grimoire-center-name">{selectedScript?.name}</div>
@@ -606,7 +611,8 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
           {seats.map((seat, i) => {
             const seatCount = seats.length;
             const angle = (i / seatCount) * 2 * Math.PI - Math.PI / 2;
-            const radius = 38;
+            // Dynamic radius: expand for more players
+            const radius = seatCount <= 10 ? 36 : seatCount <= 13 ? 40 : 43;
             const x = 50 + radius * Math.cos(angle);
             const y = 50 + radius * Math.sin(angle);
             const ch = seat.characterId ? (charLookup[seat.characterId] || CHARACTERS[seat.characterId]) : null;
@@ -790,7 +796,7 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
               <button className="role-panel-close" onClick={() => { setShowRolePanel(false); setAssigningSeatIndex(null); }}>✕</button>
             </div>
             <div className="role-panel-content">
-              {['townsfolk', 'outsider', 'minion', 'demon'].map(type => {
+              {['townsfolk', 'outsider', 'minion', 'demon', 'traveller'].map(type => {
                 const chars = charactersByType[type];
                 if (!chars || chars.length === 0) return null;
                 return (
@@ -886,7 +892,7 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
 
               {/* Right: character grid */}
               <div className="distribution-grid">
-                {['townsfolk', 'outsider', 'minion', 'demon', ...(charactersByType.fabled?.length ? ['fabled'] : [])].map(type => (
+                {['townsfolk', 'outsider', 'minion', 'demon', 'traveller', ...(charactersByType.fabled?.length ? ['fabled'] : [])].map(type => (
                   (charactersByType[type] || []).map(ch => {
                     const isSelected = selectedCharPool.has(ch.id);
                     const isAssigned = assignedCharIds.has(ch.id);

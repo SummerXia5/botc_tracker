@@ -336,7 +336,7 @@
   top: 48px;
   left: 0;
   right: 0;
-  bottom: 80px;
+  bottom: 70px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -345,8 +345,8 @@
 
 .grimoire-circle {
   position: relative;
-  width: min(700px, calc(100vw - 32px));
-  height: min(700px, calc(100vh - 136px));
+  width: min(820px, calc(100vw - 20px));
+  height: min(820px, calc(100vh - 126px));
 }
 
 /* ---- Center of circle ---- */
@@ -401,8 +401,8 @@
 /* ---- Individual seat token (parchment circle) ---- */
 .seat-token {
   position: absolute;
-  width: 110px;
-  height: 110px;
+  width: var(--seat-size, 100px);
+  height: var(--seat-size, 100px);
   border-radius: 50%;
   background: radial-gradient(circle, #e8dcc8 0%, #d4c4a8 60%, #c4b08a 100%);
   border: 2px solid rgba(180, 160, 120, 0.6);
@@ -455,6 +455,14 @@
   box-shadow: 0 0 18px rgba(183, 42, 42, 0.8), 0 4px 16px rgba(0, 0, 0, 0.7);
 }
 
+.seat-token.type-traveller {
+  box-shadow: 0 0 8px rgba(124, 58, 237, 0.4), 0 2px 8px rgba(0, 0, 0, 0.5), inset 0 1px 2px rgba(255, 255, 255, 0.2);
+  border-color: rgba(124, 58, 237, 0.5);
+}
+.seat-token.type-traveller:hover {
+  box-shadow: 0 0 14px rgba(124, 58, 237, 0.6), 0 4px 16px rgba(0, 0, 0, 0.7);
+}
+
 /* ---- Character icon (first char of name) ---- */
 .seat-char-icon {
   font-size: 1.4rem;
@@ -466,8 +474,8 @@
 
 /* ---- Character icon image ---- */
 .seat-char-img {
-  width: 60px;
-  height: 60px;
+  width: 55%;
+  height: 55%;
   object-fit: contain;
   pointer-events: none;
   filter: drop-shadow(0 1px 2px rgba(0,0,0,0.15));
