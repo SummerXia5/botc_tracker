@@ -9,27 +9,23 @@
   inset: 0;
   z-index: 200;
   background: #1a1510;
-  background-image: url('/grimoire_bg.png');
+  background-image: url('/bg_setup.jpg');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
   overflow: hidden;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   color: #c4b08a;
-  transition: background 800ms ease;
 }
 
-/* ---- Day phase — warm amber overlay ---- */
-.grimoire-day::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background:
-    radial-gradient(ellipse at 50% 30%, rgba(120, 90, 30, 0.25) 0%, transparent 70%),
-    linear-gradient(180deg, rgba(60, 45, 15, 0.4) 0%, rgba(30, 22, 10, 0.3) 100%);
-  pointer-events: none;
-  z-index: 0;
-  transition: opacity 800ms ease;
+/* ---- Day phase — clocktower town, sepia ---- */
+.grimoire-day {
+  background-image: url('/bg_day.jpg');
+}
+
+/* ---- Night phase — clocktower town, moonlit ---- */
+.grimoire-night {
+  background-image: url('/bg_night.jpg');
 }
 
 /* Subtle sun glow */
@@ -42,22 +38,9 @@
   width: 300px;
   height: 300px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(255, 200, 80, 0.08) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(255, 200, 80, 0.06) 0%, transparent 70%);
   pointer-events: none;
   z-index: 0;
-}
-
-/* ---- Night phase — deep blue overlay ---- */
-.grimoire-night::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background:
-    radial-gradient(ellipse at 50% 40%, rgba(10, 15, 50, 0.5) 0%, transparent 60%),
-    linear-gradient(180deg, rgba(8, 12, 30, 0.6) 0%, rgba(4, 6, 14, 0.5) 100%);
-  pointer-events: none;
-  z-index: 0;
-  transition: opacity 800ms ease;
 }
 
 /* Subtle moon glow */
@@ -69,7 +52,7 @@
   width: 120px;
   height: 120px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(180, 200, 255, 0.1) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(180, 200, 255, 0.06) 0%, transparent 70%);
   pointer-events: none;
   z-index: 0;
 }
