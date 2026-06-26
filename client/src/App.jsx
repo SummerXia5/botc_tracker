@@ -250,15 +250,44 @@ export default function App() {
         )}
       </main>
 
+      {/* ---- Role Reveal Quick Access Card ---- */}
+      <div className="reveal-card-section">
+        <div className="reveal-card-inner">
+          <div className="reveal-card-left">
+            <div className="reveal-card-icon">🔮</div>
+            <div>
+              <h3 className="reveal-card-title">角色抽取</h3>
+              <p className="reveal-card-desc">
+                说书人生成专属抽签码后，玩家通过输入代码私密查看自己的角色身份
+              </p>
+            </div>
+          </div>
+          <div className="reveal-card-steps">
+            <div className="reveal-step">
+              <span className="step-num">1</span>
+              <span>从说书人处获取6位抽签码</span>
+            </div>
+            <div className="reveal-step">
+              <span className="step-num">2</span>
+              <span>选择你的玩家名称</span>
+            </div>
+            <div className="reveal-step">
+              <span className="step-num">3</span>
+              <span>私密查看你的角色与技能</span>
+            </div>
+          </div>
+          <button
+            className="reveal-card-btn"
+            onClick={() => setShowRoleReveal(true)}
+          >
+            🎴 输入抽签码
+          </button>
+        </div>
+      </div>
+
       <footer className="app-footer">
         <p>血染钟楼 · {selectedGroup.name}</p>
         <p className="footer-sub">Made for Blood on the Clocktower fans</p>
-        <button
-          className="reveal-entry-btn"
-          onClick={() => setShowRoleReveal(true)}
-        >
-          🔮 抽取角色
-        </button>
       </footer>
 
       {/* Modals */}

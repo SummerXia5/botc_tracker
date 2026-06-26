@@ -95,26 +95,125 @@
   letter-spacing: 0.03em;
 }
 
-.reveal-entry-btn {
-  display: inline-block;
-  margin-top: 12px;
-  padding: 10px 28px;
-  border: 1px solid rgba(212, 184, 120, 0.3);
-  border-radius: 999px;
+/* ---- Role Reveal Quick Access Card ---- */
+.reveal-card-section {
+  padding: 0 var(--space-lg) var(--space-lg);
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.reveal-card-inner {
+  background: linear-gradient(135deg, rgba(30, 25, 40, 0.9), rgba(20, 18, 28, 0.95));
+  border: 1px solid rgba(212, 184, 120, 0.15);
+  border-radius: 16px;
+  padding: 24px 28px;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 200ms;
+}
+
+.reveal-card-inner::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 200px;
+  height: 200px;
+  background: radial-gradient(circle, rgba(212, 184, 120, 0.06) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.reveal-card-inner:hover {
+  border-color: rgba(212, 184, 120, 0.3);
+}
+
+.reveal-card-left {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.reveal-card-icon {
+  font-size: 2.2rem;
+  flex-shrink: 0;
+  width: 52px;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background: rgba(212, 184, 120, 0.08);
+  border-radius: 14px;
+  border: 1px solid rgba(212, 184, 120, 0.15);
+}
+
+.reveal-card-title {
+  font-size: 1.15rem;
+  font-weight: 700;
   color: #d4b878;
-  font-size: 0.9rem;
+  margin: 0 0 4px;
+  letter-spacing: 0.03em;
+}
+
+.reveal-card-desc {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.reveal-card-steps {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+
+.reveal-step {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(100, 80, 50, 0.12);
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  flex: 1;
+  min-width: 140px;
+}
+
+.step-num {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: rgba(212, 184, 120, 0.15);
+  color: #d4b878;
+  font-size: 0.65rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.reveal-card-btn {
+  width: 100%;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 12px;
+  font-size: 0.95rem;
   font-weight: 600;
   cursor: pointer;
+  background: linear-gradient(135deg, #d4b878, #c4a060);
+  color: #1a1510;
   transition: all 200ms;
   letter-spacing: 0.05em;
 }
 
-.reveal-entry-btn:hover {
-  background: rgba(212, 184, 120, 0.2);
-  border-color: rgba(212, 184, 120, 0.5);
+.reveal-card-btn:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 16px rgba(212, 184, 120, 0.15);
+  box-shadow: 0 4px 20px rgba(212, 184, 120, 0.25);
 }
 
 /* ---- Mobile ---- */
