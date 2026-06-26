@@ -40,6 +40,18 @@ export function authenticateJWT(req, res, next) {
   }
 }
 
+// Like authenticateJWT but doesn't reject — just sets req.user if valid token present
+export function optionalJWT(req, res, next) {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) return next();
+  const token = authHeader.split(' ')[1];
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    req.user = { userId: decoded.userId, username: decoded.username, role: decoded.role };
+  } catch (_) { /* ignore invalid token */ }
+  next();
+}
+
 export function requireGroupOwner(req, res, next) {
   const groupId = req.params.group_id || req.body.group_id || req.params.id;
   if (!groupId) return res.status(400).json({ error: 'group_id required' });

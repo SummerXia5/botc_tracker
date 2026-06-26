@@ -14,14 +14,41 @@
 import { Router } from 'express';
 import { body, validationResult } from 'express-validator';
 import db from '../db.js';
-import { authenticateJWT } from '../middleware/auth.js';
+import { authenticateJWT, optionalJWT } from '../middleware/auth.js';
 
 const router = Router();
 
 // ─── GET /api/groups ────────────────────────────────────────────────────────────
 
-router.get('/', (req, res) => {
+router.get('/', optionalJWT, (req, res) => {
   const groups = db.prepare('SELECT * FROM groups ORDER BY created_at ASC').all();
+
+  // If user is authenticated, attach their admin role and pending request status per group
+  if (req.user) {
+    const userId = req.user.userId;
+    const adminRows = db.prepare('SELECT group_id, role FROM group_admins WHERE user_id = ?').all(userId);
+    const adminMap = {};
+    for (const r of adminRows) adminMap[r.group_id] = r.role;
+
+    const pendingRows = db.prepare("SELECT group_id FROM admin_requests WHERE user_id = ? AND status = 'pending'").all(userId);
+    const pendingSet = new Set(pendingRows.map(r => r.group_id));
+
+    // For owners/admins: count pending requests per group
+    const pendingCounts = db.prepare(`
+      SELECT group_id, COUNT(*) as count FROM admin_requests
+      WHERE status = 'pending' AND group_id IN (SELECT group_id FROM group_admins WHERE user_id = ?)
+      GROUP BY group_id
+    `).all(userId);
+    const pendingCountMap = {};
+    for (const r of pendingCounts) pendingCountMap[r.group_id] = r.count;
+
+    for (const g of groups) {
+      g.myAdminRole = adminMap[g.group_id || g.id] || null;
+      g.myPendingRequest = pendingSet.has(g.id);
+      g.pendingRequestCount = pendingCountMap[g.id] || 0;
+    }
+  }
+
   res.json({ groups });
 });
 
@@ -234,6 +261,123 @@ router.get('/:id/members', (req, res) => {
     ORDER BY gm.joined_at ASC
   `).all(req.params.id);
   res.json({ members });
+});
+
+// ─── POST /api/groups/:id/request-admin ─────────────────────────────────────────
+// A storyteller requests to become admin of a group.
+
+router.post('/:id/request-admin', authenticateJWT, (req, res) => {
+  const groupId = req.params.id;
+  const userId = req.user.userId;
+
+  const group = db.prepare('SELECT * FROM groups WHERE id = ?').get(groupId);
+  if (!group) return res.status(404).json({ error: '分组不存在' });
+
+  // Already an admin?
+  const existing = db.prepare('SELECT * FROM group_admins WHERE user_id = ? AND group_id = ?').get(userId, groupId);
+  if (existing) return res.status(409).json({ error: '你已经是该组管理员' });
+
+  // Already has a pending request?
+  const pendingReq = db.prepare("SELECT * FROM admin_requests WHERE user_id = ? AND group_id = ? AND status = 'pending'").get(userId, groupId);
+  if (pendingReq) return res.status(409).json({ error: '已有待审批的申请' });
+
+  // Delete any old rejected request first (so UNIQUE constraint works for re-apply)
+  db.prepare("DELETE FROM admin_requests WHERE user_id = ? AND group_id = ? AND status = 'rejected'").run(userId, groupId);
+
+  db.prepare('INSERT INTO admin_requests (user_id, group_id) VALUES (?, ?)').run(userId, groupId);
+  res.json({ message: '申请已提交，等待管理员审批' });
+});
+
+// ─── GET /api/groups/:id/admin-requests ─────────────────────────────────────────
+// Owner/admins can view pending requests.
+
+router.get('/:id/admin-requests', authenticateJWT, (req, res) => {
+  const groupId = req.params.id;
+  const userId = req.user.userId;
+
+  // Must be owner or admin
+  const admin = db.prepare('SELECT * FROM group_admins WHERE user_id = ? AND group_id = ?').get(userId, groupId);
+  if (!admin) return res.status(403).json({ error: '无权限查看' });
+
+  const requests = db.prepare(`
+    SELECT ar.*, u.username, u.display_name, u.avatar as user_avatar
+    FROM admin_requests ar
+    JOIN users u ON ar.user_id = u.id
+    WHERE ar.group_id = ? AND ar.status = 'pending'
+    ORDER BY ar.created_at ASC
+  `).all(groupId);
+
+  res.json({ requests });
+});
+
+// ─── POST /api/groups/:id/approve-admin/:userId ─────────────────────────────────
+
+router.post('/:id/approve-admin/:userId', authenticateJWT, (req, res) => {
+  const { id: groupId, userId: targetUserId } = req.params;
+  const myUserId = req.user.userId;
+
+  // Must be owner
+  const admin = db.prepare("SELECT * FROM group_admins WHERE user_id = ? AND group_id = ? AND role = 'owner'").get(myUserId, groupId);
+  if (!admin) return res.status(403).json({ error: '只有组创建者才能审批' });
+
+  // Update request
+  const result = db.prepare(
+    "UPDATE admin_requests SET status = 'approved', resolved_at = datetime('now') WHERE user_id = ? AND group_id = ? AND status = 'pending'"
+  ).run(parseInt(targetUserId), groupId);
+
+  if (result.changes === 0) return res.status(404).json({ error: '未找到待审批的申请' });
+
+  // Add as admin
+  db.prepare("INSERT OR IGNORE INTO group_admins (user_id, group_id, role) VALUES (?, ?, 'admin')").run(parseInt(targetUserId), groupId);
+
+  res.json({ message: '已批准' });
+});
+
+// ─── POST /api/groups/:id/reject-admin/:userId ──────────────────────────────────
+
+router.post('/:id/reject-admin/:userId', authenticateJWT, (req, res) => {
+  const { id: groupId, userId: targetUserId } = req.params;
+  const myUserId = req.user.userId;
+
+  const admin = db.prepare("SELECT * FROM group_admins WHERE user_id = ? AND group_id = ? AND role = 'owner'").get(myUserId, groupId);
+  if (!admin) return res.status(403).json({ error: '只有组创建者才能审批' });
+
+  db.prepare(
+    "UPDATE admin_requests SET status = 'rejected', resolved_at = datetime('now') WHERE user_id = ? AND group_id = ? AND status = 'pending'"
+  ).run(parseInt(targetUserId), groupId);
+
+  res.json({ message: '已拒绝' });
+});
+
+// ─── GET /api/groups/:id/admins ─────────────────────────────────────────────────
+
+router.get('/:id/admins', (req, res) => {
+  const admins = db.prepare(`
+    SELECT ga.*, u.username, u.display_name, u.avatar as user_avatar
+    FROM group_admins ga
+    JOIN users u ON ga.user_id = u.id
+    WHERE ga.group_id = ?
+    ORDER BY ga.role ASC, ga.granted_at ASC
+  `).all(req.params.id);
+  res.json({ admins });
+});
+
+// ─── DELETE /api/groups/:id/admins/:userId ───────────────────────────────────────
+// Owner removes an admin.
+
+router.delete('/:id/admins/:userId', authenticateJWT, (req, res) => {
+  const { id: groupId, userId: targetUserId } = req.params;
+  const myUserId = req.user.userId;
+
+  const admin = db.prepare("SELECT * FROM group_admins WHERE user_id = ? AND group_id = ? AND role = 'owner'").get(myUserId, groupId);
+  if (!admin) return res.status(403).json({ error: '只有组创建者才能操作' });
+
+  // Cannot remove owner
+  const target = db.prepare('SELECT * FROM group_admins WHERE user_id = ? AND group_id = ?').get(parseInt(targetUserId), groupId);
+  if (target && target.role === 'owner') return res.status(403).json({ error: '不能移除创建者' });
+
+  db.prepare('DELETE FROM group_admins WHERE user_id = ? AND group_id = ?').run(parseInt(targetUserId), groupId);
+  res.json({ message: '已移除管理员' });
 });
 
 export default router;

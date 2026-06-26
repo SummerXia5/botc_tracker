@@ -382,6 +382,8 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
           ...normalized,
           id, // keep original ID for assignment tracking
           icon: m.image || normalized.icon, // prefer script image if available
+          reminders: m.reminders || [],
+          remindersGlobal: m.remindersGlobal || [],
         };
       }
 
@@ -393,6 +395,8 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
         type: teamMap[m.team] || 'townsfolk',
         ability: m.ability || '',
         icon: m.image || null,
+        reminders: m.reminders || [],
+        remindersGlobal: m.remindersGlobal || [],
         _unknown: true,
       };
     });
@@ -420,6 +424,31 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
     // Always include all travellers regardless of script
     groups.traveller = Object.values(TRAVELLERS);
     return groups;
+  }, [scriptCharacters]);
+
+  // Build dynamic reminder tokens from custom script character reminders
+  const scriptReminderTokens = useMemo(() => {
+    const tokens = [];
+    const seen = new Set();
+    for (const ch of scriptCharacters) {
+      const allReminders = [
+        ...(ch.reminders || []).map(r => ({ text: r, global: false })),
+        ...(ch.remindersGlobal || []).map(r => ({ text: r, global: true })),
+      ];
+      for (const { text, global } of allReminders) {
+        const key = `${ch.id}::${text}`;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        tokens.push({
+          id: `script:${ch.id}:${text}`,
+          label: text,
+          charName: ch.name,
+          charIcon: ch.icon,
+          global,
+        });
+      }
+    }
+    return tokens;
   }, [scriptCharacters]);
 
   // Already-assigned character IDs
@@ -708,7 +737,10 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
   const toggleReminder = (seatIdx, reminderId) => {
     const playerName = seats[seatIdx]?.player?.name || `座位${seatIdx + 1}`;
     const token = REMINDER_TOKENS.find(t => t.id === reminderId);
-    const label = reminderId.startsWith('custom:') ? reminderId.replace('custom:', '') : (token?.label || reminderId);
+    let label;
+    if (reminderId.startsWith('custom:')) label = reminderId.replace('custom:', '');
+    else if (reminderId.startsWith('script:')) label = reminderId.split(':').slice(2).join(':');
+    else label = token?.label || reminderId;
     setSeatReminders(prev => {
       const current = prev[seatIdx] || [];
       const has = current.includes(reminderId);
@@ -1090,9 +1122,20 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                     <div className="seat-reminders" onClick={e => e.stopPropagation()}>
                       {seatReminders[i].map((rid, ri) => {
                         const isCustom = rid.startsWith('custom:');
-                        const token = isCustom ? null : REMINDER_TOKENS.find(t => t.id === rid);
-                        const icon = isCustom ? '📝' : (token?.icon || '?');
-                        const label = isCustom ? rid.replace('custom:', '') : (token?.label || rid);
+                        const isScript = rid.startsWith('script:');
+                        const token = (!isCustom && !isScript) ? REMINDER_TOKENS.find(t => t.id === rid) : null;
+                        const scriptToken = isScript ? scriptReminderTokens.find(t => t.id === rid) : null;
+                        let icon, label;
+                        if (isScript) {
+                          label = rid.split(':').slice(2).join(':');
+                          icon = null; // will use image
+                        } else if (isCustom) {
+                          label = rid.replace('custom:', '');
+                          icon = '📝';
+                        } else {
+                          label = token?.label || rid;
+                          icon = token?.icon || '?';
+                        }
                         const dist = 60 + ri * 32;
                         const tx = towardCenterX * dist;
                         const ty = towardCenterY * dist;
@@ -1113,7 +1156,18 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                               }));
                             }}
                           >
-                            <span className="reminder-token-icon">{icon}</span>
+                            {isScript && scriptToken?.charIcon ? (
+                              <span className="reminder-token-icon" style={{
+                                display: 'inline-block',
+                                width: 18, height: 18,
+                                backgroundImage: `url(${scriptToken.charIcon})`,
+                                backgroundSize: 'cover',
+                                backgroundPosition: 'center',
+                                borderRadius: '50%',
+                              }} />
+                            ) : (
+                              <span className="reminder-token-icon">{icon}</span>
+                            )}
                             <span className="reminder-token-text">{label}</span>
                           </div>
                         );
@@ -2004,6 +2058,52 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                 );
               })}
             </div>
+            {/* Script character reminder tokens */}
+            {scriptReminderTokens.length > 0 && (
+              <>
+                <div style={{
+                  fontSize: '0.7rem', color: '#8a7a5a', margin: '10px 0 6px',
+                  fontWeight: 600, borderTop: '1px solid rgba(100,80,50,0.15)', paddingTop: 8,
+                }}>
+                  📜 剧本角色标记
+                </div>
+                <div className="reminder-grid">
+                  {scriptReminderTokens.map(token => {
+                    const isActive = (seatReminders[reminderSeatIndex] || []).includes(token.id);
+                    return (
+                      <button
+                        key={token.id}
+                        className={`reminder-token ${isActive ? 'reminder-active' : ''}`}
+                        style={{
+                          '--token-color': '#c7a',
+                          position: 'relative',
+                          overflow: 'hidden',
+                        }}
+                        onClick={() => toggleReminder(reminderSeatIndex, token.id)}
+                        title={`${token.charName}: ${token.label}${token.global ? ' (全局)' : ''}`}
+                      >
+                        {token.charIcon ? (
+                          <span className="reminder-token-icon" style={{
+                            display: 'inline-block',
+                            width: 24, height: 24,
+                            backgroundImage: `url(${token.charIcon})`,
+                            backgroundSize: 'cover',
+                            backgroundPosition: 'center',
+                            borderRadius: '50%',
+                            opacity: 0.85,
+                          }} />
+                        ) : (
+                          <span className="reminder-token-icon">📌</span>
+                        )}
+                        <span className="reminder-token-label" style={{ fontSize: '0.62rem' }}>
+                          {token.label}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </>
+            )}
             {/* Custom reminder input */}
             <div className="reminder-custom-input">
               <input
@@ -2045,9 +2145,19 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                 <span>当前标记：</span>
                 {seatReminders[reminderSeatIndex].map((rid, ri) => {
                   const isCustom = rid.startsWith('custom:');
-                  const token = isCustom ? null : REMINDER_TOKENS.find(t => t.id === rid);
-                  const label = isCustom ? rid.replace('custom:', '') : (token?.label || rid);
-                  const icon = isCustom ? '📝' : (token?.icon || '?');
+                  const isScript = rid.startsWith('script:');
+                  const token = (!isCustom && !isScript) ? REMINDER_TOKENS.find(t => t.id === rid) : null;
+                  let label, icon;
+                  if (isScript) {
+                    label = rid.split(':').slice(2).join(':');
+                    icon = '📌';
+                  } else if (isCustom) {
+                    label = rid.replace('custom:', '');
+                    icon = '📝';
+                  } else {
+                    label = token?.label || rid;
+                    icon = token?.icon || '?';
+                  }
                   return (
                     <span key={ri} className="reminder-current-tag" onClick={() => toggleReminder(reminderSeatIndex, rid)}>
                       {icon} {label} ✕

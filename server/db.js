@@ -193,6 +193,42 @@ function initDatabase() {
       db.prepare('UPDATE groups SET created_by = ? WHERE created_by IS NULL').run(firstUser.id);
     }
   } catch (e) {}
+
+  // ---- Group admin system ----
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS group_admins (
+      id          INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id     INTEGER NOT NULL REFERENCES users(id),
+      group_id    TEXT NOT NULL REFERENCES groups(id) ON DELETE CASCADE,
+      role        TEXT NOT NULL DEFAULT 'admin' CHECK(role IN ('owner', 'admin')),
+      granted_at  TEXT DEFAULT (datetime('now')),
+      UNIQUE(user_id, group_id)
+    );
+    CREATE INDEX IF NOT EXISTS idx_ga_user ON group_admins(user_id);
+    CREATE INDEX IF NOT EXISTS idx_ga_group ON group_admins(group_id);
+
+    CREATE TABLE IF NOT EXISTS admin_requests (
+      id          INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id     INTEGER NOT NULL REFERENCES users(id),
+      group_id    TEXT NOT NULL REFERENCES groups(id) ON DELETE CASCADE,
+      status      TEXT NOT NULL DEFAULT 'pending' CHECK(status IN ('pending', 'approved', 'rejected')),
+      created_at  TEXT DEFAULT (datetime('now')),
+      resolved_at TEXT,
+      UNIQUE(user_id, group_id)
+    );
+    CREATE INDEX IF NOT EXISTS idx_ar_group ON admin_requests(group_id);
+  `);
+
+  // Migrate: ensure all group creators are owners in group_admins
+  try {
+    const groups = db.prepare('SELECT id, created_by FROM groups WHERE created_by IS NOT NULL').all();
+    const insertAdmin = db.prepare(
+      "INSERT OR IGNORE INTO group_admins (user_id, group_id, role) VALUES (?, ?, 'owner')"
+    );
+    for (const g of groups) {
+      insertAdmin.run(g.created_by, g.id);
+    }
+  } catch (e) {}
 }
 
 // Run table creation on module load
