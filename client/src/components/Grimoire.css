@@ -758,6 +758,43 @@
   line-height: 1.2;
 }
 
+/* ---- Perceived identity badge ---- */
+.perceived-badge {
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  background: rgba(120, 60, 160, 0.9);
+  border: 1.5px solid rgba(180, 140, 220, 0.5);
+  border-radius: 10px;
+  padding: 2px 8px 2px 2px;
+  z-index: 14;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+  transition: transform 150ms ease;
+  white-space: nowrap;
+}
+.perceived-badge:hover {
+  transform: translateX(-50%) scale(1.08);
+}
+.perceived-badge-icon {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+.perceived-badge-label {
+  font-size: 0.6rem;
+  font-weight: 600;
+  color: #e8d4f0;
+  max-width: 50px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 /* ---- Night order badges ---- */
 .night-badges-row {
   position: absolute;

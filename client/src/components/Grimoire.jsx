@@ -115,6 +115,10 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
   // ---- Privacy mask ----
   const [showMask, setShowMask] = useState(false);
 
+  // ---- Perceived identity (deception characters) ----
+  const [showPerceivedPicker, setShowPerceivedPicker] = useState(false);
+  const [perceivedSeatIndex, setPerceivedSeatIndex] = useState(null);
+
   // ---- Role reveal code ----
   const [revealCode, setRevealCode] = useState(null);
   const [showRevealCode, setShowRevealCode] = useState(false);
@@ -798,6 +802,32 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
     setAssigningSeatIndex(null);
   };
 
+  const handleAssignPerceived = (charId) => {
+    if (perceivedSeatIndex === null) return;
+    setSeats(prev => prev.map((s, i) => {
+      if (i !== perceivedSeatIndex) return s;
+      return { ...s, perceivedCharId: charId };
+    }));
+    const ch = charLookup[charId] || CHARACTERS[charId];
+    const seatPlayer = seats[perceivedSeatIndex]?.player;
+    if (ch && seatPlayer) {
+      addLog(`${seatPlayer.name} 认为自己是: ${ch.name}`);
+    }
+    setShowPerceivedPicker(false);
+    setPerceivedSeatIndex(null);
+  };
+
+  const clearPerceived = (seatIdx) => {
+    setSeats(prev => prev.map((s, i) => {
+      if (i !== seatIdx) return s;
+      const { perceivedCharId, ...rest } = s;
+      return rest;
+    }));
+    addLog(`${seats[seatIdx]?.player?.name || `座位${seatIdx+1}`} 认知身份已清除`);
+    setShowPerceivedPicker(false);
+    setPerceivedSeatIndex(null);
+  };
+
   // ----------------------------------------------------------------
   //  Phase transitions
   // ----------------------------------------------------------------
@@ -1129,6 +1159,13 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                   setCircleDropIdx(null);
                 }}
                 onClick={(e) => handleSeatClick(i, e)}
+                onContextMenu={(e) => {
+                  e.preventDefault();
+                  if (seat.characterId) {
+                    setPerceivedSeatIndex(i);
+                    setShowPerceivedPicker(true);
+                  }
+                }}
               >
                 {/* Dead shroud overlay */}
                 {!seat.alive && (
@@ -1170,6 +1207,28 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                       </span>
                     )}
                     <span className="seat-char-name">{ch.name}</span>
+                    {/* Perceived identity indicator */}
+                    {seat.perceivedCharId && (() => {
+                      const pch = charLookup[seat.perceivedCharId] || CHARACTERS[seat.perceivedCharId];
+                      return pch ? (
+                        <div
+                          className="perceived-badge"
+                          title={`玩家认为自己是: ${pch.name}`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setPerceivedSeatIndex(i);
+                            setShowPerceivedPicker(true);
+                          }}
+                        >
+                          {pch.icon ? (
+                            <img src={pch.icon} alt={pch.name} className="perceived-badge-icon" />
+                          ) : (
+                            <span>{pch.name?.charAt(0)}</span>
+                          )}
+                          <span className="perceived-badge-label">{pch.name}</span>
+                        </div>
+                      ) : null;
+                    })()}
                     {/* Night order badges - centered vertically */}
                     {(nightOrderBadges.firstNight[seat.characterId] || nightOrderBadges.otherNight[seat.characterId]) && (
                       <div className="night-badges-row">
@@ -1327,10 +1386,12 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
               try {
                 const result = await createRevealSession({
                   seats: seats.map(s => {
-                    const ch = charLookup[s.characterId] || CHARACTERS[s.characterId];
+                    // Use perceived identity for reveal if set, otherwise true identity
+                    const revealId = s.perceivedCharId || s.characterId;
+                    const ch = charLookup[revealId] || CHARACTERS[revealId];
                     return {
-                      characterId: s.characterId,
-                      characterName: ch?.name || s.characterId,
+                      characterId: revealId,
+                      characterName: ch?.name || revealId,
                       characterNameEn: ch?.nameEn || '',
                       characterIcon: ch?.icon || '',
                       characterAbility: ch?.ability || '',
@@ -1467,6 +1528,74 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                             className={`role-panel-item ${isAssigned ? 'role-assigned' : ''}`}
                             disabled={isAssigned}
                             onClick={() => handleAssignRole(ch.id)}
+                          >
+                            {ch.icon ? (
+                              <img className="role-item-icon" src={ch.icon} alt={ch.name} />
+                            ) : (
+                              <span className="role-item-indicator" style={{ background: TYPE_COLORS[ch.type] }} />
+                            )}
+                            <span className="role-item-name">{ch.name}</span>
+                            {ch.nameEn && <span className="role-item-en">{ch.nameEn}</span>}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ---- Perceived Identity Picker ---- */}
+      {showPerceivedPicker && perceivedSeatIndex !== null && (
+        <div className="grimoire-panel-overlay" onClick={() => { setShowPerceivedPicker(false); setPerceivedSeatIndex(null); }}>
+          <div className="grimoire-role-panel" onClick={e => e.stopPropagation()}>
+            <div className="role-panel-header">
+              <h3>
+                🎭 设置认知身份
+                {seats[perceivedSeatIndex] && (
+                  <> — {seats[perceivedSeatIndex].player?.name || `座位${perceivedSeatIndex+1}`}</>
+                )}
+              </h3>
+              <button className="role-panel-close" onClick={() => { setShowPerceivedPicker(false); setPerceivedSeatIndex(null); }}>✕</button>
+            </div>
+            <div className="perceived-hint" style={{
+              padding: '8px 18px', fontSize: '0.78rem', color: '#8a7a5a', borderBottom: '1px solid rgba(100,80,50,0.15)',
+              background: 'rgba(40,35,28,0.5)'
+            }}>
+              💡 玩家将看到此身份（用于酒鬼/疯子/提线木偶等认知覆盖角色）
+              {seats[perceivedSeatIndex]?.perceivedCharId && (
+                <button
+                  style={{
+                    marginLeft: 12, fontSize: '0.72rem', color: '#f36a6a', background: 'none',
+                    border: '1px solid rgba(243,106,106,0.3)', borderRadius: 6, padding: '2px 10px',
+                    cursor: 'pointer',
+                  }}
+                  onClick={() => clearPerceived(perceivedSeatIndex)}
+                >
+                  ✕ 清除认知身份
+                </button>
+              )}
+            </div>
+            <div className="role-panel-content">
+              {['townsfolk', 'outsider', 'minion', 'demon', 'traveller'].map(type => {
+                const chars = charactersByType[type];
+                if (!chars || chars.length === 0) return null;
+                return (
+                  <div key={type} className="role-panel-group">
+                    <div className="role-panel-group-label" style={{ color: TYPE_COLORS[type] }}>
+                      {TYPE_LABELS[type]}
+                    </div>
+                    <div className="role-panel-grid">
+                      {chars.map(ch => {
+                        const isCurrent = seats[perceivedSeatIndex]?.perceivedCharId === ch.id;
+                        return (
+                          <button
+                            key={ch.id}
+                            className={`role-panel-item ${isCurrent ? 'role-assigned' : ''}`}
+                            onClick={() => handleAssignPerceived(ch.id)}
                           >
                             {ch.icon ? (
                               <img className="role-item-icon" src={ch.icon} alt={ch.name} />
