@@ -2,7 +2,7 @@ import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { CHARACTERS, TYPE_COLORS, TYPE_LABELS, SCRIPTS, TRAVELLERS } from '../data/characters';
 import PlayerSelector from './PlayerSelector';
-import { createPlayer, createRevealSession } from '../api';
+import { createPlayer, createRevealSession, getRevealSession } from '../api';
 import './Grimoire.css';
 
 const REMINDER_TOKENS = [
@@ -119,6 +119,8 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
   const [revealCode, setRevealCode] = useState(null);
   const [showRevealCode, setShowRevealCode] = useState(false);
   const [revealLoading, setRevealLoading] = useState(false);
+  const [revealSession, setRevealSession] = useState(null);
+  const revealPollRef = useRef(null);
 
   // ---- Day timer (供料计时) ----
   const [timerDuration, setTimerDuration] = useState(8 * 60); // seconds, default 8 min
@@ -250,6 +252,43 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
     localStorage.removeItem(STORAGE_KEY);
     console.log('[Grimoire] Cleared saved game state');
   }, [STORAGE_KEY]);
+
+  // ================================================================
+  //  Poll reveal session for real-time seat status
+  // ================================================================
+  useEffect(() => {
+    if (!revealCode || phase !== 'setup') return;
+    const poll = async () => {
+      try {
+        const data = await getRevealSession(revealCode);
+        setRevealSession(data);
+        // When all seated, update grimoire seats with player info
+        if (data.allSeated) {
+          setSeats(prev => prev.map((seat, i) => {
+            const seatInfo = data.seats[i];
+            if (seatInfo?.playerName && (!seat.player || seat.player.name !== seatInfo.playerName)) {
+              // Find matching player from localPlayers or create one
+              const existingPlayer = localPlayers.find(p => p.name === seatInfo.playerName);
+              return {
+                ...seat,
+                player: existingPlayer || { id: `reveal_${i}`, name: seatInfo.playerName },
+              };
+            }
+            return seat;
+          }));
+          addLog(`所有玩家已入座 (${data.seatedCount}/${data.totalSeats})`);
+          clearInterval(revealPollRef.current);
+          revealPollRef.current = null;
+        }
+      } catch (e) {
+        // session expired
+      }
+    };
+    // Initial poll
+    poll();
+    revealPollRef.current = setInterval(poll, 3000);
+    return () => { if (revealPollRef.current) clearInterval(revealPollRef.current); };
+  }, [revealCode, phase]);
 
   // ----------------------------------------------------------------
   //  Available scripts: merge group scripts + built-in SCRIPTS
@@ -1059,10 +1098,15 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
       {/* ---- Bottom Action Bar ---- */}
       <div className="grimoire-action-bar">
         {/* Phase transition button */}
-        {phase === 'setup' && allAssigned && (
+        {phase === 'setup' && allAssigned && seats.every(s => s.player) && (
           <button className="action-bar-btn action-primary" onClick={handleStartFirstNight}>
             开始游戏（夜晚）
           </button>
+        )}
+        {phase === 'setup' && allAssigned && !seats.every(s => s.player) && revealSession && (
+          <span className="action-bar-hint" style={{ color: '#d4b878' }}>
+            ⏳ 等待玩家入座 ({revealSession.seatedCount}/{revealSession.totalSeats})
+          </span>
         )}
         {phase === 'setup' && allAssigned && (
           <button
@@ -1690,8 +1734,8 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
       {showRevealCode && revealCode && (
         <div className="grimoire-panel-overlay" onClick={() => setShowRevealCode(false)}>
           <div className="reveal-code-display" onClick={e => e.stopPropagation()}>
-            <h3 style={{ color: '#d4b878', margin: '0 0 8px' }}>🎫 角色抽签码</h3>
-            <p style={{ fontSize: '0.8rem', color: '#8a7a5a', margin: '0 0 20px' }}>
+            <h3 style={{ color: '#d4b878', margin: '0 0 8px' }}>🎫 角色抽取码</h3>
+            <p style={{ fontSize: '0.8rem', color: '#8a7a5a', margin: '0 0 16px' }}>
               将此代码分享给玩家，玩家访问同一网站后点击"🔮 抽取角色"
             </p>
             <div style={{
@@ -1699,27 +1743,60 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
               fontFamily: "'SF Mono', 'Fira Code', monospace",
               color: '#d4b878', padding: '16px 32px', borderRadius: 16,
               background: 'rgba(212,184,120,0.1)', border: '2px solid rgba(212,184,120,0.3)',
-              marginBottom: 20, textAlign: 'center',
+              marginBottom: 16, textAlign: 'center',
               textShadow: '0 2px 12px rgba(212,184,120,0.3)',
             }}>
               {revealCode}
             </div>
-            <button
-              className="action-bar-btn"
-              style={{ margin: '0 auto', display: 'block' }}
-              onClick={() => {
-                navigator.clipboard?.writeText(revealCode);
-              }}
-            >
-              📋 复制代码
-            </button>
-            <button
-              className="action-bar-btn"
-              style={{ margin: '8px auto 0', display: 'block', fontSize: '0.75rem' }}
-              onClick={() => setShowRevealCode(false)}
-            >
-              关闭
-            </button>
+
+            {/* Real-time seat status */}
+            {revealSession && (
+              <div style={{ marginBottom: 16 }}>
+                <div style={{
+                  fontSize: '0.85rem', fontWeight: 600,
+                  color: revealSession.allSeated ? '#a0d4a0' : '#d4b878',
+                  marginBottom: 10,
+                }}>
+                  {revealSession.allSeated
+                    ? '✅ 所有玩家已入座！'
+                    : `⏳ 入座进度: ${revealSession.seatedCount} / ${revealSession.totalSeats}`
+                  }
+                </div>
+                <div style={{
+                  display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))',
+                  gap: 6, textAlign: 'left',
+                }}>
+                  {revealSession.seats.map(seat => (
+                    <div key={seat.seatIndex} style={{
+                      padding: '6px 10px', borderRadius: 8,
+                      fontSize: '0.7rem',
+                      background: seat.occupied ? 'rgba(100,180,100,0.1)' : 'rgba(255,255,255,0.03)',
+                      border: `1px solid ${seat.occupied ? 'rgba(100,180,100,0.3)' : 'rgba(100,80,50,0.15)'}`,
+                      color: seat.occupied ? '#a0d4a0' : '#6a5a3a',
+                    }}>
+                      <span style={{ fontWeight: 700 }}>{seat.seatNumber}.</span>{' '}
+                      {seat.occupied ? seat.playerName : '等待中...'}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
+              <button
+                className="action-bar-btn"
+                onClick={() => { navigator.clipboard?.writeText(revealCode); }}
+              >
+                📋 复制代码
+              </button>
+              <button
+                className="action-bar-btn"
+                style={{ fontSize: '0.75rem' }}
+                onClick={() => setShowRevealCode(false)}
+              >
+                关闭
+              </button>
+            </div>
           </div>
         </div>
       )}
