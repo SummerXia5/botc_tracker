@@ -265,7 +265,7 @@ export default function App() {
           <div className="reveal-card-steps">
             <div className="reveal-step">
               <span className="step-num">1</span>
-              <span>从说书人处获取6位抽签码</span>
+              <span>从说书人处获取4位抽签码</span>
             </div>
             <div className="reveal-step">
               <span className="step-num">2</span>

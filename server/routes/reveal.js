@@ -17,12 +17,12 @@ const sessions = new Map();
 const TWO_HOURS_MS = 2 * 60 * 60 * 1000;
 
 /**
- * Generate a random 6-digit numeric code that isn't already in use.
+ * Generate a random 4-digit numeric code that isn't already in use.
  */
 function generateCode() {
   let code;
   do {
-    code = String(Math.floor(100000 + Math.random() * 900000));
+    code = String(Math.floor(1000 + Math.random() * 9000));
   } while (sessions.has(code));
   return code;
 }

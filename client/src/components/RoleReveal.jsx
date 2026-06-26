@@ -22,8 +22,8 @@ export default function RoleReveal({ onClose }) {
   const allChars = { ...CHARACTERS, ...TRAVELLERS };
 
   const handleSubmitCode = async () => {
-    if (code.length !== 6) {
-      setError('请输入6位数字代码');
+    if (code.length !== 4) {
+      setError('请输入4位数字代码');
       return;
     }
     setLoading(true);
@@ -122,15 +122,15 @@ export default function RoleReveal({ onClose }) {
     <div className="reveal-page">
       <div className="reveal-card">
         <h2 className="reveal-title">🔮 角色抽取</h2>
-        <p className="reveal-subtitle">输入说书人提供的6位代码</p>
+        <p className="reveal-subtitle">输入说书人提供的4位代码</p>
         {error && <div className="reveal-error">{error}</div>}
         <div className="reveal-code-input">
           <input
             type="text"
-            maxLength={6}
+            maxLength={4}
             value={code}
-            onChange={e => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-            placeholder="000000"
+            onChange={e => setCode(e.target.value.replace(/\D/g, '').slice(0, 4))}
+            placeholder="0000"
             className="reveal-code-field"
             autoFocus
             onKeyDown={e => e.key === 'Enter' && handleSubmitCode()}
@@ -138,7 +138,7 @@ export default function RoleReveal({ onClose }) {
         </div>
         <button
           className="reveal-btn"
-          disabled={code.length !== 6 || loading}
+          disabled={code.length !== 4 || loading}
           onClick={handleSubmitCode}
         >
           {loading ? '查询中...' : '确认'}
