@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
+import { useState, useMemo, useCallback, useRef, useEffect, Fragment } from 'react';
 
 import { CHARACTERS, TYPE_COLORS, TYPE_LABELS, SCRIPTS, TRAVELLERS } from '../data/characters';
 import PlayerSelector from './PlayerSelector';
@@ -1295,7 +1295,7 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
             const ch = seat.characterId ? (charLookup[seat.characterId] || CHARACTERS[seat.characterId]) : null;
 
             return (
-              <React.Fragment key={seat.player?.id || `seat-${i}`}>
+              <Fragment key={seat.player?.id || `seat-${i}`}>
               <div
                 className={[
                   'seat-token',
@@ -1604,7 +1604,7 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                   )}
                 </div>
               )}
-            </React.Fragment>
+            </Fragment>
             );
           })}
         </div>
