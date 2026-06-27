@@ -3463,8 +3463,10 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
               <button
                 className="btn-close-grimoire"
                 onClick={() => {
-                  clearSavedState();
-                  addLog('对局取消 — 关闭魔典');
+                  // Clear ALL saved state so a new game can start fresh
+                  localStorage.removeItem(STORAGE_KEY);
+                  localStorage.removeItem(STORAGE_KEY + '_backup');
+                  localStorage.removeItem(STORAGE_KEY + '_log');
                   setShowEndDialog(false);
                   onClose();
                 }}
