@@ -3494,6 +3494,57 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
           <details className="grimoire-log">
             <summary className="grimoire-log-toggle">日志 ({log.length})</summary>
             <div className="grimoire-log-content">
+              <button
+                className="log-export-btn"
+                onClick={() => {
+                  const lines = [];
+                  lines.push(`════ 魔典日志导出 ════`);
+                  lines.push(`剧本: ${selectedScript?.name || '未知'}`);
+                  lines.push(`日期: ${new Date().toISOString().split('T')[0]}`);
+                  lines.push(`阶段: ${phase === 'day' ? `白天 ${dayNumber}` : phase === 'night' ? `夜晚 ${dayNumber}` : '准备'}`);
+                  lines.push('');
+                  lines.push('── 玩家配置 ──');
+                  seats.forEach((s, i) => {
+                    const ch = s.characterId ? (charLookup[s.characterId] || CHARACTERS[s.characterId]) : null;
+                    const perceived = s.perceivedCharId ? (charLookup[s.perceivedCharId] || CHARACTERS[s.perceivedCharId]) : null;
+                    const name = s.player?.name || `座位${i + 1}`;
+                    let line = `${i + 1}. ${name} → ${ch?.name || '未分配'} (${ch?.type || '?'})`;
+                    if (perceived && s.perceivedCharId !== s.characterId) line += ` [认为: ${perceived.name}]`;
+                    if (!s.alive) line += ` 💀已死亡${s.deathDay ? ` (第${s.deathDay}天)` : ''}`;
+                    const tokens = seatReminders[i] || [];
+                    if (tokens.length > 0) {
+                      const names = tokens.map(tid => {
+                        if (tid.startsWith('custom:')) return tid.replace('custom:', '');
+                        if (tid.startsWith('script:')) return tid.split(':').slice(2).join(':');
+                        const tk = REMINDER_TOKENS.find(t => t.id === tid);
+                        return tk?.label || tid;
+                      });
+                      line += ` [标记: ${names.join(', ')}]`;
+                    }
+                    lines.push(line);
+                  });
+                  if (demonBluffs.some(b => b)) {
+                    lines.push('');
+                    lines.push('── 恶魔伪装 ──');
+                    demonBluffs.filter(b => b).forEach((b, i) => {
+                      const c = charLookup[b] || CHARACTERS[b];
+                      lines.push(`${i + 1}. ${c?.name || b}`);
+                    });
+                  }
+                  lines.push('');
+                  lines.push('── 完整日志 ──');
+                  log.forEach(l => lines.push(`[${l.time}] ${l.msg}`));
+                  lines.push('');
+                  lines.push(`导出时间: ${new Date().toLocaleString('zh-CN')}`);
+                  const blob = new Blob([lines.join('\n')], { type: 'text/plain;charset=utf-8' });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = `魔典日志_${selectedScript?.name || '游戏'}_${new Date().toISOString().split('T')[0]}.txt`;
+                  a.click();
+                  URL.revokeObjectURL(url);
+                }}
+              >📥 导出日志</button>
               {log.slice().reverse().map((entry, i) => {
                 const realIdx = log.length - 1 - i;
                 return (

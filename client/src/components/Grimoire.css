@@ -3594,6 +3594,23 @@
   color: #c44;
 }
 
+.log-export-btn {
+  display: block;
+  width: 100%;
+  padding: 6px 0;
+  margin-bottom: 6px;
+  background: rgba(232, 200, 100, 0.12);
+  border: 1px solid rgba(232, 200, 100, 0.25);
+  border-radius: 6px;
+  color: #e8c864;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: background 150ms;
+}
+.log-export-btn:hover {
+  background: rgba(232, 200, 100, 0.22);
+}
+
 /* ============================================
    Responsive — Mobile (< 520px)
    ============================================ */
