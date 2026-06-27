@@ -3262,6 +3262,13 @@
   opacity: 1;
 }
 
+/* Always show + button on touch devices (iPad) */
+@media (hover: none) {
+  .seat-reminder-btn {
+    opacity: 0.7;
+  }
+}
+
 /* Show the + button when there are no reminders yet */
 .seat-reminder-btn:focus {
   opacity: 1;
