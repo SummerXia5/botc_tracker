@@ -1350,6 +1350,11 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                 onContextMenu={(e) => {
                   e.preventDefault();
                   if (seat.characterId) {
+                    const PID = ['drunk', 'marionette', 'lunatic', 'recluse', 'hermit', 'wudaozhe'];
+                    const PNM = ['酒鬼', '提线木偶', '疯子', '隐士', '悟道者'];
+                    const needs = PID.some(p => seat.characterId.toLowerCase().includes(p))
+                      || (ch && PNM.some(n => ch.name?.includes(n)));
+                    if (!needs) return;
                     setPerceivedSeatIndex(i);
                     setShowPerceivedPicker(true);
                   }
