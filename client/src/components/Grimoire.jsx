@@ -1580,22 +1580,22 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                   style={{ left: `${x}%`, top: `${y}%` }}
                   onClick={(e) => e.stopPropagation()}
                 >
-                  {nightOrderBadges.firstNight[seat.characterId] && (
+                  {nightOrderBadges.firstNight[seat.characterId] ? (
                     <div
                       className="night-order-badge night-order-first"
                       data-tip={`首夜 #${nightOrderBadges.firstNight[seat.characterId].rank}: ${nightOrderBadges.firstNight[seat.characterId].reminder || '无提示'}`}
                     >
                       {nightOrderBadges.firstNight[seat.characterId].rank}
                     </div>
-                  )}
-                  {nightOrderBadges.otherNight[seat.characterId] && (
+                  ) : <div className="night-badge-spacer" />}
+                  {nightOrderBadges.otherNight[seat.characterId] ? (
                     <div
                       className="night-order-badge night-order-other"
                       data-tip={`其他夜 #${nightOrderBadges.otherNight[seat.characterId].rank}: ${nightOrderBadges.otherNight[seat.characterId].reminder || '无提示'}`}
                     >
                       {nightOrderBadges.otherNight[seat.characterId].rank}
                     </div>
-                  )}
+                  ) : <div className="night-badge-spacer" />}
                 </div>
               )}
             </Fragment>
