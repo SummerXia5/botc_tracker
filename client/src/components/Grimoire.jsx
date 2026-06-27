@@ -2216,7 +2216,7 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                 <div key={i}>座位{m.idx + 1}: <strong>{m.player}</strong> — {m.name}</div>
               ))}
             </div>
-            <p style={{ fontSize: '0.8rem', color: '#9a8a6a', margin: '12px 0 0' }}>长按角色token可设置认知覆盖</p>
+            <p style={{ fontSize: '0.8rem', color: '#9a8a6a', margin: '12px 0 0' }}>点击角色token左下角的 🎭 按钮设置认知覆盖</p>
             <button
               className="bottombar-btn"
               style={{ marginTop: 16, width: '100%' }}
