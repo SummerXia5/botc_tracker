@@ -322,7 +322,9 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
     if (hasRestoredRef.current) return;
     hasRestoredRef.current = true;
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
+      // Try main key first, fall back to backup
+      let raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) raw = localStorage.getItem(STORAGE_KEY + '_backup');
       if (!raw) return;
       const saved = JSON.parse(raw);
       if (saved.seats && saved.seats.length > 0) {
@@ -331,24 +333,35 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
         setPhase(saved.phase || 'setup');
         setDayNumber(saved.dayNumber || 0);
         setDemonBluffs(saved.demonBluffs || [null, null, null]);
-        setLog(saved.log || []);
+        // Restore log: prefer saved.log, fall back to separate _log key
+        let restoredLog = saved.log || [];
+        try {
+          const logRaw = localStorage.getItem(STORAGE_KEY + '_log');
+          if (logRaw) {
+            const logParsed = JSON.parse(logRaw);
+            // Use whichever has more entries
+            if (Array.isArray(logParsed) && logParsed.length > restoredLog.length) {
+              restoredLog = logParsed;
+            }
+          }
+        } catch { /* ignore log parse error */ }
+        setLog(restoredLog);
         setSeatReminders(saved.seatReminders || {});
         if (saved.selectedPlayerIds) setSelectedPlayerIds(saved.selectedPlayerIds);
-        console.log('[Grimoire] Restored saved game state');
+        console.log(`[Grimoire] Restored saved game state (${restoredLog.length} log entries)`);
       } else {
-        // Stale state with no seats — clear it
         localStorage.removeItem(STORAGE_KEY);
       }
     } catch (e) {
       console.warn('[Grimoire] Failed to restore state:', e);
-      localStorage.removeItem(STORAGE_KEY);
+      // Don't remove — try to recover on next load
     }
   }, []);
 
-  // Auto-save on every state change (debounced via layout)
+  // Auto-save on every state change — save as much as possible
   useEffect(() => {
-    if (!hasRestoredRef.current) return; // Don't save during initial mount
-    if (seats.length === 0) return; // Nothing to save when seats empty
+    if (!hasRestoredRef.current) return;
+    if (seats.length === 0) return;
     try {
       const toSave = {
         selectedScript,
@@ -361,16 +374,47 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
         selectedPlayerIds,
         savedAt: new Date().toISOString(),
       };
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
+      const json = JSON.stringify(toSave);
+      localStorage.setItem(STORAGE_KEY, json);
+      localStorage.setItem(STORAGE_KEY + '_backup', json);
+      // Always save log separately — never lose it
+      localStorage.setItem(STORAGE_KEY + '_log', JSON.stringify(log));
     } catch (e) {
-      console.warn('[Grimoire] Failed to save state:', e);
+      console.warn('[Grimoire] Failed to save full state:', e);
+      // Even if full save fails, ALWAYS try to save the log
+      try {
+        localStorage.setItem(STORAGE_KEY + '_log', JSON.stringify(log));
+      } catch { /* truly out of space */ }
+      try {
+        const minimal = {
+          selectedScript: selectedScript ? { name: selectedScript.name, id: selectedScript.id } : null,
+          seats: seats.map(s => ({
+            player: s.player ? { id: s.player.id, name: s.player.name } : null,
+            characterId: s.characterId,
+            alive: s.alive,
+            deathDay: s.deathDay,
+          })),
+          phase,
+          dayNumber,
+          demonBluffs,
+          log,  // ALL logs — never truncate
+          seatReminders,
+          savedAt: new Date().toISOString(),
+          _minimal: true,
+        };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(minimal));
+        localStorage.setItem(STORAGE_KEY + '_backup', JSON.stringify(minimal));
+      } catch (e2) {
+        console.error('[Grimoire] Even minimal save failed:', e2);
+      }
     }
-  }, [selectedScript, seats, phase, dayNumber, demonBluffs, log, seatReminders]);
+  }, [selectedScript, seats, phase, dayNumber, demonBluffs, log, seatReminders, selectedPlayerIds]);
 
-  // Clear saved state helper
+  // Clear saved state helper — keeps backup
   const clearSavedState = useCallback(() => {
     localStorage.removeItem(STORAGE_KEY);
-    console.log('[Grimoire] Cleared saved game state');
+    // Backup is intentionally NOT removed — can be recovered if needed
+    console.log('[Grimoire] Cleared saved game state (backup preserved)');
   }, [STORAGE_KEY]);
 
   // ================================================================
@@ -384,19 +428,52 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
         setRevealSession(data);
         // When all seated, update grimoire seats with player info
         if (data.allSeated) {
+          // Collect unmatched player names to create
+          const unmatchedNames = [];
+          for (const seatInfo of data.seats) {
+            if (!seatInfo?.playerName) continue;
+            const name = seatInfo.playerName.trim();
+            const match = localPlayers.find(p =>
+              p.name === name || p.name.trim().toLowerCase() === name.toLowerCase()
+            );
+            if (!match) unmatchedNames.push(name);
+          }
+
+          // Auto-create unmatched players in the database
+          const newPlayers = [];
+          for (const name of [...new Set(unmatchedNames)]) {
+            try {
+              const result = await createPlayer({ name, group_id: groupId });
+              newPlayers.push(result.player);
+            } catch (err) {
+              console.warn(`[Reveal] Failed to create player "${name}":`, err);
+              newPlayers.push({ id: null, name });
+            }
+          }
+          if (newPlayers.length > 0) {
+            setLocalPlayers(prev => [...prev, ...newPlayers.filter(p => p.id)]);
+          }
+
+          // Now match all seats — both existing and newly created players
+          const allPlayers = [...localPlayers, ...newPlayers.filter(p => p.id)];
           setSeats(prev => prev.map((seat, i) => {
             const seatInfo = data.seats[i];
             if (seatInfo?.playerName && (!seat.player || seat.player.name !== seatInfo.playerName)) {
-              // Find matching player from localPlayers or create one
-              const existingPlayer = localPlayers.find(p => p.name === seatInfo.playerName);
+              const name = seatInfo.playerName.trim();
+              const matched = allPlayers.find(p =>
+                p.name === name || p.name.trim().toLowerCase() === name.toLowerCase()
+              );
               return {
                 ...seat,
-                player: existingPlayer || { id: `reveal_${i}`, name: seatInfo.playerName },
+                player: matched || { id: null, name },
               };
             }
             return seat;
           }));
           addLog(`所有玩家已入座 (${data.seatedCount}/${data.totalSeats})`);
+          if (newPlayers.length > 0) {
+            addLog(`自动创建 ${newPlayers.filter(p => p.id).length} 名新玩家: ${newPlayers.filter(p => p.id).map(p => p.name).join('、')}`);
+          }
           clearInterval(revealPollRef.current);
           revealPollRef.current = null;
         }
@@ -404,7 +481,6 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
         // session expired
       }
     };
-    // Initial poll
     poll();
     revealPollRef.current = setInterval(poll, 3000);
     return () => { if (revealPollRef.current) clearInterval(revealPollRef.current); };
@@ -1035,32 +1111,40 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
   // ----------------------------------------------------------------
   const handleEndGame = () => {
     if (!selectedWinner) return;
-    // Build grimoire log text
-    const logText = log.map(l => `[${l.time}] ${l.msg}`).join('\n');
-    const gameData = {
-      script: selectedScript.name,
-      date: new Date().toISOString().split('T')[0],
-      winner: selectedWinner,
-      notes: logText,
-      participants: seats
-        .filter(s => s.player?.id)  // Only include seats with a valid player
-        .map(s => {
-          const ch = charLookup[s.characterId] || CHARACTERS[s.characterId];
-          // survival_days: if alive at end, survived all days; if dead, died on deathDay
-          const survivalDays = s.alive ? dayNumber : (s.deathDay || dayNumber);
-          return {
-            player_id: s.player.id,
-            role_type: ch?.type || 'townsfolk',
-            character_id: s.characterId || null,
-            survived: s.alive,
-            survival_days: survivalDays,
-            final_round: s.alive, // alive on last day = in final round
-          };
-        }),
-    };
-    onExportGame?.(gameData);
-    clearSavedState(); // Clear persisted state on game end
-    addLog(`对局结束 · ${selectedWinner === 'good' ? '善良' : '邪恶'}阵营获胜`);
+    try {
+      // Build grimoire log text — include end-game entry manually since addLog is async
+      const endMsg = `对局结束 · ${selectedWinner === 'good' ? '善良' : '邪恶'}阵营获胜`;
+      const now = new Date();
+      const timeStr = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+      const allLogs = [...log, { time: timeStr, msg: endMsg }];
+      const logText = allLogs.map(l => `[${l.time}] ${l.msg}`).join('\n');
+      addLog(endMsg);
+      const gameData = {
+        script: selectedScript?.name || '未知剧本',
+        date: new Date().toISOString().split('T')[0],
+        winner: selectedWinner,
+        notes: logText,
+        participants: seats
+          .filter(s => s.player?.id)
+          .map(s => {
+            const ch = charLookup[s.characterId] || CHARACTERS[s.characterId];
+            const survivalDays = s.alive ? dayNumber : (s.deathDay || dayNumber);
+            return {
+              player_id: s.player.id,
+              role_type: ch?.type || 'townsfolk',
+              character_id: s.characterId || null,
+              survived: s.alive,
+              survival_days: survivalDays,
+              final_round: s.alive,
+            };
+          }),
+      };
+      onExportGame?.(gameData);
+      clearSavedState();
+    } catch (e) {
+      console.error('[Grimoire] handleEndGame error — state preserved:', e);
+      // Don't clear saved state on error — data can be recovered
+    }
     setShowEndDialog(false);
   };
 
@@ -2748,7 +2832,32 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
               <button
                 className="info-board-btn-present"
                 disabled={infoBoardItems.length === 0}
-                onClick={() => setInfoBoardPresenting(true)}
+                onClick={() => {
+                  // Build readable text from info board items for logging
+                  const parts = infoBoardItems.map(item => {
+                    if (item.type === 'text') return item.value || '___';
+                    if (item.type === 'number') return item.value != null ? String(item.value) : '?';
+                    if (item.type === 'player') {
+                      if (item.value != null) {
+                        const ps = seats[item.value];
+                        return ps?.player?.name || `座位${item.value + 1}`;
+                      }
+                      return '[玩家]';
+                    }
+                    if (item.type === 'character') {
+                      if (item.value) {
+                        const c = charLookup[item.value] || CHARACTERS[item.value];
+                        return c?.name || item.value;
+                      }
+                      return '[角色]';
+                    }
+                    return '';
+                  });
+                  const playerName = seats[infoBoardSeat.seatIdx]?.player?.name || `座位${infoBoardSeat.seatIdx + 1}`;
+                  const charName = infoBoardSeat.character?.name || '';
+                  addLog(`展示给 ${playerName}(${charName}): ${parts.join(' ')}`);
+                  setInfoBoardPresenting(true);
+                }}
               >📺 展示给玩家</button>
             </div>
           </div>
