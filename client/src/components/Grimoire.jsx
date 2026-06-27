@@ -1149,7 +1149,7 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
       {/* ---- Setup phase: Bottom bar with all actions ---- */}
       {phase === 'setup' && (
         <div className="setup-bottombar">
-          <button className="bottombar-btn bottombar-close" onClick={onClose}>✕ 退出</button>
+          <button className="bottombar-btn bottombar-close" onClick={() => { clearSavedState(); onClose(); }}>✕ 退出</button>
           <button className="bottombar-btn bottombar-primary" onClick={handleOpenDistribution}>🎭 分配角色</button>
           {allAssigned && (
             <button
