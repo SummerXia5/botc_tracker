@@ -1381,7 +1381,24 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-
+.seat-unseat-btn {
+  font-size: 0.5rem;
+  color: #a06060;
+  cursor: pointer;
+  opacity: 0;
+  margin-left: 2px;
+  transition: opacity 150ms;
+}
+.seat-label:hover .seat-unseat-btn,
+.seat-unseat-btn:active {
+  opacity: 1;
+}
+@media (hover: none) {
+  .seat-unseat-btn { opacity: 0.6; }
+}
+.seat-unseat-btn:hover {
+  color: #ff6060;
+}
 /* ---- Small side-icon buttons around token ---- */
 .seat-side-btn {
   position: absolute;

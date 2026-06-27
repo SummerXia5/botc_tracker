@@ -1469,7 +1469,16 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                 {/* Seat label bar below token */}
                 <div className="seat-label">
                   <span className="seat-number">{i + 1}.</span>
-                  <span className="seat-player-name">{seat.player?.name || `玩家${i+1}`}</span>
+                  <span className="seat-player-name">{seat.player?.name || `座位${i+1}`}</span>
+                  {seat.player && (
+                    <span className="seat-unseat-btn" onClick={(e) => {
+                      e.stopPropagation();
+                      addLog(`移除玩家 ${seat.player.name} (座位${i+1})`);
+                      setSeats(prev => prev.map((s, si) =>
+                        si === i ? { ...s, player: null } : s
+                      ));
+                    }}>✕</span>
+                  )}
                 </div>
 
                 {/* Ghost vote token (dead players only) */}
