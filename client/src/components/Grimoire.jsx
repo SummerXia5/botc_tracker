@@ -1453,7 +1453,7 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                 <div className="seat-label">
                   <span className="seat-number">{i + 1}.</span>
                   <span className="seat-player-name">{seat.player?.name || `座位${i+1}`}</span>
-                  {seat.characterId && (
+                  {phase === 'setup' && seat.characterId && (
                     <span
                       className={`seat-swap-btn ${swapSelectIdx === i ? 'swap-active' : ''}`}
                       onClick={(e) => {

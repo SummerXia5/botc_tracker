@@ -1355,7 +1355,7 @@
 /* ---- Seat label bar (below token) ---- */
 .seat-label {
   position: absolute;
-  bottom: -20px;
+  bottom: -28px;
   left: 50%;
   transform: translateX(-50%);
   background: rgba(80, 60, 40, 0.9);
