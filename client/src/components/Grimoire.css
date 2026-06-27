@@ -1256,16 +1256,16 @@
 }
 
 /* ---- Night order badges ---- */
-/* Night badges — positioned outside token */
+/* Night badges — positioned on left/right of token, outside click area */
 .night-badges-outer {
   position: absolute;
   transform: translate(-50%, -50%);
   display: flex;
-  gap: 4px;
+  justify-content: space-between;
+  align-items: center;
+  width: 120px;
   z-index: 25;
-  pointer-events: auto;
-  /* offset above the token */
-  margin-top: -52px;
+  pointer-events: none;
 }
 
 .night-badge-spacer {
@@ -1337,7 +1337,9 @@
   z-index: 100;
 }
 .night-order-badge:hover::after,
-.night-order-badge:hover::before {
+.night-order-badge:hover::before,
+.night-order-badge:active::after,
+.night-order-badge:active::before {
   opacity: 1;
   visibility: visible;
 }

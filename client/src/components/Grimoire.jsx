@@ -1583,10 +1583,7 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                   {nightOrderBadges.firstNight[seat.characterId] && (
                     <div
                       className="night-order-badge night-order-first"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        alert(`首夜 #${nightOrderBadges.firstNight[seat.characterId].rank}: ${nightOrderBadges.firstNight[seat.characterId].reminder || '无提示'}`);
-                      }}
+                      data-tip={`首夜 #${nightOrderBadges.firstNight[seat.characterId].rank}: ${nightOrderBadges.firstNight[seat.characterId].reminder || '无提示'}`}
                     >
                       {nightOrderBadges.firstNight[seat.characterId].rank}
                     </div>
@@ -1594,10 +1591,7 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                   {nightOrderBadges.otherNight[seat.characterId] && (
                     <div
                       className="night-order-badge night-order-other"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        alert(`其他夜 #${nightOrderBadges.otherNight[seat.characterId].rank}: ${nightOrderBadges.otherNight[seat.characterId].reminder || '无提示'}`);
-                      }}
+                      data-tip={`其他夜 #${nightOrderBadges.otherNight[seat.characterId].rank}: ${nightOrderBadges.otherNight[seat.characterId].reminder || '无提示'}`}
                     >
                       {nightOrderBadges.otherNight[seat.characterId].rank}
                     </div>
