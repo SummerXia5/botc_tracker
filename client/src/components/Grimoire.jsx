@@ -126,6 +126,7 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
   const [revealCode, setRevealCode] = useState(null);
   const [showRevealCode, setShowRevealCode] = useState(false);
   const [revealLoading, setRevealLoading] = useState(false);
+  const [perceivedWarning, setPerceivedWarning] = useState(null);
 
   // ---- Top-right dropdown menu ----
   const [showMenu, setShowMenu] = useState(false);
@@ -1161,19 +1162,20 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                   setShowRevealCode(!showRevealCode);
                   return;
                 }
-                const PERCEIVED_IDS = ['drunk', 'marionette', 'lunatic', 'recluse', 'hermit', 'wudaozhe'];
-                const PERCEIVED_NAMES = ['酒鬼', '提线木偶', '疯子', '隐士', '悟道者'];
+                const PERCEIVED_IDS = ['drunk', 'marionette', 'lunatic', 'hermit', 'wudaozhe'];
+                const PERCEIVED_NAMES = ['酒鬼', '提线木偶', '疯子', '悟道者'];
                 const missing = seats
                   .map((s, idx) => {
                     if (!s.characterId) return null;
                     const sch = charLookup[s.characterId] || CHARACTERS[s.characterId];
-                    const needs = PERCEIVED_IDS.some(pid => s.characterId.toLowerCase().includes(pid))
-                      || (sch && PERCEIVED_NAMES.some(pn => sch.name?.includes(pn)));
+                    const cid = s.characterId.toLowerCase();
+                    const needs = PERCEIVED_IDS.some(pid => cid === pid || cid.startsWith(pid))
+                      || (sch && PERCEIVED_NAMES.some(pn => sch.name === pn));
                     return needs && !s.perceivedCharId ? { idx, name: sch?.name || s.characterId, player: s.player?.name || `座位${idx+1}` } : null;
                   })
                   .filter(Boolean);
                 if (missing.length > 0) {
-                  alert(`请先设置认知覆盖:\n${missing.map(m => `${m.player} (${m.name})`).join('\n')}`);
+                  setPerceivedWarning(missing);
                   return;
                 }
                 setRevealLoading(true);
@@ -1350,10 +1352,11 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                 onContextMenu={(e) => {
                   e.preventDefault();
                   if (seat.characterId) {
-                    const PID = ['drunk', 'marionette', 'lunatic', 'recluse', 'hermit', 'wudaozhe'];
-                    const PNM = ['酒鬼', '提线木偶', '疯子', '隐士', '悟道者'];
-                    const needs = PID.some(p => seat.characterId.toLowerCase().includes(p))
-                      || (ch && PNM.some(n => ch.name?.includes(n)));
+                    const PID = ['drunk', 'marionette', 'lunatic', 'hermit', 'wudaozhe'];
+                    const PNM = ['酒鬼', '提线木偶', '疯子', '悟道者'];
+                    const cid = seat.characterId.toLowerCase();
+                    const needs = PID.some(p => cid === p || cid.startsWith(p))
+                      || (ch && PNM.some(n => ch.name === n));
                     if (!needs) return;
                     setPerceivedSeatIndex(i);
                     setShowPerceivedPicker(true);
@@ -2182,6 +2185,26 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                 </button>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* ---- Perceived Identity Warning Modal ---- */}
+      {perceivedWarning && (
+        <div className="grimoire-panel-overlay" onClick={() => setPerceivedWarning(null)}>
+          <div className="perceived-warning-modal" onClick={e => e.stopPropagation()}>
+            <h3 style={{ margin: '0 0 12px', color: '#e8c864' }}>⚠ 请先设置认知覆盖</h3>
+            <div style={{ fontSize: '0.9rem', lineHeight: 1.8 }}>
+              {perceivedWarning.map((m, i) => (
+                <div key={i}>座位{m.idx + 1}: <strong>{m.player}</strong> — {m.name}</div>
+              ))}
+            </div>
+            <p style={{ fontSize: '0.8rem', color: '#9a8a6a', margin: '12px 0 0' }}>长按角色token可设置认知覆盖</p>
+            <button
+              className="bottombar-btn"
+              style={{ marginTop: 16, width: '100%' }}
+              onClick={() => setPerceivedWarning(null)}
+            >知道了</button>
           </div>
         </div>
       )}

@@ -1600,6 +1600,24 @@
   animation: fadeIn 200ms ease;
 }
 
+/* Perceived warning modal */
+.perceived-warning-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(25, 28, 35, 0.98);
+  border: 1px solid rgba(212, 184, 120, 0.3);
+  border-radius: 16px;
+  padding: 24px 28px;
+  max-width: 340px;
+  width: 90vw;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+  z-index: 301;
+  color: #e8dcc8;
+  animation: revealCodeIn 300ms ease;
+}
+
 .reveal-code-display {
   position: fixed;
   top: 50%;
