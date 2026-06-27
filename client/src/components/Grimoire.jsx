@@ -1387,13 +1387,6 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                           setShowPerceivedPicker(true);
                         }}>🎭</div>
                       )}
-                      {phase !== 'setup' && (
-                        <div className="seat-side-btn seat-btn-right" onClick={(e) => {
-                          e.stopPropagation();
-                          setReminderSeatIndex(i);
-                          setShowReminderPicker(true);
-                        }}>📝</div>
-                      )}
                     </>
                   );
                 })()}
