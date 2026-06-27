@@ -1295,8 +1295,8 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
             const ch = seat.characterId ? (charLookup[seat.characterId] || CHARACTERS[seat.characterId]) : null;
 
             return (
+              <React.Fragment key={seat.player?.id || `seat-${i}`}>
               <div
-                key={seat.player?.id || `seat-${i}`}
                 className={[
                   'seat-token',
                   !seat.alive && 'dead',
@@ -1442,27 +1442,7 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                           <span className="perceived-token-name">{realOverlay.name}</span>
                         </div>
                       )}
-                    {/* Night order badges - centered vertically */}
-                    {(nightOrderBadges.firstNight[seat.characterId] || nightOrderBadges.otherNight[seat.characterId]) && (
-                      <div className="night-badges-row">
-                        {nightOrderBadges.firstNight[seat.characterId] ? (
-                          <div
-                            className="night-order-badge night-order-first"
-                            data-tip={`首夜 #${nightOrderBadges.firstNight[seat.characterId].rank}: ${nightOrderBadges.firstNight[seat.characterId].reminder || '无提示'}`}
-                          >
-                            {nightOrderBadges.firstNight[seat.characterId].rank}
-                          </div>
-                        ) : <div className="night-badge-spacer" />}
-                        {nightOrderBadges.otherNight[seat.characterId] ? (
-                          <div
-                            className="night-order-badge night-order-other"
-                            data-tip={`其他夜 #${nightOrderBadges.otherNight[seat.characterId].rank}: ${nightOrderBadges.otherNight[seat.characterId].reminder || '无提示'}`}
-                          >
-                            {nightOrderBadges.otherNight[seat.characterId].rank}
-                          </div>
-                        ) : <div className="night-badge-spacer" />}
-                      </div>
-                    )}
+
                   </>
                   );
                 })() : (
@@ -1602,6 +1582,38 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
 
 
               </div>
+              {/* Night order badges — OUTSIDE token to avoid click conflict */}
+              {seat.characterId && (nightOrderBadges.firstNight[seat.characterId] || nightOrderBadges.otherNight[seat.characterId]) && (
+                <div
+                  className="night-badges-outer"
+                  style={{ left: `${x}%`, top: `${y}%` }}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {nightOrderBadges.firstNight[seat.characterId] && (
+                    <div
+                      className="night-order-badge night-order-first"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        alert(`首夜 #${nightOrderBadges.firstNight[seat.characterId].rank}: ${nightOrderBadges.firstNight[seat.characterId].reminder || '无提示'}`);
+                      }}
+                    >
+                      {nightOrderBadges.firstNight[seat.characterId].rank}
+                    </div>
+                  )}
+                  {nightOrderBadges.otherNight[seat.characterId] && (
+                    <div
+                      className="night-order-badge night-order-other"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        alert(`其他夜 #${nightOrderBadges.otherNight[seat.characterId].rank}: ${nightOrderBadges.otherNight[seat.characterId].reminder || '无提示'}`);
+                      }}
+                    >
+                      {nightOrderBadges.otherNight[seat.characterId].rank}
+                    </div>
+                  )}
+                </div>
+              )}
+            </React.Fragment>
             );
           })}
         </div>
