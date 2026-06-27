@@ -1498,16 +1498,25 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                 )}
 
 
-                {/* Hover "+" button to add reminders (only after game starts) */}
-                {phase !== 'setup' && (
-                  <button
-                    className="seat-reminder-btn"
-                    onClick={e => { e.stopPropagation(); setReminderSeatIndex(i); setShowReminderPicker(true); }}
-                    title="添加标记"
-                  >
-                    +
-                  </button>
-                )}
+                {/* "+" button to add reminders — positioned toward center (only after game starts) */}
+                {phase !== 'setup' && (() => {
+                  const towardCX = -Math.cos(angle);
+                  const towardCY = -Math.sin(angle);
+                  const existingCount = seatReminders[i]?.length || 0;
+                  const btnDist = 68 + existingCount * 44;
+                  return (
+                    <button
+                      className="seat-reminder-btn"
+                      style={{
+                        transform: `translate(${towardCX * btnDist - 16}px, ${towardCY * btnDist - 16}px)`,
+                      }}
+                      onClick={e => { e.stopPropagation(); setReminderSeatIndex(i); setShowReminderPicker(true); }}
+                      title="添加标记"
+                    >
+                      +
+                    </button>
+                  );
+                })()}
 
                 {/* Reminder tokens stacked toward center (only after game starts) */}
                 {phase !== 'setup' && (seatReminders[i]?.length > 0) && (() => {

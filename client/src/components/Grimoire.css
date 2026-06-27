@@ -3238,15 +3238,15 @@
 
 .seat-reminder-btn {
   position: absolute;
-  bottom: -4px;
-  right: -4px;
-  width: 22px;
-  height: 22px;
+  top: 50%;
+  left: 50%;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   border: 2px solid rgba(120, 80, 160, 0.6);
   background: radial-gradient(circle at 35% 35%, #5a3d7a, #3a2550 70%);
   color: #d4c0e8;
-  font-size: 0.85rem;
+  font-size: 1rem;
   font-weight: 700;
   cursor: pointer;
   display: flex;
