@@ -1399,6 +1399,35 @@
 .seat-unseat-btn:hover {
   color: #ff6060;
 }
+/* Swap button */
+.seat-swap-btn {
+  font-size: 0.55rem;
+  cursor: pointer;
+  opacity: 0;
+  margin-left: 2px;
+  transition: opacity 150ms;
+}
+.seat-label:hover .seat-swap-btn { opacity: 0.7; }
+@media (hover: none) {
+  .seat-swap-btn { opacity: 0.6; }
+}
+.seat-swap-btn.swap-active {
+  opacity: 1 !important;
+  color: #e8c864;
+  text-shadow: 0 0 6px rgba(232, 200, 100, 0.4);
+}
+/* Swap highlight on token */
+.seat-token.swap-selected {
+  box-shadow: 0 0 0 3px rgba(232, 200, 100, 0.7), 0 0 20px rgba(232, 200, 100, 0.3) !important;
+  animation: swapPulse 1s ease infinite;
+}
+@keyframes swapPulse {
+  0%, 100% { box-shadow: 0 0 0 3px rgba(232, 200, 100, 0.7), 0 0 20px rgba(232, 200, 100, 0.3); }
+  50% { box-shadow: 0 0 0 3px rgba(232, 200, 100, 0.4), 0 0 12px rgba(232, 200, 100, 0.15); }
+}
+.seat-token.swap-target .seat-swap-btn {
+  opacity: 1 !important;
+}
 /* ---- Small side-icon buttons around token ---- */
 .seat-side-btn {
   position: absolute;

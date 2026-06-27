@@ -101,9 +101,10 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
   const [showPlayerManager, setShowPlayerManager] = useState(false);
   const [dragIndex, setDragIndex] = useState(null);
 
-  // ---- Circle drag-to-swap ----
+  // ---- Circle drag-to-swap (desktop) + tap-to-swap (iPad) ----
   const [circleDragIdx, setCircleDragIdx] = useState(null);
   const [circleDropIdx, setCircleDropIdx] = useState(null);
+  const [swapSelectIdx, setSwapSelectIdx] = useState(null); // tap-to-swap: first selected seat
 
   // ---- Traveller insertion ----
   const [showTravellerPanel, setShowTravellerPanel] = useState(false);
@@ -1303,6 +1304,8 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                   y < 40 && 'seat-top',
                   circleDragIdx === i && 'seat-dragging',
                   circleDropIdx === i && circleDragIdx !== null && circleDragIdx !== i && 'seat-drop-target',
+                  swapSelectIdx === i && 'swap-selected',
+                  swapSelectIdx !== null && swapSelectIdx !== i && 'swap-target',
                 ].filter(Boolean).join(' ')}
                 style={{ left: `${x}%`, top: `${y}%` }}
                 draggable
@@ -1478,6 +1481,30 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                         si === i ? { ...s, player: null } : s
                       ));
                     }}>✕</span>
+                  )}
+                  {seat.characterId && (
+                    <span
+                      className={`seat-swap-btn ${swapSelectIdx === i ? 'swap-active' : ''}`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (swapSelectIdx === null) {
+                          setSwapSelectIdx(i);
+                        } else if (swapSelectIdx === i) {
+                          setSwapSelectIdx(null); // deselect
+                        } else {
+                          // Swap seats
+                          const fromName = seats[swapSelectIdx]?.player?.name || `座位${swapSelectIdx+1}`;
+                          const toName = seats[i]?.player?.name || `座位${i+1}`;
+                          addLog(`座位交换: ${fromName} ↔ ${toName}`);
+                          setSeats(prev => {
+                            const next = [...prev];
+                            [next[swapSelectIdx], next[i]] = [next[i], next[swapSelectIdx]];
+                            return next;
+                          });
+                          setSwapSelectIdx(null);
+                        }
+                      }}
+                    >🔀</span>
                   )}
                 </div>
 
