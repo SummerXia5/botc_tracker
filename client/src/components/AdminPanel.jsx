@@ -538,8 +538,26 @@ export default function AdminPanel({ players, games, scripts, groupId, onRefresh
                             return (
                               <div key={p.player_id} className="ra-participant-card">
                                 <div className="ra-player-header">
-                                  <span className="ra-player-emoji">{p.player_avatar || '👤'}</span>
-                                  <span className="ra-player-name">{p.player_name}</span>
+                                  <select
+                                    className="ra-player-swap-select"
+                                    value={p.player_id}
+                                    onChange={e => {
+                                      const newId = parseInt(e.target.value);
+                                      const pl = players.find(pp => pp.id === newId);
+                                      if (!pl) return;
+                                      const next = [...editParticipants];
+                                      next[pi] = { ...next[pi], player_id: pl.id, player_name: pl.name, player_avatar: pl.avatar || '' };
+                                      setEditParticipants(next);
+                                    }}
+                                  >
+                                    {/* Always include current player even if not in available list */}
+                                    {!players.find(pp => pp.id === p.player_id) && (
+                                      <option value={p.player_id}>{p.player_avatar || '👤'} {p.player_name}</option>
+                                    )}
+                                    {players.map(pp => (
+                                      <option key={pp.id} value={pp.id}>{pp.avatar || '👤'} {pp.name}</option>
+                                    ))}
+                                  </select>
                                   <button
                                     type="button"
                                     className={`ra-mvp-btn ${isMvp ? 'ra-mvp-active' : ''}`}
@@ -601,10 +619,57 @@ export default function AdminPanel({ players, games, scripts, groupId, onRefresh
                                   value={p.player_notes || ''}
                                   onChange={e => updateP('player_notes', e.target.value)}
                                 />
+                                <button
+                                  type="button"
+                                  className="ra-remove-player-btn"
+                                  onClick={() => {
+                                    setEditParticipants(prev => prev.filter((_, idx) => idx !== pi));
+                                  }}
+                                  title="移除此玩家"
+                                >✕ 移除</button>
                               </div>
                             );
                           })}
                         </div>
+
+                        {/* Add player */}
+                        {(() => {
+                          const existingIds = editParticipants.map(p => p.player_id);
+                          const available = players.filter(p => !existingIds.includes(p.id));
+                          if (available.length === 0) return null;
+                          return (
+                            <div style={{ marginTop: 8 }}>
+                              <select
+                                className="ra-char-dropdown"
+                                value=""
+                                onChange={e => {
+                                  const pid = e.target.value;
+                                  if (!pid) return;
+                                  const pl = players.find(p => String(p.id) === pid);
+                                  if (!pl) return;
+                                  setEditParticipants(prev => [...prev, {
+                                    player_id: pl.id,
+                                    player_name: pl.name,
+                                    player_avatar: pl.avatar || '',
+                                    role_type: 'townsfolk',
+                                    survived: true,
+                                    survival_days: null,
+                                    character_id: null,
+                                    final_round: false,
+                                    correct_vote: false,
+                                    achievements: [],
+                                    player_notes: '',
+                                  }]);
+                                }}
+                              >
+                                <option value="">+ 添加玩家...</option>
+                                {available.map(p => (
+                                  <option key={p.id} value={p.id}>{p.avatar || '👤'} {p.name}</option>
+                                ))}
+                              </select>
+                            </div>
+                          );
+                        })()}
                       </div>
                     )}
                   </div>
