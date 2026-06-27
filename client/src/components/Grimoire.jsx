@@ -1370,26 +1370,6 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                 )}
 
 
-
-                {/* Small icon buttons around the token (distinct tap targets) */}
-                {seat.characterId && (() => {
-                  // Only these characters need perceived identity
-                  const PERCEIVED_IDS = ['drunk', 'marionette', 'lunatic', 'recluse', 'hermit', 'wudaozhe'];
-                  const PERCEIVED_NAMES = ['酒鬼', '提线木偶', '疯子', '隐士', '悟道者'];
-                  const needsPerceived = PERCEIVED_IDS.some(pid => seat.characterId.toLowerCase().includes(pid))
-                    || (ch && PERCEIVED_NAMES.some(pn => ch.name?.includes(pn)));
-                  return (
-                    <>
-                      {needsPerceived && (
-                        <div className="seat-side-btn seat-btn-left" onClick={(e) => {
-                          e.stopPropagation();
-                          setPerceivedSeatIndex(i);
-                          setShowPerceivedPicker(true);
-                        }}>🎭</div>
-                      )}
-                    </>
-                  );
-                })()}
                 {/* Character content — flip display when perceived is set */}
                 {ch ? (() => {
                   const pch = seat.perceivedCharId ? (charLookup[seat.perceivedCharId] || CHARACTERS[seat.perceivedCharId]) : null;
