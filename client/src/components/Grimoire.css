@@ -1013,10 +1013,20 @@
   overflow: hidden;
 }
 
+/* During setup, leave room for bottom bar */
+.grimoire-setup .grimoire-circle-container {
+  bottom: 56px;
+}
+
 .grimoire-circle {
   position: relative;
   width: min(900px, calc(100vw - 8px));
   height: min(900px, calc(100vh - 8px));
+}
+
+/* Shrink circle during setup to avoid bottom bar overlap */
+.grimoire-setup .grimoire-circle {
+  height: min(900px, calc(100vh - 64px));
 }
 
 /* ---- Center of circle ---- */
