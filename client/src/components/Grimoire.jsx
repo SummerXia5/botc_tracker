@@ -51,6 +51,88 @@ const REMINDER_TOKENS = [
   { id: 'custom', label: '自定义', icon: '📝', color: '#c7a' },
 ];
 
+// ---- Default info board templates per character ----
+// value: null means a placeholder to fill; value: string means preset text
+const INFO_BOARD_TEMPLATES = {
+  // ---- Trouble Brewing ----
+  washerwoman:  [ {type:'text',value:'你得知'}, {type:'player',value:null}, {type:'text',value:'和'}, {type:'player',value:null}, {type:'text',value:'其中一位是'}, {type:'character',value:null} ],
+  librarian:    [ {type:'text',value:'你得知'}, {type:'player',value:null}, {type:'text',value:'和'}, {type:'player',value:null}, {type:'text',value:'其中一位是'}, {type:'character',value:null} ],
+  investigator: [ {type:'text',value:'你得知'}, {type:'player',value:null}, {type:'text',value:'和'}, {type:'player',value:null}, {type:'text',value:'其中一位是'}, {type:'character',value:null} ],
+  chef:         [ {type:'text',value:'你得知'}, {type:'number',value:null}, {type:'text',value:'对'} ],
+  empath:       [ {type:'text',value:'你得知'}, {type:'number',value:null} ],
+  fortune_teller:[ {type:'text',value:'你选择'}, {type:'player',value:null}, {type:'text',value:'和'}, {type:'player',value:null}, {type:'text',value:'得知'} ],
+  undertaker:   [ {type:'text',value:'你得知被处决的是'}, {type:'character',value:null} ],
+  monk:         [ {type:'text',value:'你选择'}, {type:'player',value:null} ],
+  ravenkeeper:  [ {type:'text',value:'你选择'}, {type:'player',value:null}, {type:'text',value:'得知'}, {type:'character',value:null} ],
+  butler:       [ {type:'text',value:'你选择'}, {type:'player',value:null} ],
+  spy:          [ {type:'text',value:'查看魔典'} ],
+  godfather:    [ {type:'text',value:'你得知外来者是'}, {type:'character',value:null} ],
+
+  // ---- Bad Moon Rising ----
+  grandmother:  [ {type:'text',value:'你得知'}, {type:'player',value:null}, {type:'text',value:'是善良的'} ],
+  sailor:       [ {type:'text',value:'你选择'}, {type:'player',value:null} ],
+  chambermaid:  [ {type:'text',value:'你选择'}, {type:'player',value:null}, {type:'text',value:'和'}, {type:'player',value:null}, {type:'text',value:'得知'}, {type:'number',value:null} ],
+  exorcist:     [ {type:'text',value:'你选择'}, {type:'player',value:null} ],
+  innkeeper:    [ {type:'text',value:'你选择'}, {type:'player',value:null}, {type:'text',value:'和'}, {type:'player',value:null} ],
+  gambler:      [ {type:'text',value:'你选择'}, {type:'player',value:null}, {type:'text',value:'是'}, {type:'character',value:null} ],
+  courtier:     [ {type:'text',value:'你选择'}, {type:'character',value:null} ],
+  professor:    [ {type:'text',value:'你选择'}, {type:'player',value:null} ],
+
+  // ---- Sects & Violets ----
+  clockmaker:   [ {type:'text',value:'你得知'}, {type:'number',value:null} ],
+  dreamer:      [ {type:'text',value:'你选择'}, {type:'player',value:null}, {type:'text',value:'得知'}, {type:'character',value:null}, {type:'text',value:'或'}, {type:'character',value:null} ],
+  snake_charmer:[ {type:'text',value:'你选择'}, {type:'player',value:null} ],
+  mathematician:[ {type:'text',value:'你得知'}, {type:'number',value:null} ],
+  flowergirl:   [ {type:'text',value:'你得知'} ],
+  town_crier:   [ {type:'text',value:'你得知'} ],
+  oracle:       [ {type:'text',value:'你得知'}, {type:'number',value:null} ],
+  savant:       [ {type:'text',value:'你得知'} ],
+  seamstress:   [ {type:'text',value:'你选择'}, {type:'player',value:null}, {type:'text',value:'和'}, {type:'player',value:null}, {type:'text',value:'得知'} ],
+  philosopher:  [ {type:'text',value:'你选择'}, {type:'character',value:null} ],
+  juggler:      [ {type:'text',value:'你得知'}, {type:'number',value:null} ],
+  sage:         [ {type:'text',value:'你得知'}, {type:'player',value:null}, {type:'text',value:'和'}, {type:'player',value:null}, {type:'text',value:'其中一位是恶魔'} ],
+  evil_twin:    [ {type:'text',value:'你得知'}, {type:'player',value:null}, {type:'text',value:'是你的双胞胎'} ],
+  cerenovus:    [ {type:'text',value:'你选择'}, {type:'player',value:null}, {type:'text',value:'被疯狂成'}, {type:'character',value:null} ],
+  witch:        [ {type:'text',value:'你选择'}, {type:'player',value:null} ],
+  pit_hag:      [ {type:'text',value:'你选择'}, {type:'player',value:null}, {type:'text',value:'变为'}, {type:'character',value:null} ],
+
+  // ---- Experimental ----
+  balloonist:   [ {type:'text',value:'你得知'}, {type:'player',value:null} ],
+  bounty_hunter:[ {type:'text',value:'你得知'}, {type:'player',value:null}, {type:'text',value:'是邪恶的'} ],
+  choirboy:     [ {type:'text',value:'你得知'}, {type:'player',value:null}, {type:'text',value:'是恶魔'} ],
+  general:      [ {type:'text',value:'你得知'} ],
+  knight:       [ {type:'text',value:'你得知'}, {type:'player',value:null}, {type:'text',value:'和'}, {type:'player',value:null}, {type:'text',value:'不是恶魔'} ],
+  nightwatchman:[ {type:'text',value:'你选择'}, {type:'player',value:null} ],
+  pixie:        [ {type:'text',value:'你得知'}, {type:'character',value:null} ],
+  king:         [ {type:'text',value:'你得知'}, {type:'character',value:null} ],
+  widow:        [ {type:'text',value:'查看魔典'}, {type:'text',value:'你选择'}, {type:'player',value:null} ],
+  alchemist:    [ {type:'text',value:'你是'}, {type:'character',value:null} ],
+  cannibal:     [ {type:'text',value:'你获得了'}, {type:'character',value:null}, {type:'text',value:'的能力'} ],
+  farmer:       [ {type:'text',value:'你是农夫'} ],
+  lycanthrope:  [ {type:'text',value:'你选择'}, {type:'player',value:null} ],
+  huntsman:     [ {type:'text',value:'你选择'}, {type:'player',value:null} ],
+  preacher:     [ {type:'text',value:'你选择'}, {type:'player',value:null} ],
+  fearmonger:   [ {type:'text',value:'你选择'}, {type:'player',value:null} ],
+
+  // ---- Custom: 计划全部泡汤 ----
+  qintianjian:  [ {type:'text',value:'你得知'} ],
+  village_idiot:[ {type:'text',value:'你选择'}, {type:'player',value:null}, {type:'text',value:'得知'} ],
+  joker:        [ {type:'text',value:'你选择'}, {type:'player',value:null}, {type:'text',value:'得知'} ],
+  gudiao:       [ {type:'text',value:'你得知'}, {type:'player',value:null}, {type:'text',value:'是'}, {type:'character',value:null} ],
+  yaggababble:  [ {type:'text',value:'你的秘密短语是'} ],
+  rulianshi:    [ {type:'text',value:'你是'}, {type:'character',value:null} ],
+};
+
+// Helper: look up template by ID, with fallback stripping CustomVER/Diy suffixes
+function getInfoBoardTemplate(charId) {
+  if (!charId) return null;
+  if (INFO_BOARD_TEMPLATES[charId]) return INFO_BOARD_TEMPLATES[charId];
+  // Strip common custom suffixes
+  const normalized = charId.replace(/Custom(?:VER)?(?:Diy)?$/i, '');
+  if (normalized !== charId && INFO_BOARD_TEMPLATES[normalized]) return INFO_BOARD_TEMPLATES[normalized];
+  return null;
+}
+
 /**
  * Storyteller Grimoire — the core game-running tool.
  *
@@ -127,6 +209,19 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
   const [showRevealCode, setShowRevealCode] = useState(false);
   const [revealLoading, setRevealLoading] = useState(false);
   const [perceivedWarning, setPerceivedWarning] = useState(null);
+  const [confirmExit, setConfirmExit] = useState(false);
+
+  // ---- Info Board (告知版) ----
+  const [infoBoardSeat, setInfoBoardSeat] = useState(null); // { seatIdx, character }
+  const [infoBoardItems, setInfoBoardItems] = useState([]); // [{type: 'text'|'player'|'character'|'number', value: '...'}]
+  const [infoBoardPresenting, setInfoBoardPresenting] = useState(false);
+  const [infoBoardTab, setInfoBoardTab] = useState(null); // index of item being edited, or null
+  const [showInfoBoardPicker, setShowInfoBoardPicker] = useState(false); // standalone info board player picker
+
+  // ---- Nomination / Voting ----
+  const [nomination, setNomination] = useState(null); // { nominator: idx, nominee: idx, votes: Set<idx>, step: 'nominee'|'voting' }
+  const [onTheBlock, setOnTheBlock] = useState(null); // { seatIdx, votes, nominator }
+  const [nominationsToday, setNominationsToday] = useState([]); // [{nominator, nominee, votes, count}]
 
   // ---- Top-right dropdown menu ----
   const [showMenu, setShowMenu] = useState(false);
@@ -191,6 +286,9 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
     if (phase === 'day') {
       setTimerSeconds(timerDuration);
       setTimerRunning(true); // Auto-start
+      setNominationsToday([]);
+      setOnTheBlock(null);
+      setNomination(null);
     } else {
       setTimerRunning(false);
     }
@@ -860,9 +958,36 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
   };
 
   const handleStartFirstNight = () => {
+    // Log initial setup
+    addLog('══ 初始配置 ══');
+    seats.forEach((s, i) => {
+      const ch = s.characterId ? (charLookup[s.characterId] || CHARACTERS[s.characterId]) : null;
+      const perceived = s.perceivedCharId ? (charLookup[s.perceivedCharId] || CHARACTERS[s.perceivedCharId]) : null;
+      const name = s.player?.name || `座位${i + 1}`;
+      let line = `${i + 1}. ${name} → ${ch?.name || '未分配'}`;
+      if (perceived && s.perceivedCharId !== s.characterId) {
+        line += ` (认为自己是${perceived.name})`;
+      }
+      const tokens = seatReminders[i] || [];
+      if (tokens.length > 0) {
+        const tokenNames = tokens.map(tid => {
+          if (tid.startsWith('custom:')) return tid.replace('custom:', '');
+          if (tid.startsWith('script:')) return tid.split(':').slice(2).join(':');
+          const tk = REMINDER_TOKENS.find(t => t.id === tid);
+          return tk?.label || tid;
+        });
+        line += ` [${tokenNames.join(', ')}]`;
+      }
+      addLog(line);
+    });
+    if (demonBluffs.some(b => b)) {
+      const bluffNames = demonBluffs.filter(b => b).map(b => { const c = charLookup[b] || CHARACTERS[b]; return c?.name || b; }).join('、');
+      addLog(`恶魔伪装: ${bluffNames}`);
+    }
+    addLog('══════════');
     setPhase('night');
     setDayNumber(1);
-    addLog('夜晚 1 开始（游戏开始）');
+    addLog('夜晚 1 开始');
   };
 
   const toggleReminder = (seatIdx, reminderId) => {
@@ -1035,13 +1160,12 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
   const allAssigned = seats.every(s => s.characterId);
 
   return (
-    <div className={`grimoire grimoire-${phase}`}>
-      {/* ---- Privacy Mask ---- */}
+    <div className={`grimoire grimoire-${phase}${showMask ? ' grimoire-masked' : ''}`}>
+      {/* ---- Privacy Mask overlay — click to unlock ---- */}
       {showMask && (
-        <div className="grimoire-mask" onClick={() => setShowMask(false)}>
+        <div className="grimoire-mask-overlay" onClick={() => setShowMask(false)}>
           <div className="mask-icon">🔒</div>
-          <div className="mask-text">魔典已隐藏</div>
-          <div className="mask-hint">点击任意位置解锁</div>
+          <div className="mask-hint">点击解锁</div>
         </div>
       )}
       {/* ---- Floating controls (no topbar) ---- */}
@@ -1138,9 +1262,54 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
 
       {/* Phase transition — bottom-center prominent pill */}
       {phase === 'day' && (
-        <button className="phase-transition-btn phase-night-btn" onClick={handleStartNight}>
-          🌙 进入夜晚
-        </button>
+        <div className="day-action-bar">
+          {(onTheBlock || nominationsToday.length > 0) && (
+            <div className="nom-history-wrapper">
+              <div
+                className={`on-the-block-badge ${onTheBlock?.tied ? 'on-the-block-tied' : ''}`}
+                onClick={() => {
+                  const el = document.querySelector('.nom-history-dropdown');
+                  if (el) el.classList.toggle('nom-history-open');
+                }}
+              >
+                {onTheBlock
+                  ? onTheBlock.tied
+                    ? `⚖️ 平票 (${onTheBlock.votes}票) — 无人处决`
+                    : `⚖️ ${seats[onTheBlock.seatIdx]?.player?.name || `座位${onTheBlock.seatIdx + 1}`} (${onTheBlock.votes}票)`
+                  : `📋 提名 (${nominationsToday.length})`
+                }
+              </div>
+              <div className="nom-history-dropdown">
+                <div className="nom-history-title">今日提名</div>
+                {nominationsToday.length === 0 ? (
+                  <div className="nom-history-empty">暂无提名</div>
+                ) : (
+                  nominationsToday.map((n, ni) => {
+                    const getName = (idx) => seats[idx]?.player?.name || `座位${idx + 1}`;
+                    const threshold = Math.ceil(seats.filter(s => s.alive).length / 2);
+                    const passed = n.count >= threshold;
+                    return (
+                      <div key={ni} className={`nom-history-item ${passed ? 'nom-history-passed' : ''}`}>
+                        <span className="nom-history-who">
+                          {getName(n.nominator)} → {getName(n.nominee)}
+                        </span>
+                        <span className={`nom-history-votes ${passed ? 'nom-history-votes-pass' : ''}`}>
+                          {n.count}票 {passed ? '✓' : '✗'}
+                        </span>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            </div>
+          )}
+          <button className="phase-transition-btn phase-nominate-btn" onClick={() => {
+            setNomination({ step: 'nominator', nominator: null, nominee: null, votes: new Set() });
+          }}>⚖ 提名</button>
+          <button className="phase-transition-btn phase-night-btn" onClick={handleStartNight}>
+            🌙 进入夜晚
+          </button>
+        </div>
       )}
       {phase === 'night' && (
         <button className="phase-transition-btn phase-day-btn" onClick={handleStartDay}>
@@ -1148,11 +1317,196 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
         </button>
       )}
 
+      {/* ---- Nomination Panel ---- */}
+      {nomination && (() => {
+        const aliveCount = seats.filter(s => s.alive).length;
+        const threshold = Math.ceil(aliveCount / 2);
+        const getName = (idx) => seats[idx]?.player?.name || `座位${idx + 1}`;
+
+        return (
+          <div className="grimoire-panel-overlay" onClick={() => setNomination(null)}>
+            <div className="nomination-panel" onClick={e => e.stopPropagation()}>
+
+              {/* Step 1: Select nominator */}
+              {nomination.step === 'nominator' && (
+                <>
+                  <h3 className="nom-title">⚖ 谁发起提名？</h3>
+                  <div className="nom-player-grid">
+                    {seats.map((s, si) => {
+                      const isDead = !s.alive;
+                      const alreadyNominated = nominationsToday.some(n => n.nominator === si);
+                      const disabled = isDead || alreadyNominated;
+                      return (
+                        <button
+                          key={si}
+                          className={`nom-player-btn ${disabled ? 'nom-used' : ''}`}
+                          disabled={disabled}
+                          onClick={() => setNomination(prev => ({ ...prev, step: 'nominee', nominator: si }))}
+                        >
+                          <span className="nom-seat-num">{si + 1}</span>
+                          {getName(si)}
+                          {isDead && <span className="nom-ghost-tag">👻</span>}
+                          {alreadyNominated && <span className="nom-used-tag">已提名</span>}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
+
+              {/* Step 2: Select nominee */}
+              {nomination.step === 'nominee' && (
+                <>
+                  <h3 className="nom-title">
+                    {getName(nomination.nominator)} 提名谁？
+                  </h3>
+                  <div className="nom-player-grid">
+                    {seats.map((s, si) => {
+                      const alreadyTarget = nominationsToday.some(n => n.nominee === si);
+                      const isDead = !s.alive;
+                      return (
+                        <button
+                          key={si}
+                          className={`nom-player-btn ${alreadyTarget ? 'nom-used' : ''} ${isDead ? 'nom-dead' : ''}`}
+                          disabled={alreadyTarget}
+                          onClick={() => setNomination(prev => ({ ...prev, step: 'voting', nominee: si, votes: new Set() }))}
+                        >
+                          <span className="nom-seat-num">{si + 1}</span>
+                          {getName(si)}
+                          {isDead && <span className="nom-ghost-tag">👻</span>}
+                          {alreadyTarget && <span className="nom-used-tag">已被提名</span>}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <button className="nom-btn-cancel" style={{ marginTop: 8 }} onClick={() => setNomination(prev => ({ ...prev, step: 'nominator', nominator: null }))}>← 返回</button>
+                </>
+              )}
+
+              {/* Step 3: Voting */}
+              {nomination.step === 'voting' && (
+                <>
+                  <h3 className="nom-title">
+                    {getName(nomination.nominator)} 提名 <strong>{getName(nomination.nominee)}</strong>
+                  </h3>
+                  <div className="nom-threshold">
+                    票数 <strong className="nom-vote-count">{nomination.votes.size}</strong> / 需要 <strong>{threshold}</strong>
+                    {nomination.votes.size >= threshold && <span className="nom-pass"> ✓ 通过</span>}
+                  </div>
+                  <div className="nom-player-grid">
+                    {seats.map((s, si) => {
+                      const hasVoted = nomination.votes.has(si);
+                      const isDead = !s.alive;
+                      const ghostUsed = isDead && s.ghostVoteUsed === true;
+                      const disabled = ghostUsed && !hasVoted;
+                      return (
+                        <button
+                          key={si}
+                          className={`nom-player-btn nom-vote-btn ${hasVoted ? 'nom-voted' : ''} ${isDead ? 'nom-dead' : ''} ${disabled ? 'nom-used' : ''}`}
+                          disabled={disabled}
+                          onClick={() => {
+                            setNomination(prev => {
+                              const newVotes = new Set(prev.votes);
+                              if (newVotes.has(si)) newVotes.delete(si);
+                              else newVotes.add(si);
+                              return { ...prev, votes: newVotes };
+                            });
+                          }}
+                        >
+                          <span className="nom-seat-num">{si + 1}</span>
+                          {getName(si)}
+                          {isDead && <span className="nom-ghost-tag">👻</span>}
+                          {ghostUsed && !hasVoted && <span className="nom-used-tag">已用</span>}
+                          {hasVoted && <span className="nom-check">✓</span>}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <div className="nom-actions">
+                    <button className="nom-btn-cancel" onClick={() => setNomination(prev => ({ ...prev, step: 'nominee', votes: new Set() }))}>← 返回</button>
+                    <button className="nom-btn-confirm" onClick={() => {
+                      const voteCount = nomination.votes.size;
+                      const nomName = getName(nomination.nominee);
+                      const nominatorName = getName(nomination.nominator);
+                      addLog(`${nominatorName} 提名 ${nomName}: ${voteCount}票 (需${threshold}) ${voteCount >= threshold ? '→ 通过' : '→ 未通过'}`);
+                      
+                      // Track nomination
+                      setNominationsToday(prev => [...prev, {
+                        nominator: nomination.nominator,
+                        nominee: nomination.nominee,
+                        votes: [...nomination.votes],
+                        count: voteCount,
+                      }]);
+
+                      // Update on-the-block: tie = no execution
+                      if (voteCount >= threshold) {
+                        if (!onTheBlock || voteCount > onTheBlock.votes) {
+                          setOnTheBlock({ seatIdx: nomination.nominee, votes: voteCount, tied: false });
+                        } else if (voteCount === onTheBlock.votes) {
+                          setOnTheBlock(prev => ({ ...prev, tied: true }));
+                        }
+                      }
+
+                      // Mark ghost votes used
+                      nomination.votes.forEach(si => {
+                        if (!seats[si].alive) {
+                          setSeats(prev => prev.map((s, i) => i === si ? { ...s, ghostVoteUsed: true } : s));
+                        }
+                      });
+
+                      setNomination(null);
+                    }}>✓ 记录 ({nomination.votes.size}票)</button>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        );
+      })()}
+
       {/* ---- Setup phase: Bottom bar with all actions ---- */}
       {phase === 'setup' && (
         <div className="setup-bottombar">
-          <button className="bottombar-btn bottombar-close" onClick={() => { clearSavedState(); onClose(); }}>✕ 退出</button>
+          <button
+            className={`bottombar-btn bottombar-close ${confirmExit ? 'confirm-exit-active' : ''}`}
+            onClick={() => {
+              if (confirmExit) {
+                clearSavedState();
+                onClose();
+              } else {
+                setConfirmExit(true);
+                setTimeout(() => setConfirmExit(false), 3000);
+              }
+            }}
+          >{confirmExit ? '⚠ 确认退出？' : '✕ 退出'}</button>
           <button className="bottombar-btn bottombar-primary" onClick={handleOpenDistribution}>🎭 分配角色</button>
+          {allAssigned && (
+            <button className="bottombar-btn bottombar-shuffle" onClick={() => {
+              const n = seats.length;
+              const shift = 1 + Math.floor(Math.random() * (n - 1)); // 1 to n-1
+              setSeats(prev => {
+                const charIds = prev.map(s => s.characterId);
+                const perceived = prev.map(s => s.perceivedCharId);
+                const reminders = prev.map(s => s.reminders);
+                return prev.map((s, i) => ({
+                  ...s,
+                  characterId: charIds[(i - shift + n) % n],
+                  perceivedCharId: perceived[(i - shift + n) % n],
+                  reminders: reminders[(i - shift + n) % n],
+                }));
+              });
+              // Also rotate seatReminders (blue/red tokens)
+              setSeatReminders(prev => {
+                const newReminders = {};
+                for (let i = 0; i < n; i++) {
+                  const srcIdx = (i - shift + n) % n;
+                  if (prev[srcIdx]) newReminders[i] = prev[srcIdx];
+                }
+                return newReminders;
+              });
+              addLog(`角色随机旋转 ${shift} 位`);
+            }}>🔄 随机旋转</button>
+          )}
           {allAssigned && (
             <button
               className="bottombar-btn bottombar-primary"
@@ -1591,6 +1945,14 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                     <div
                       className="night-order-badge night-order-first"
                       data-tip={`首夜 #${nightOrderBadges.firstNight[seat.characterId].rank}: ${nightOrderBadges.firstNight[seat.characterId].reminder || '无提示'}`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const ch2 = charLookup[seat.characterId] || CHARACTERS[seat.characterId];
+                        setInfoBoardSeat({ seatIdx: i, character: ch2, nightType: 'first' });
+                        const tpl = getInfoBoardTemplate(seat.characterId);
+                        setInfoBoardItems(tpl ? tpl.map(t => ({...t})) : []);
+                        setInfoBoardPresenting(false);
+                      }}
                     >
                       {nightOrderBadges.firstNight[seat.characterId].rank}
                     </div>
@@ -1599,6 +1961,14 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                     <div
                       className="night-order-badge night-order-other"
                       data-tip={`其他夜 #${nightOrderBadges.otherNight[seat.characterId].rank}: ${nightOrderBadges.otherNight[seat.characterId].reminder || '无提示'}`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const ch2 = charLookup[seat.characterId] || CHARACTERS[seat.characterId];
+                        setInfoBoardSeat({ seatIdx: i, character: ch2, nightType: 'other' });
+                        const tpl2 = getInfoBoardTemplate(seat.characterId);
+                        setInfoBoardItems(tpl2 ? tpl2.map(t => ({...t})) : []);
+                        setInfoBoardPresenting(false);
+                      }}
                     >
                       {nightOrderBadges.otherNight[seat.characterId].rank}
                     </div>
@@ -2206,6 +2576,183 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
         </div>
       )}
 
+      {/* ---- Info Board (告知版) — Presentation Mode ---- */}
+      {infoBoardPresenting && infoBoardSeat && (
+        <div className="info-board-present">
+          <div className="info-board-present-content">
+            <div className="info-board-present-items">
+              {infoBoardItems.map((item, idx) => (
+                <span key={idx} className={`info-present-item info-present-${item.type}`}>
+                  {item.type === 'player' && '👤 '}{item.type === 'character' && '🎭 '}{item.value}
+                </span>
+              ))}
+            </div>
+            <button
+              className="info-board-btn-done"
+              onClick={() => {
+                const playerName = seats[infoBoardSeat.seatIdx]?.player?.name || `座位${infoBoardSeat.seatIdx + 1}`;
+                const charName = infoBoardSeat.character?.name || '未知';
+                const msg = infoBoardItems.map(it => it.value).join(' ');
+                addLog(`告知 ${playerName}(${charName}): ${msg}`);
+                setInfoBoardPresenting(false);
+                setInfoBoardSeat(null);
+                setInfoBoardItems([]);
+              }}
+            >✓ 完成</button>
+          </div>
+        </div>
+      )}
+
+      {/* ---- Info Board (告知版) — Composer Mode ---- */}
+      {infoBoardSeat && !infoBoardPresenting && (
+        <div className="grimoire-panel-overlay" onClick={() => setInfoBoardSeat(null)}>
+          <div className="info-board-modal" onClick={e => e.stopPropagation()}>
+            {/* Header */}
+            <div className="info-board-header">
+              <div className="info-board-char-info">
+                {infoBoardSeat.character?.icon && (
+                  <img src={infoBoardSeat.character.icon} alt="" className="info-board-char-icon" />
+                )}
+                <div>
+                  <div className="info-board-char-name">{infoBoardSeat.character?.name || '未知'}</div>
+                  <div className="info-board-player-name">
+                    座位{infoBoardSeat.seatIdx + 1}: {seats[infoBoardSeat.seatIdx]?.player?.name || '空位'}
+                  </div>
+                </div>
+              </div>
+              <button className="info-board-close" onClick={() => setInfoBoardSeat(null)}>✕</button>
+            </div>
+
+            {/* Ability text */}
+            <div className="info-board-ability">
+              {infoBoardSeat.character?.ability || '无技能描述'}
+            </div>
+
+            {/* Composed template preview - click items to edit/remove */}
+            <div className="info-board-preview">
+              {infoBoardItems.length === 0 ? (
+                <span style={{ color: '#6a5a3a', fontStyle: 'italic' }}>点击下方按钮组合告知模板...</span>
+              ) : (
+                infoBoardItems.map((item, idx) => (
+                  <span
+                    key={idx}
+                    className={`info-item info-item-${item.type} ${!item.value ? 'info-item-empty' : ''} ${infoBoardTab === idx ? 'info-item-editing' : ''}`}
+                    onClick={() => {
+                      if (item.type === 'text') {
+                        // Text items: click to remove
+                        setInfoBoardItems(prev => prev.filter((_, i) => i !== idx));
+                      } else {
+                        // Placeholder items: click to open picker
+                        setInfoBoardTab(infoBoardTab === idx ? null : idx);
+                      }
+                    }}
+                  >
+                    {item.type === 'number' && (item.value ? item.value : '[ 数字 ]')}
+                    {item.type === 'player' && (item.value ? `👤 ${item.value}` : '[ 玩家 ]')}
+                    {item.type === 'character' && (item.value ? `🎭 ${item.value}` : '[ 角色 ]')}
+                    {item.type === 'text' && item.value}
+                  </span>
+                ))
+              )}
+            </div>
+
+            {/* Inline picker for selected placeholder */}
+            {typeof infoBoardTab === 'number' && infoBoardItems[infoBoardTab] && (
+              <div className="info-board-inline-picker">
+                <div className="info-board-picker-header">
+                  <span>选择{infoBoardItems[infoBoardTab].type === 'number' ? '数字' : infoBoardItems[infoBoardTab].type === 'player' ? '玩家' : '角色'}</span>
+                  <button className="info-board-picker-delete" onClick={() => {
+                    setInfoBoardItems(prev => prev.filter((_, i) => i !== infoBoardTab));
+                    setInfoBoardTab(null);
+                  }}>🗑 删除</button>
+                </div>
+                <div className="info-board-quick-btns">
+                  {infoBoardItems[infoBoardTab].type === 'number' && (
+                    [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map(n => (
+                      <button key={n} className="info-board-chip info-board-chip-number" onClick={() => {
+                        const editIdx = infoBoardTab;
+                        setInfoBoardItems(prev => prev.map((it, i) => i === editIdx ? { ...it, value: String(n) } : it));
+                        setInfoBoardTab(null);
+                      }}>{n}</button>
+                    ))
+                  )}
+                  {infoBoardItems[infoBoardTab].type === 'player' && (
+                    seats.map((s, si) => (
+                      <button key={si} className="info-board-chip info-board-chip-player" onClick={() => {
+                        const editIdx = infoBoardTab;
+                        setInfoBoardItems(prev => prev.map((it, i) => i === editIdx ? { ...it, value: `${si + 1}. ${s.player?.name || '空位'}` } : it));
+                        setInfoBoardTab(null);
+                      }}>{si + 1}. {s.player?.name || '空位'}</button>
+                    ))
+                  )}
+                  {infoBoardItems[infoBoardTab].type === 'character' && (
+                    scriptCharacters.map(ch => (
+                      <button key={ch.id} className="info-board-chip info-board-chip-char" onClick={() => {
+                        const editIdx = infoBoardTab;
+                        setInfoBoardItems(prev => prev.map((it, i) => i === editIdx ? { ...it, value: ch.name || ch.id } : it));
+                        setInfoBoardTab(null);
+                      }}>{ch.name || ch.id}</button>
+                    ))
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Template builder: text buttons + placeholder inserters */}
+            <div className="info-board-builder">
+              <div className="info-board-quick-btns">
+                {['你', '你得知', '其中一位是', '选择', '和', '或', '是', '不是', '有', '没有',
+                  '对', '个', '位', '名', '中', '的',
+                  '镇民', '外来者', '爪牙', '恶魔', '善良', '邪恶',
+                  '相邻', '被选择', '已死亡', '存活', '中毒', '被保护', '得到了',
+                  '以上', '以下', '最近', '今晚', '昨晚'].map(txt => (
+                  <button key={txt} className="info-board-chip" onClick={() => {
+                    setInfoBoardItems(prev => [...prev, { type: 'text', value: txt }]);
+                    setInfoBoardTab(null);
+                  }}>{txt}</button>
+                ))}
+              </div>
+              <div className="info-board-placeholder-row">
+                <button className="info-board-add-ph info-board-add-number" onClick={() => {
+                  setInfoBoardItems(prev => [...prev, { type: 'number', value: null }]);
+                  setInfoBoardTab(infoBoardItems.length);
+                }}>+ 数字</button>
+                <button className="info-board-add-ph info-board-add-player" onClick={() => {
+                  setInfoBoardItems(prev => [...prev, { type: 'player', value: null }]);
+                  setInfoBoardTab(infoBoardItems.length);
+                }}>+ 玩家</button>
+                <button className="info-board-add-ph info-board-add-char" onClick={() => {
+                  setInfoBoardItems(prev => [...prev, { type: 'character', value: null }]);
+                  setInfoBoardTab(infoBoardItems.length);
+                }}>+ 角色</button>
+              </div>
+              <form className="info-board-custom-row" onSubmit={(e) => {
+                e.preventDefault();
+                const input = e.target.elements.customText;
+                if (input.value.trim()) {
+                  setInfoBoardItems(prev => [...prev, { type: 'text', value: input.value.trim() }]);
+                  input.value = '';
+                  setInfoBoardTab(null);
+                }
+              }}>
+                <input name="customText" className="info-board-custom-input" placeholder="自定义文本..." autoComplete="off" />
+                <button type="submit" className="info-board-chip">添加</button>
+              </form>
+            </div>
+
+            {/* Actions */}
+            <div className="info-board-actions">
+              <button className="info-board-btn-clear" onClick={() => setInfoBoardItems([])}>🗑 清空</button>
+              <button
+                className="info-board-btn-present"
+                disabled={infoBoardItems.length === 0}
+                onClick={() => setInfoBoardPresenting(true)}
+              >📺 展示给玩家</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ---- Perceived Identity Warning Modal ---- */}
       {perceivedWarning && (
         <div className="grimoire-panel-overlay" onClick={() => setPerceivedWarning(null)}>
@@ -2681,7 +3228,11 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
             {demonBluffs.some(b => b) && (
               <button
                 className="dbf-show-btn"
-                onClick={() => { setShowDemonBluffsFullscreen(true); setShowDemonBluffs(false); }}
+                onClick={() => {
+                  const bluffNames = demonBluffs.filter(b => b).map(b => { const c = charLookup[b] || CHARACTERS[b]; return c?.name || b; }).join('、');
+                  addLog(`展示恶魔伪装: ${bluffNames}`);
+                  setShowDemonBluffsFullscreen(true); setShowDemonBluffs(false);
+                }}
               >
                 📺 全屏展示给恶魔
               </button>
@@ -2815,18 +3366,61 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
       )}
 
       {/* ---- Game Log (collapsible at bottom-right) ---- */}
-      {log.length > 0 && (
-        <details className="grimoire-log">
-          <summary className="grimoire-log-toggle">日志 ({log.length})</summary>
-          <div className="grimoire-log-content">
-            {log.slice().reverse().map((entry, i) => (
-              <div key={i} className="log-entry">
-                <span className="log-time">{entry.time}</span>
-                <span className="log-msg">{entry.msg}</span>
-              </div>
-            ))}
+      <div className="grimoire-log-area">
+        {phase !== 'setup' && (
+          <button className="info-board-standalone-btn" onClick={() => setShowInfoBoardPicker(true)}>
+            📋 展示版
+          </button>
+        )}
+        {log.length > 0 && (
+          <details className="grimoire-log">
+            <summary className="grimoire-log-toggle">日志 ({log.length})</summary>
+            <div className="grimoire-log-content">
+              {log.slice().reverse().map((entry, i) => {
+                const realIdx = log.length - 1 - i;
+                return (
+                  <div key={i} className="log-entry">
+                    <span className="log-time">{entry.time}</span>
+                    <span className="log-msg">{entry.msg}</span>
+                    <button className="log-delete" onClick={() => setLog(prev => prev.filter((_, j) => j !== realIdx))}>✕</button>
+                  </div>
+                );
+              })}
+            </div>
+          </details>
+        )}
+      </div>
+
+      {/* ---- Standalone Info Board Player Picker ---- */}
+      {showInfoBoardPicker && (
+        <div className="grimoire-panel-overlay" onClick={() => setShowInfoBoardPicker(false)}>
+          <div className="nomination-panel" onClick={e => e.stopPropagation()}>
+            <h3 className="nom-title">向哪位玩家展示？</h3>
+            <div className="nom-player-grid">
+              {seats.map((s, si) => {
+                const ch = s.characterId ? (charLookup[s.characterId] || CHARACTERS[s.characterId]) : null;
+                return (
+                  <button
+                    key={si}
+                    className="nom-player-btn"
+                    onClick={() => {
+                      setShowInfoBoardPicker(false);
+                      setInfoBoardSeat({ seatIdx: si, character: ch });
+                      const tplS = ch ? getInfoBoardTemplate(ch.id) : null;
+                      setInfoBoardItems(tplS ? tplS.map(t => ({...t})) : []);
+                      setInfoBoardTab(null);
+                    }}
+                  >
+                    <span className="nom-seat-num">{si + 1}</span>
+                    {s.player?.name || `座位${si + 1}`}
+                    {ch && <span style={{ opacity: 0.5, marginLeft: 4, fontSize: '0.7rem' }}>({ch.name})</span>}
+                  </button>
+                );
+              })}
+            </div>
+            <button className="nom-cancel-btn" onClick={() => setShowInfoBoardPicker(false)}>取消</button>
           </div>
-        </details>
+        </div>
       )}
     </div>
   );
