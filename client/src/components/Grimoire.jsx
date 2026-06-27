@@ -1497,7 +1497,7 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
 
 
                 {/* "+" button to add reminders — positioned toward center (only after game starts) */}
-                {phase !== 'setup' && (() => {
+                {(() => {
                   const towardCX = -Math.cos(angle);
                   const towardCY = -Math.sin(angle);
                   const existingCount = seatReminders[i]?.length || 0;
@@ -1517,7 +1517,7 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                 })()}
 
                 {/* Reminder tokens stacked toward center (only after game starts) */}
-                {phase !== 'setup' && (seatReminders[i]?.length > 0) && (() => {
+                {(seatReminders[i]?.length > 0) && (() => {
                   const towardCenterX = -Math.cos(angle);
                   const towardCenterY = -Math.sin(angle);
                   return (
