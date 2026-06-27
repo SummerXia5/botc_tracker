@@ -318,7 +318,7 @@ export default function RecordGameModal({ players, scripts, onClose, onSuccess, 
                         >
                           <option value="">选择具体角色（可选）</option>
                           {scriptChars
-                            .filter(ch => !detail.role_type || ch.type === detail.role_type || !detail.character_id)
+                            .filter(ch => ch.id === detail.character_id || !detail.role_type || ch.type === detail.role_type || !detail.character_id)
                             .map(ch => (
                               <option key={ch.id} value={ch.id}>
                                 {ch.name}{ch.nameEn ? ` (${ch.nameEn})` : ''}

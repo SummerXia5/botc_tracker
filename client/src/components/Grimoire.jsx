@@ -1042,19 +1042,21 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
       date: new Date().toISOString().split('T')[0],
       winner: selectedWinner,
       notes: logText,
-      participants: seats.map(s => {
-        const ch = charLookup[s.characterId] || CHARACTERS[s.characterId];
-        // survival_days: if alive at end, survived all days; if dead, died on deathDay
-        const survivalDays = s.alive ? dayNumber : (s.deathDay || dayNumber);
-        return {
-          player_id: s.player?.id || null,
-          role_type: ch?.type || 'townsfolk',
-          character_id: s.characterId || null,
-          survived: s.alive,
-          survival_days: survivalDays,
-          final_round: s.alive, // alive on last day = in final round
-        };
-      }),
+      participants: seats
+        .filter(s => s.player?.id)  // Only include seats with a valid player
+        .map(s => {
+          const ch = charLookup[s.characterId] || CHARACTERS[s.characterId];
+          // survival_days: if alive at end, survived all days; if dead, died on deathDay
+          const survivalDays = s.alive ? dayNumber : (s.deathDay || dayNumber);
+          return {
+            player_id: s.player.id,
+            role_type: ch?.type || 'townsfolk',
+            character_id: s.characterId || null,
+            survived: s.alive,
+            survival_days: survivalDays,
+            final_round: s.alive, // alive on last day = in final round
+          };
+        }),
     };
     onExportGame?.(gameData);
     clearSavedState(); // Clear persisted state on game end
