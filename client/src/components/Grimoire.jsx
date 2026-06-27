@@ -328,7 +328,14 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
       if (!raw) return;
       const saved = JSON.parse(raw);
       if (saved.seats && saved.seats.length > 0) {
-        setSeats(saved.seats);
+        // Clean up legacy fake reveal_N IDs
+        const cleanedSeats = saved.seats.map(s => {
+          if (s.player?.id && typeof s.player.id === 'string' && s.player.id.startsWith('reveal_')) {
+            return { ...s, player: { ...s.player, id: null } };
+          }
+          return s;
+        });
+        setSeats(cleanedSeats);
         setSelectedScript(saved.selectedScript || null);
         setPhase(saved.phase || 'setup');
         setDayNumber(saved.dayNumber || 0);
@@ -1125,7 +1132,7 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
         winner: selectedWinner,
         notes: logText,
         participants: seats
-          .filter(s => s.player?.id)
+          .filter(s => s.player?.id && !(typeof s.player.id === 'string' && s.player.id.startsWith('reveal_')))
           .map(s => {
             const ch = charLookup[s.characterId] || CHARACTERS[s.characterId];
             const survivalDays = s.alive ? dayNumber : (s.deathDay || dayNumber);

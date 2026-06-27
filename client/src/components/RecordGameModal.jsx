@@ -37,16 +37,19 @@ export default function RecordGameModal({ players, scripts, onClose, onSuccess, 
   const [winner, setWinner] = useState(prefillData?.winner || 'good');
   const [gameNotes, setGameNotes] = useState(prefillData?.notes || '');
 
-  // Step 2 — prefill selected player IDs from grimoire participants
+  // Step 2 — prefill selected player IDs from grimoire participants (filter invalid IDs)
+  const validPrefillParticipants = hasPrefill
+    ? prefillData.participants.filter(p => p.player_id && !(typeof p.player_id === 'string' && p.player_id.startsWith('reveal_')))
+    : [];
   const [selectedPlayerIds, setSelectedPlayerIds] = useState(
-    hasPrefill ? prefillData.participants.map(p => p.player_id) : []
+    validPrefillParticipants.map(p => p.player_id)
   );
 
   // Step 3 — prefill role_type and survived from grimoire
   const [participantDetails, setParticipantDetails] = useState(() => {
     if (!hasPrefill) return {};
     const details = {};
-    for (const p of prefillData.participants) {
+    for (const p of validPrefillParticipants) {
       details[p.player_id] = {
         role_type: p.role_type || 'townsfolk',
         character_id: p.character_id || null,
