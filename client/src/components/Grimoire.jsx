@@ -1146,35 +1146,20 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
         </button>
       )}
 
-      {/* ---- Setup phase: Right sidebar with all actions ---- */}
+      {/* ---- Setup phase: Bottom bar with all actions ---- */}
       {phase === 'setup' && (
-        <div className="setup-sidebar">
-          <button className="sidebar-close-btn" onClick={onClose}>✕ 退出</button>
-          {!allAssigned && (
-            <div className="sidebar-hint">
-              还需分配 {seats.filter(s => !s.characterId).length} 个角色
-            </div>
-          )}
-          {allAssigned && !seats.every(s => s.player) && revealSession && (
-            <div className="sidebar-hint">
-              ⏳ 等待入座 ({revealSession.seatedCount}/{revealSession.totalSeats})
-            </div>
-          )}
-
-          <button className="sidebar-btn sidebar-primary" onClick={handleOpenDistribution}>
-            🎭 分配角色
-          </button>
-
+        <div className="setup-bottombar">
+          <button className="bottombar-btn bottombar-close" onClick={onClose}>✕ 退出</button>
+          <button className="bottombar-btn bottombar-primary" onClick={handleOpenDistribution}>🎭 分配角色</button>
           {allAssigned && (
             <button
-              className="sidebar-btn sidebar-primary"
+              className="bottombar-btn bottombar-primary"
               disabled={revealLoading}
               onClick={async () => {
                 if (revealCode) {
                   setShowRevealCode(!showRevealCode);
                   return;
                 }
-                // Validate: characters that need perceived identity must have it set
                 const PERCEIVED_IDS = ['drunk', 'marionette', 'lunatic', 'recluse', 'hermit', 'wudaozhe'];
                 const PERCEIVED_NAMES = ['酒鬼', '提线木偶', '疯子', '隐士', '悟道者'];
                 const missing = seats
@@ -1220,33 +1205,21 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
               🎫 {revealCode ? '查看抽取码' : '生成抽取码'}
             </button>
           )}
-
           {allAssigned && seats.every(s => s.player) && (
-            <button className="sidebar-btn sidebar-start" onClick={handleStartFirstNight}>
+            <button className="bottombar-btn bottombar-start" onClick={handleStartFirstNight}>
               🌙 开始游戏
             </button>
           )}
-
-          <div className="sidebar-divider" />
-
-          <button className="sidebar-btn" onClick={() => setShowDemonBluffs(true)}>
-            🎭 恶魔伪装
-          </button>
-          <button className="sidebar-btn" onClick={() => { setShowNightOrder(!showNightOrder); }}>
-            🌃 夜晚顺序
-          </button>
-          <button className="sidebar-btn" onClick={() => {
+          <button className="bottombar-btn" onClick={() => setShowDemonBluffs(true)}>🎭 恶魔伪装</button>
+          <button className="bottombar-btn" onClick={() => setShowNightOrder(!showNightOrder)}>🌃 夜晚顺序</button>
+          <button className="bottombar-btn" onClick={() => {
             setShowTravellerPanel(!showTravellerPanel);
             setTravellerStep('player');
             setTravellerPlayer(null);
             setTravellerCharId(null);
             setNewTravellerName('');
-          }}>
-            🧳 旅行者
-          </button>
-          <button className="sidebar-btn" onClick={() => setShowMask(true)}>
-            🔒 遮罩
-          </button>
+          }}>🧳 旅行者</button>
+          <button className="bottombar-btn" onClick={() => setShowMask(true)}>🔒 遮罩</button>
         </div>
       )}
 
