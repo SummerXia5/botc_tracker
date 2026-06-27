@@ -1378,6 +1378,23 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                 )}
 
 
+                {/* 🎭 Perceived identity button — only for qualifying characters */}
+                {seat.characterId && (() => {
+                  const PID = ['drunk', 'marionette', 'lunatic', 'hermit', 'wudaozhe'];
+                  const PNM = ['酒鬼', '提线木偶', '疯子', '悟道者'];
+                  const cid = seat.characterId.toLowerCase();
+                  const needs = PID.some(p => cid === p || cid.startsWith(p))
+                    || (ch && PNM.some(n => ch.name === n));
+                  if (!needs) return null;
+                  return (
+                    <div className="seat-side-btn seat-btn-left" onClick={(e) => {
+                      e.stopPropagation();
+                      setPerceivedSeatIndex(i);
+                      setShowPerceivedPicker(true);
+                    }}>🎭</div>
+                  );
+                })()}
+
                 {/* Character content — flip display when perceived is set */}
                 {ch ? (() => {
                   const pch = seat.perceivedCharId ? (charLookup[seat.perceivedCharId] || CHARACTERS[seat.perceivedCharId]) : null;
