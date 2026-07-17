@@ -1277,7 +1277,13 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
       )}
       {/* ---- Floating controls (no topbar) ---- */}
       {/* Close button — top-right corner */}
-      <button className="grimoire-float-close" onClick={onClose}>✕</button>
+      <button className="grimoire-float-close" onClick={() => {
+        closedRef.current = true;
+        localStorage.removeItem(STORAGE_KEY);
+        localStorage.removeItem(STORAGE_KEY + '_backup');
+        localStorage.removeItem(STORAGE_KEY + '_log');
+        onClose();
+      }}>✕</button>
 
       {/* Gear menu — top-right, next to close */}
       {phase !== 'setup' && (
@@ -1578,7 +1584,10 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
             className={`bottombar-btn bottombar-close ${confirmExit ? 'confirm-exit-active' : ''}`}
             onClick={() => {
               if (confirmExit) {
-                clearSavedState();
+                closedRef.current = true;
+                localStorage.removeItem(STORAGE_KEY);
+                localStorage.removeItem(STORAGE_KEY + '_backup');
+                localStorage.removeItem(STORAGE_KEY + '_log');
                 onClose();
               } else {
                 setConfirmExit(true);
