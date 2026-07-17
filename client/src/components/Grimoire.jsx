@@ -2,7 +2,7 @@ import { useState, useMemo, useCallback, useRef, useEffect, Fragment } from 'rea
 
 import { CHARACTERS, TYPE_COLORS, TYPE_LABELS, SCRIPTS, TRAVELLERS } from '../data/characters';
 import PlayerSelector from './PlayerSelector';
-import { createPlayer, createRevealSession, getRevealSession, sitRevealSeat, unseatRevealSeat } from '../api';
+import { createPlayer, createRevealSession, getRevealSession, sitRevealSeat, unseatRevealSeat, syncRevealSession } from '../api';
 import './Grimoire.css';
 
 const REMINDER_TOKENS = [
@@ -506,6 +506,19 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
     revealPollRef.current = setInterval(poll, 3000);
     return () => { if (revealPollRef.current) clearInterval(revealPollRef.current); };
   }, [revealCode, phase]);
+
+  // Push live seat names and alive status to the server reveal session (never sending true character ID)
+  useEffect(() => {
+    if (!revealCode || !seats || seats.length === 0) return;
+    const payload = seats.map((s, i) => ({
+      seatIndex: i,
+      playerName: s.player?.name || `座位${i + 1}`,
+      alive: s.alive !== false,
+      deathDay: s.deathDay != null ? s.deathDay : null,
+      deathCause: s.deathCause || null,
+    }));
+    syncRevealSession(revealCode, payload).catch(() => {});
+  }, [revealCode, seats]);
 
   // ----------------------------------------------------------------
   //  Available scripts: merge group scripts + built-in SCRIPTS

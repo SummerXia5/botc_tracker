@@ -456,3 +456,863 @@
   background: rgba(100, 80, 50, 0.15);
   margin-bottom: 8px;
 }
+
+/* ============================================
+   Notebook — Player tracking & notes
+   ============================================ */
+
+/* Button row on character reveal card */
+.reveal-btn-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.reveal-btn-row .reveal-btn {
+  flex: 1;
+  margin-top: 0;
+}
+
+.reveal-btn-notebook {
+  background: linear-gradient(135deg, rgba(100, 80, 50, 0.4), rgba(80, 60, 30, 0.5)) !important;
+  color: #d4b878 !important;
+  border: 1px solid rgba(212, 184, 120, 0.3) !important;
+}
+
+.reveal-btn-notebook:hover:not(:disabled) {
+  background: linear-gradient(135deg, rgba(120, 100, 60, 0.5), rgba(100, 80, 40, 0.6)) !important;
+  border-color: rgba(212, 184, 120, 0.5) !important;
+}
+
+/* ---- Notebook overlay ---- */
+.notebook-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 400;
+  background: #0b0907;
+  background-image:
+    radial-gradient(ellipse at 50% 20%, rgba(50, 40, 20, 0.4) 0%, transparent 60%),
+    radial-gradient(ellipse at 50% 80%, rgba(30, 20, 10, 0.3) 0%, transparent 50%);
+  display: flex;
+  flex-direction: column;
+  animation: notebookFadeIn 350ms ease;
+  overflow: hidden;
+}
+
+@keyframes notebookFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ---- Notebook header ---- */
+.notebook-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(100, 80, 50, 0.2);
+  background: rgba(20, 16, 10, 0.8);
+  backdrop-filter: blur(8px);
+  flex-shrink: 0;
+  z-index: 10;
+}
+
+.notebook-header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.notebook-back-btn {
+  padding: 6px 14px;
+  border-radius: 8px;
+  border: 1px solid rgba(100, 80, 50, 0.3);
+  background: rgba(255, 255, 255, 0.04);
+  color: #d4b878;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 150ms;
+}
+
+.notebook-back-btn:hover {
+  background: rgba(212, 184, 120, 0.12);
+  border-color: rgba(212, 184, 120, 0.5);
+}
+
+.notebook-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #d4b878;
+  letter-spacing: 0.04em;
+}
+
+.notebook-script {
+  font-size: 0.7rem;
+  color: #6a5a3a;
+  font-weight: 400;
+  margin-left: 4px;
+}
+
+.notebook-header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.notebook-reset-btn {
+  padding: 5px 12px;
+  border-radius: 6px;
+  border: 1px solid rgba(180, 80, 80, 0.3);
+  background: rgba(180, 80, 80, 0.1);
+  color: #c07070;
+  font-size: 0.7rem;
+  cursor: pointer;
+  transition: all 150ms;
+}
+
+.notebook-reset-btn:hover {
+  background: rgba(180, 80, 80, 0.2);
+  border-color: rgba(180, 80, 80, 0.5);
+}
+
+/* ---- Circle area (zoom & pan viewport) ---- */
+.notebook-circle-area {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  touch-action: none;
+  cursor: grab;
+  user-select: none;
+}
+
+.notebook-circle-area:active {
+  cursor: grabbing;
+}
+
+.notebook-circle-container {
+  position: absolute;
+  width: min(840px, calc(100vw - 12px));
+  height: min(840px, calc(100vw * 1.25));
+  max-height: calc(100vh - 140px);
+  top: 50%;
+  left: 50%;
+  transform-origin: center center;
+}
+
+/* ---- Floating zoom/pan controls ---- */
+.notebook-zoom-controls {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 10;
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  background: rgba(20, 16, 12, 0.88);
+  border: 1px solid rgba(212, 184, 120, 0.35);
+  border-radius: 20px;
+  padding: 4px 8px;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+.notebook-zoom-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(212, 184, 120, 0.2);
+  color: #d4b878;
+  font-size: 1.1rem;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 150ms, transform 100ms;
+}
+
+.notebook-zoom-btn:hover {
+  background: rgba(232, 200, 100, 0.22);
+  transform: scale(1.08);
+}
+
+.notebook-zoom-btn:active {
+  transform: scale(0.95);
+}
+
+/* Center label */
+.notebook-center-label {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.notebook-center-icon {
+  font-size: 2rem;
+  margin-bottom: 4px;
+  opacity: 0.3;
+}
+
+.notebook-center-text {
+  font-size: 0.65rem;
+  color: rgba(212, 184, 120, 0.25);
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+}
+
+/* ---- Player node (circle mode) ---- */
+.notebook-node {
+  position: absolute;
+  width: 160px;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+}
+
+.notebook-node-inner {
+  background: rgba(25, 22, 18, 0.92);
+  border: 1px solid rgba(100, 80, 50, 0.25);
+  border-radius: 14px;
+  padding: 10px;
+  backdrop-filter: blur(6px);
+  transition: border-color 200ms, box-shadow 200ms;
+}
+
+.notebook-node-inner:hover {
+  border-color: rgba(212, 184, 120, 0.4);
+}
+
+.notebook-node.is-me .notebook-node-inner {
+  border-color: rgba(232, 200, 100, 0.5);
+  box-shadow: 0 0 20px rgba(232, 200, 100, 0.12);
+  background: rgba(35, 30, 20, 0.95);
+}
+
+.notebook-node.is-dead .notebook-node-inner {
+  opacity: 0.55;
+  border-color: rgba(100, 80, 50, 0.15);
+}
+
+/* Node header */
+.notebook-node-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.notebook-seat-num {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: rgba(212, 184, 120, 0.15);
+  color: #d4b878;
+  font-size: 0.65rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.notebook-node.is-me .notebook-seat-num {
+  background: rgba(232, 200, 100, 0.25);
+  color: #e8c864;
+}
+
+.notebook-player-name {
+  flex: 1;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #d4c0a8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.notebook-node.is-dead .notebook-player-name {
+  text-decoration: line-through;
+  color: #8a7a5a;
+}
+
+.notebook-death-btn {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 1px solid rgba(100, 80, 50, 0.2);
+  background: rgba(255, 255, 255, 0.03);
+  color: #6a5a3a;
+  font-size: 0.7rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 150ms;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.notebook-death-btn:hover {
+  background: rgba(180, 60, 60, 0.15);
+  border-color: rgba(180, 60, 60, 0.3);
+}
+
+.notebook-death-btn.is-dead {
+  background: rgba(180, 60, 60, 0.25);
+  border-color: rgba(180, 60, 60, 0.4);
+  color: #e06050;
+}
+
+/* Character guess */
+.notebook-guess-wrapper {
+  position: relative;
+  margin-bottom: 4px;
+}
+
+.notebook-guess-input {
+  width: 100%;
+  padding: 4px 22px 4px 6px;
+  border-radius: 6px;
+  border: 1px solid rgba(100, 80, 50, 0.2);
+  background: rgba(255, 255, 255, 0.04);
+  color: #d4c0a8;
+  font-size: 0.65rem;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 150ms;
+}
+
+.notebook-guess-input::placeholder {
+  color: rgba(180, 160, 130, 0.25);
+}
+
+.notebook-guess-input:focus {
+  border-color: rgba(212, 184, 120, 0.4);
+}
+
+.notebook-guess-clear {
+  position: absolute;
+  right: 3px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  border: none;
+  background: transparent;
+  color: #6a5a3a;
+  font-size: 0.6rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border-radius: 50%;
+}
+
+.notebook-guess-clear:hover {
+  color: #d4b878;
+  background: rgba(212, 184, 120, 0.1);
+}
+
+/* Character dropdown */
+.notebook-guess-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  max-height: 180px;
+  overflow-y: auto;
+  background: rgba(25, 22, 18, 0.98);
+  border: 1px solid rgba(100, 80, 50, 0.35);
+  border-radius: 8px;
+  z-index: 100;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+  margin-top: 2px;
+}
+
+.notebook-guess-dropdown::-webkit-scrollbar { width: 3px; }
+.notebook-guess-dropdown::-webkit-scrollbar-track { background: transparent; }
+.notebook-guess-dropdown::-webkit-scrollbar-thumb { background: rgba(100, 80, 50, 0.3); border-radius: 2px; }
+
+.notebook-guess-option {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 8px;
+  cursor: pointer;
+  transition: background 100ms;
+  border-bottom: 1px solid rgba(100, 80, 50, 0.08);
+}
+
+.notebook-guess-option:last-child {
+  border-bottom: none;
+}
+
+.notebook-guess-option:hover {
+  background: rgba(212, 184, 120, 0.1);
+}
+
+.notebook-guess-option-icon {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.notebook-guess-option-name {
+  font-size: 0.62rem;
+  color: #d4c0a8;
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.notebook-guess-option-type {
+  font-size: 0.5rem;
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+/* Guess icon displayed after selection */
+.notebook-guess-display {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 4px;
+  padding: 3px 6px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(100, 80, 50, 0.2);
+  cursor: pointer;
+  transition: background 150ms;
+}
+
+.notebook-guess-display:hover {
+  background: rgba(212, 184, 120, 0.08);
+}
+
+.notebook-guess-display-icon {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.notebook-guess-display-name {
+  font-size: 0.62rem;
+  color: #d4c0a8;
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Notes textarea */
+.notebook-notes {
+  width: 100%;
+  min-height: 36px;
+  max-height: 60px;
+  padding: 4px 6px;
+  border-radius: 6px;
+  border: 1px solid rgba(100, 80, 50, 0.15);
+  background: rgba(255, 255, 255, 0.03);
+  color: #b0a088;
+  font-size: 0.6rem;
+  font-family: inherit;
+  line-height: 1.4;
+  resize: vertical;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 150ms;
+}
+
+.notebook-notes::placeholder {
+  color: rgba(180, 160, 130, 0.2);
+}
+
+.notebook-notes:focus {
+  border-color: rgba(212, 184, 120, 0.35);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+/* ---- Mobile circle mode adjustments ---- */
+@media (max-width: 700px) {
+  .notebook-node {
+    width: 145px;
+  }
+
+  .notebook-node-inner {
+    padding: 8px;
+  }
+
+  .notebook-notes {
+    min-height: 32px;
+  }
+
+  .notebook-guess-dropdown {
+    max-height: 180px;
+  }
+}
+
+/* Large screens: bigger nodes */
+@media (min-width: 1200px) {
+  .notebook-node {
+    width: 190px;
+  }
+
+  .notebook-guess-input,
+  .notebook-notes {
+    font-size: 0.7rem;
+  }
+
+  .notebook-player-name {
+    font-size: 0.8rem;
+  }
+}
+
+/* ---- My character mini badge (shown in notebook header) ---- */
+.notebook-my-char {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px 4px 4px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(100, 80, 50, 0.2);
+}
+
+.notebook-my-char-icon {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.notebook-my-char-name {
+  font-size: 0.65rem;
+  color: #d4c0a8;
+  font-weight: 600;
+}
+
+/* ---- Empty seat indicator ---- */
+.notebook-node.is-empty .notebook-node-inner {
+  opacity: 0.3;
+  border-style: dashed;
+}
+
+.notebook-empty-label {
+  font-size: 0.6rem;
+  color: #6a5a3a;
+  font-style: italic;
+  text-align: center;
+  padding: 4px 0;
+}
+
+/* ---- Grimoire-style Round Token inside Notebook ---- */
+.notebook-my-token-border {
+  box-shadow: 0 0 20px rgba(232, 200, 100, 0.7), 0 0 40px rgba(232, 200, 100, 0.3) !important;
+  border-color: #e8c864 !important;
+}
+
+.notebook-token-note-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: rgba(20, 16, 12, 0.95);
+  border: 1px solid rgba(212, 184, 120, 0.5);
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  z-index: 6;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+}
+
+/* ---- Seat Editor Modal / Popup when a token is tapped ---- */
+.notebook-popup-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(5px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: notebookFadeIn 200ms ease;
+}
+
+.notebook-seat-popup {
+  background: linear-gradient(165deg, #1f1b16 0%, #15120e 100%);
+  border: 1px solid rgba(212, 184, 120, 0.4);
+  border-radius: 18px;
+  width: 100%;
+  max-width: 420px;
+  padding: 20px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8), 0 0 30px rgba(212, 184, 120, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.notebook-popup-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(212, 184, 120, 0.15);
+  padding-bottom: 12px;
+}
+
+.notebook-popup-seatnum {
+  font-family: 'Cinzel', serif;
+  font-size: 1.1rem;
+  color: #d4b878;
+  font-weight: bold;
+  margin-right: 8px;
+}
+
+.notebook-popup-playername {
+  font-size: 1.15rem;
+  color: #fff;
+  font-weight: 600;
+}
+
+.notebook-popup-deadbadge {
+  display: inline-block;
+  margin-left: 8px;
+  font-size: 0.75rem;
+  color: #ff6b6b;
+  background: rgba(255, 107, 107, 0.15);
+  border: 1px solid rgba(255, 107, 107, 0.3);
+  padding: 2px 8px;
+  border-radius: 6px;
+}
+
+.notebook-popup-close {
+  background: transparent;
+  border: none;
+  color: #a89880;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+
+.notebook-popup-close:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+
+.notebook-popup-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.notebook-popup-label {
+  font-size: 0.8rem;
+  color: #d4b878;
+  letter-spacing: 0.05em;
+  font-weight: 500;
+}
+
+.notebook-notes-large {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(212, 184, 120, 0.25);
+  background: rgba(10, 8, 6, 0.6);
+  color: #e8dcc8;
+  font-size: 0.9rem;
+  font-family: inherit;
+  line-height: 1.5;
+  resize: vertical;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.notebook-notes-large:focus {
+  border-color: #d4b878;
+  box-shadow: 0 0 10px rgba(212, 184, 120, 0.2);
+}
+
+.notebook-popup-done-btn {
+  margin-top: 6px;
+  padding: 12px;
+  background: linear-gradient(135deg, #d4b878 0%, #a88848 100%);
+  border: none;
+  border-radius: 12px;
+  color: #15120e;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(212, 184, 120, 0.3);
+  transition: transform 150ms, box-shadow 150ms;
+}
+
+.notebook-popup-done-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(212, 184, 120, 0.45);
+}
+
+.notebook-popup-done-btn:active {
+  transform: translateY(1px);
+}
+
+/* ---- Seat Popup Death Selectors ---- */
+.notebook-popup-select {
+  flex: 1;
+  padding: 8px 10px;
+  background: rgba(15, 12, 10, 0.9);
+  border: 1px solid rgba(212, 184, 120, 0.35);
+  border-radius: 8px;
+  color: #e8dcc8;
+  font-size: 0.85rem;
+  outline: none;
+}
+
+.notebook-popup-select:focus {
+  border-color: #d4b878;
+}
+
+/* ---- Daily Death & Execution Table ---- */
+.notebook-death-table-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  overflow-y: auto;
+  gap: 16px;
+  background: rgba(15, 12, 10, 0.6);
+}
+
+.notebook-death-table-top {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  border-bottom: 1px solid rgba(212, 184, 120, 0.2);
+  padding-bottom: 12px;
+}
+
+.notebook-death-table-title {
+  margin: 0;
+  font-family: 'Cinzel', serif;
+  font-size: 1.25rem;
+  color: #d4b878;
+}
+
+.notebook-death-table-sub {
+  font-size: 0.85rem;
+  color: #a89880;
+}
+
+.notebook-death-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  background: rgba(25, 21, 17, 0.8);
+  border: 1px solid rgba(212, 184, 120, 0.3);
+  border-radius: 12px;
+  padding: 2px;
+}
+
+.notebook-death-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.notebook-death-table th {
+  background: rgba(40, 32, 24, 0.9);
+  color: #d4b878;
+  font-size: 0.85rem;
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(212, 184, 120, 0.25);
+  font-weight: 600;
+}
+
+.notebook-death-table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(212, 184, 120, 0.12);
+  vertical-align: middle;
+}
+
+.notebook-death-table tr:last-child td {
+  border-bottom: none;
+}
+
+.notebook-death-table tr:hover td {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.death-table-day {
+  font-family: 'Cinzel', serif;
+  font-weight: bold;
+  color: #e8dcc8;
+  font-size: 0.95rem;
+}
+
+.death-table-player-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.death-table-player-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+}
+
+.death-table-player-tag.type-day {
+  background: rgba(220, 160, 50, 0.15);
+  border: 1px solid rgba(220, 160, 50, 0.4);
+  color: #ffd880;
+}
+
+.death-table-player-tag.type-night {
+  background: rgba(100, 130, 220, 0.15);
+  border: 1px solid rgba(100, 130, 220, 0.4);
+  color: #b0c8ff;
+}
+
+.death-tag-num {
+  font-weight: bold;
+  opacity: 0.8;
+}
+
+.death-tag-name {
+  font-weight: 600;
+}
+
+.death-tag-role {
+  font-size: 0.75rem;
+}
+
+.death-table-none {
+  color: rgba(255, 255, 255, 0.2);
+  font-style: italic;
+}
+
+.notebook-death-table-tip {
+  text-align: center;
+  color: #a89880;
+  font-size: 0.85rem;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 8px;
+  padding: 10px;
+  border: 1px solid rgba(212, 184, 120, 0.15);
+}

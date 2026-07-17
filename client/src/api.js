@@ -223,3 +223,10 @@ export async function unseatRevealSeat(code, seatIndex) {
 export async function getMyChar(code, seatIndex) {
   return request(`/api/reveal/${code}/mychar/${seatIndex}`);
 }
+
+export async function syncRevealSession(code, seats) {
+  return request(`/api/reveal/${code}/sync`, {
+    method: 'POST',
+    body: JSON.stringify({ seats }),
+  });
+}

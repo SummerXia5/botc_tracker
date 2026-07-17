@@ -79,6 +79,8 @@ router.post('/', (req, res) => {
     })),
     // Track who sat where: index -> { playerName, playerId }
     seated: new Array(seats.length).fill(null),
+    // Track alive/dead and other status: index -> { alive: true }
+    seatStatus: new Array(seats.length).fill(null).map(() => ({ alive: true })),
     // Available player names (from group)
     availablePlayers: Array.isArray(players) ? players.map(p => ({
       id: p.id,
@@ -105,6 +107,9 @@ router.get('/:code', (req, res) => {
     seatNumber: index + 1,
     occupied: session.seated[index] !== null,
     playerName: session.seated[index]?.playerName || null,
+    alive: session.seatStatus?.[index]?.alive ?? true,
+    deathDay: session.seatStatus?.[index]?.deathDay || null,
+    deathCause: session.seatStatus?.[index]?.deathCause || null,
   }));
 
   const availablePlayers = session.availablePlayers
@@ -247,6 +252,41 @@ router.post('/:code/unseat', (req, res) => {
   session.seated[seatIndex] = null;
 
   res.json({ message: '已起立', seatIndex, seatNumber: seatIndex + 1 });
+});
+
+// ─── POST /api/reveal/:code/sync ────────────────────────────────────────────────
+// Storyteller synchronizes seat names and alive/dead status from Grimoire.
+router.post('/:code/sync', (req, res) => {
+  const session = getValidSession(req.params.code);
+  if (!session) {
+    return res.status(404).json({ error: '代码无效或已过期' });
+  }
+
+  const { seats } = req.body;
+  if (!Array.isArray(seats)) {
+    return res.status(400).json({ error: 'seats array required' });
+  }
+
+  if (!session.seatStatus) {
+    session.seatStatus = new Array(session.totalSeats).fill(null).map(() => ({ alive: true }));
+  }
+
+  for (const s of seats) {
+    if (s.seatIndex == null || s.seatIndex < 0 || s.seatIndex >= session.totalSeats) continue;
+    if (session.seated[s.seatIndex]) {
+      if (s.playerName) session.seated[s.seatIndex].playerName = s.playerName;
+    } else if (s.playerName) {
+      session.seated[s.seatIndex] = { playerName: s.playerName, playerId: s.playerId || null };
+    }
+    session.seatStatus[s.seatIndex] = {
+      ...(session.seatStatus[s.seatIndex] || {}),
+      alive: s.alive !== undefined ? !!s.alive : true,
+      deathDay: s.deathDay != null ? s.deathDay : null,
+      deathCause: s.deathCause || null,
+    };
+  }
+
+  res.json({ message: 'synchronized successfully' });
 });
 
 export default router;
