@@ -316,6 +316,7 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
   // ================================================================
   const STORAGE_KEY = `grimoire_state_${groupId}`;
   const hasRestoredRef = useRef(false);
+  const closedRef = useRef(false);  // Prevents auto-save after intentional close
 
   // Restore state from localStorage on mount
   useEffect(() => {
@@ -328,6 +329,18 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
       if (!raw) return;
       const saved = JSON.parse(raw);
       if (saved.seats && saved.seats.length > 0) {
+        // Check staleness — if saved > 6 hours ago, clear and start fresh
+        if (saved.savedAt) {
+          const savedTime = new Date(saved.savedAt).getTime();
+          const hoursAgo = (Date.now() - savedTime) / (1000 * 60 * 60);
+          if (hoursAgo > 6) {
+            console.log(`[Grimoire] Saved state is ${hoursAgo.toFixed(1)}h old — clearing`);
+            localStorage.removeItem(STORAGE_KEY);
+            localStorage.removeItem(STORAGE_KEY + '_backup');
+            localStorage.removeItem(STORAGE_KEY + '_log');
+            return;
+          }
+        }
         // Clean up legacy fake reveal_N IDs
         const cleanedSeats = saved.seats.map(s => {
           if (s.player?.id && typeof s.player.id === 'string' && s.player.id.startsWith('reveal_')) {
@@ -368,6 +381,7 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
   // Auto-save on every state change — save as much as possible
   useEffect(() => {
     if (!hasRestoredRef.current) return;
+    if (closedRef.current) return;  // Don't re-save after intentional close
     if (seats.length === 0) return;
     try {
       const toSave = {
@@ -3463,6 +3477,8 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
               <button
                 className="btn-close-grimoire"
                 onClick={() => {
+                  // Block auto-save from re-writing state
+                  closedRef.current = true;
                   // Clear ALL saved state so a new game can start fresh
                   localStorage.removeItem(STORAGE_KEY);
                   localStorage.removeItem(STORAGE_KEY + '_backup');
