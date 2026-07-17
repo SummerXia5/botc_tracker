@@ -1067,6 +1067,13 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
   };
 
   const handleStartFirstNight = () => {
+    // Ensure any seat missing a player has a default player object
+    setSeats(prev => prev.map((s, idx) => {
+      if (!s.player || !s.player.name) {
+        return { ...s, player: { id: null, name: `座位${idx + 1}` } };
+      }
+      return s;
+    }));
     // Log initial setup
     addLog('══ 初始配置 ══');
     seats.forEach((s, i) => {
@@ -1690,9 +1697,9 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
               🎫 {revealCode ? '查看抽取码' : '生成抽取码'}
             </button>
           )}
-          {allAssigned && seats.every(s => s.player) && (
+          {allAssigned && (
             <button className="bottombar-btn bottombar-start" onClick={handleStartFirstNight}>
-              🌙 开始游戏
+              🌙 开始游戏 {(!seats.every(s => s.player) && revealSession) ? `(${revealSession.seatedCount}/${seats.length} 已填名)` : ''}
             </button>
           )}
           <button className="bottombar-btn" onClick={() => setShowDemonBluffs(true)}>🎭 恶魔伪装</button>

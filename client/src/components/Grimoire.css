@@ -406,9 +406,12 @@
 /* ---- Privacy Mask ---- */
 /* ---- Masked mode: hide identity/tokens, show names + alive/dead ---- */
 .grimoire-masked .seat-token-image,
+.grimoire-masked .seat-char-img,
+.grimoire-masked .seat-char-icon,
 .grimoire-masked .seat-char-name,
 .grimoire-masked .seat-ability-tooltip,
 .grimoire-masked .seat-perceived-overlay,
+.grimoire-masked .perceived-token,
 .grimoire-masked .ghost-vote-token,
 .grimoire-masked .seat-swap-btn {
   visibility: hidden !important;
