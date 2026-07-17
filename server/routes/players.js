@@ -22,6 +22,33 @@ router.get('/', (req, res) => {
   const { group_id } = req.query;
 
   if (group_id) {
+    // Auto-clean up duplicate player records created by race conditions/polling in this group
+    try {
+      const allInGroup = db.prepare('SELECT id, name, created_at, user_id FROM players WHERE group_id = ? ORDER BY created_at ASC').all(group_id);
+      const seenNames = new Map();
+      for (const p of allInGroup) {
+        const key = (p.name || '').trim().toLowerCase();
+        if (!key) continue;
+        if (!seenNames.has(key)) {
+          seenNames.set(key, p);
+        } else {
+          // Found duplicate copy — safely remove participant references and delete this extra record
+          const keep = seenNames.get(key);
+          // If the extra has user_id but the kept one doesn't, swap keep
+          if (p.user_id && !keep.user_id) {
+            db.prepare('UPDATE game_participants SET player_id = ? WHERE player_id = ?').run(p.id, keep.id);
+            db.prepare('DELETE FROM players WHERE id = ?').run(keep.id);
+            seenNames.set(key, p);
+          } else {
+            db.prepare('UPDATE game_participants SET player_id = ? WHERE player_id = ?').run(keep.id, p.id);
+            db.prepare('DELETE FROM players WHERE id = ?').run(p.id);
+          }
+        }
+      }
+    } catch (err) {
+      console.error('[Players] Deduplication check failed:', err);
+    }
+
     const players = db.prepare('SELECT id, name, avatar, desc, is_system, created_at, group_id, user_id FROM players WHERE group_id = ? ORDER BY created_at ASC').all(group_id);
     return res.json({ players });
   }
@@ -54,6 +81,12 @@ router.post(
     const groupExists = db.prepare('SELECT id FROM groups WHERE id = ?').get(group_id);
     if (!groupExists) {
       return res.status(400).json({ error: `Group "${group_id}" does not exist.` });
+    }
+
+    // Check if a player with this exact name already exists in this group BEFORE creating a duplicate!
+    const existingByName = db.prepare('SELECT * FROM players WHERE LOWER(TRIM(name)) = LOWER(TRIM(?)) AND group_id = ?').get(name, group_id);
+    if (existingByName) {
+      return res.status(200).json({ player: existingByName });
     }
 
     // Generate a URL-safe id from the name if not explicitly provided

@@ -615,7 +615,7 @@ export default function RoleReveal({ onClose }) {
                 </table>
               </div>
               <div className="notebook-death-table-tip">
-                💡 提示：在上方或座位编辑弹窗的「笔记下方」设置玩家的具体阵亡天数与时段，即可在此自动归纳汇总！
+                💡 提示：此表格实时自动同步说书人魔典中每日白天与夜晚阵亡/被处决的玩家记录。
               </div>
             </div>
           ) : (
@@ -812,34 +812,8 @@ export default function RoleReveal({ onClose }) {
                       placeholder="记录该玩家的线索、发言或可疑点..."
                       value={seatData.notes || ''}
                       onChange={e => updateSeatData(seat.seatIndex, 'notes', e.target.value)}
-                      rows={3}
+                      rows={5}
                     />
-                  </div>
-
-                  {/* Death Date Table & Phase Selector right below the note */}
-                  <div className="notebook-popup-section">
-                    <label className="notebook-popup-label">💀 阵亡时间记录 (同步或自定义，同步至死亡日期表)</label>
-                    <div style={{ display: 'flex', gap: 8 }}>
-                      <select
-                        className="notebook-popup-select"
-                        value={seatData.deathDay != null ? seatData.deathDay : (seat.deathDay != null ? seat.deathDay : '')}
-                        onChange={e => updateSeatData(seat.seatIndex, 'deathDay', e.target.value ? Number(e.target.value) : null)}
-                      >
-                        <option value="">-- 阵亡天数 (未记录) --</option>
-                        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(d => (
-                          <option key={d} value={d}>第 {d} 天</option>
-                        ))}
-                      </select>
-                      <select
-                        className="notebook-popup-select"
-                        value={seatData.deathPhase || (seat.deathCause?.includes('night') ? 'night' : seat.deathCause ? 'day' : '')}
-                        onChange={e => updateSeatData(seat.seatIndex, 'deathPhase', e.target.value)}
-                      >
-                        <option value="">-- 阵亡时段 --</option>
-                        <option value="day">☀️ 白天 (处决/放逐/白天死)</option>
-                        <option value="night">🌙 夜晚 (恶魔杀/夜晚死)</option>
-                      </select>
-                    </div>
                   </div>
 
                   <button className="notebook-popup-done-btn" onClick={() => setActiveGuess(null)}>保存 / 完成</button>

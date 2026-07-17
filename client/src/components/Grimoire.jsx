@@ -146,6 +146,10 @@ function getInfoBoardTemplate(charId) {
 export default function Grimoire({ players, scripts, groupId, onExportGame, onClose, onRefreshPlayers }) {
   // Local players (can grow via quick-add)
   const [localPlayers, setLocalPlayers] = useState(players);
+  const localPlayersRef = useRef(localPlayers);
+  useEffect(() => {
+    localPlayersRef.current = localPlayers;
+  }, [localPlayers]);
   // ---- Core state ----
   const [selectedScript, setSelectedScript] = useState(null);
   const [seats, setSeats] = useState([]);
@@ -449,43 +453,59 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
         setRevealSession(data);
         // Update grimoire seats in real time whenever any player sits down on their phone
         if (data.seats && data.seats.length > 0) {
+          const currentPlayers = localPlayersRef.current || [];
           // Collect unmatched player names to create if allSeated
           const unmatchedNames = [];
           for (const seatInfo of data.seats) {
             if (!seatInfo?.playerName) continue;
             const name = seatInfo.playerName.trim();
             if (name.startsWith('座位') || name.startsWith('Player')) continue;
-            const match = localPlayers.find(p =>
+            const match = currentPlayers.find(p =>
               p.name === name || p.name.trim().toLowerCase() === name.toLowerCase()
             );
             if (!match) unmatchedNames.push(name);
           }
 
-          // Auto-create unmatched players in the database when all seated
+          // Auto-create unmatched players in the database when all seated (with strict ref deduplication against race conditions)
           const newPlayers = [];
           if (data.allSeated && unmatchedNames.length > 0) {
             for (const name of [...new Set(unmatchedNames)]) {
+              if (localPlayersRef.current.some(p => p.name.trim().toLowerCase() === name.toLowerCase())) continue;
+              // Optimistically push pending check into ref immediately so overlapping polls won't ever re-create!
+              const pending = { id: 'pending_' + name, name };
+              localPlayersRef.current = [...localPlayersRef.current, pending];
               try {
                 const result = await createPlayer({ name, group_id: groupId });
                 newPlayers.push(result.player);
+                localPlayersRef.current = localPlayersRef.current.map(p => p.name === name ? result.player : p);
               } catch (err) {
                 console.warn(`[Reveal] Failed to create player "${name}":`, err);
-                newPlayers.push({ id: null, name });
+                const fb = { id: null, name };
+                newPlayers.push(fb);
+                localPlayersRef.current = localPlayersRef.current.map(p => p.name === name ? fb : p);
               }
             }
             if (newPlayers.length > 0) {
-              setLocalPlayers(prev => [...prev, ...newPlayers.filter(p => p.id)]);
+              setLocalPlayers(prev => {
+                const updated = [...prev];
+                for (const np of newPlayers) {
+                  if (np && np.id && !updated.some(p => p.id === np.id || p.name.trim().toLowerCase() === np.name.trim().toLowerCase())) {
+                    updated.push(np);
+                  }
+                }
+                return updated;
+              });
             }
           }
 
-          // Match all seats with existing/new players in real time
-          const allPlayers = [...localPlayers, ...newPlayers.filter(p => p.id)];
+          // Match all seats with existing/new players in real time via ref
+          const allLivePlayers = localPlayersRef.current || [];
           setSeats(prev => prev.map((seat, i) => {
             const seatInfo = data.seats[i];
             if (seatInfo?.playerName && !seatInfo.playerName.startsWith('座位') && !seatInfo.playerName.startsWith('Player')) {
               const name = seatInfo.playerName.trim();
               if (!seat.player || seat.player.name !== name) {
-                const matched = allPlayers.find(p =>
+                const matched = allLivePlayers.find(p =>
                   p.name === name || p.name.trim().toLowerCase() === name.toLowerCase()
                 );
                 return {
