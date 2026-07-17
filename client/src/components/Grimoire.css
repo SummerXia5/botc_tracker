@@ -408,15 +408,26 @@
 .grimoire-masked .seat-token-image,
 .grimoire-masked .seat-char-name,
 .grimoire-masked .seat-ability-tooltip,
-.grimoire-masked .seat-reminder-btn,
-.grimoire-masked .seat-reminders,
-.grimoire-masked .seat-side-btn,
-.grimoire-masked .night-badges-outer,
 .grimoire-masked .seat-perceived-overlay,
 .grimoire-masked .ghost-vote-token,
 .grimoire-masked .seat-swap-btn {
   visibility: hidden !important;
   opacity: 0 !important;
+}
+
+/* Containers with absolutely-positioned children — must use display:none */
+.grimoire-masked .seat-reminder-btn,
+.grimoire-masked .seat-reminders,
+.grimoire-masked .seat-side-btn,
+.grimoire-masked .night-badges-outer {
+  display: none !important;
+}
+
+/* Hide bottom bar and log area */
+.grimoire-masked .grimoire-bottombar,
+.grimoire-masked .grimoire-log-area,
+.grimoire-masked .grimoire-float-gear {
+  display: none !important;
 }
 
 /* Keep token circle visible but blank */
