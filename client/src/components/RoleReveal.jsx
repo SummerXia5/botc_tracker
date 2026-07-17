@@ -519,119 +519,120 @@ export default function RoleReveal({ onClose }) {
               </div>
             </div>
           ) : (
+            <Fragment>
+              {/* Circle area with touch drag & pinch zoom */}
+              <div
+                ref={circleAreaRef}
+                className="notebook-circle-area"
+                onClick={() => setActiveGuess(null)}
+                onMouseDown={handleStartDrag}
+                onMouseMove={handleMoveDrag}
+                onMouseUp={handleEndDrag}
+                onMouseLeave={handleEndDrag}
+                onTouchStart={handleStartDrag}
+                onTouchMove={handleMoveDrag}
+                onTouchEnd={handleEndDrag}
+              >
+                {/* Zoom / Pan floating controls */}
+                <div className="notebook-zoom-controls" onClick={e => e.stopPropagation()}>
+                  <button className="notebook-zoom-btn" onClick={() => setScale(s => Math.min(2.5, +(s + 0.15).toFixed(2)))} title="放大">＋</button>
+                  <button className="notebook-zoom-btn" onClick={() => setScale(s => Math.max(0.35, +(s - 0.15).toFixed(2)))} title="缩小">－</button>
+                  <button className="notebook-zoom-btn" onClick={() => { setScale(1); setPan({ x: 0, y: 0 }); }} title="居中/复位">⊙</button>
+                </div>
 
-          {/* Circle area with touch drag & pinch zoom */}
-          <div
-            ref={circleAreaRef}
-            className="notebook-circle-area"
-            onClick={() => setActiveGuess(null)}
-            onMouseDown={handleStartDrag}
-            onMouseMove={handleMoveDrag}
-            onMouseUp={handleEndDrag}
-            onMouseLeave={handleEndDrag}
-            onTouchStart={handleStartDrag}
-            onTouchMove={handleMoveDrag}
-            onTouchEnd={handleEndDrag}
-          >
-            {/* Zoom / Pan floating controls */}
-            <div className="notebook-zoom-controls" onClick={e => e.stopPropagation()}>
-              <button className="notebook-zoom-btn" onClick={() => setScale(s => Math.min(2.5, +(s + 0.15).toFixed(2)))} title="放大">＋</button>
-              <button className="notebook-zoom-btn" onClick={() => setScale(s => Math.max(0.35, +(s - 0.15).toFixed(2)))} title="缩小">－</button>
-              <button className="notebook-zoom-btn" onClick={() => { setScale(1); setPan({ x: 0, y: 0 }); }} title="居中/复位">⊙</button>
-            </div>
-
-            <div
-              className="notebook-circle-container"
-              style={{
-                '--seat-size': (() => {
-                  const isMobile = typeof window !== 'undefined' && window.innerWidth <= 700;
-                  if (total <= 10) return isMobile ? '76px' : '96px';
-                  if (total <= 13) return isMobile ? '62px' : '84px';
-                  return isMobile ? '56px' : '72px';
-                })(),
-                transform: `translate(-50%, -50%) translate(${pan.x}px, ${pan.y}px) scale(${scale})`,
-              }}
-            >
-              {/* Center decoration */}
-              <div className="notebook-center-label">
-                <div className="notebook-center-icon">🩸</div>
-                <div className="notebook-center-text">血染钟楼</div>
-              </div>
-
-              {seats.map((seat, idx) => {
-                const seatData = notebookData.seats[seat.seatIndex] || {};
-                const isMe = seat.seatIndex === mySeatIndex;
-                const guessCharId = seatData.charGuess;
-                const guessChar = guessCharId ? allChars[guessCharId] : null;
-
-                // Balanced 4:5 elliptical layout on mobile portrait for even 12-player distribution
-                const isMobilePortrait = typeof window !== 'undefined' && window.innerHeight > window.innerWidth + 80 && window.innerWidth <= 700;
-                const angle = (idx / total) * 2 * Math.PI - Math.PI / 2;
-                const radiusX = isMobilePortrait ? (total <= 10 ? 38 : 40) : (total <= 10 ? 36 : total <= 13 ? 39 : 42);
-                const radiusY = isMobilePortrait ? (total <= 10 ? 40 : 41) : (total <= 10 ? 36 : total <= 13 ? 39 : 42);
-                const cx = 50 + radiusX * Math.cos(angle);
-                const cy = 50 + radiusY * Math.sin(angle);
-
-                return (
-                  <div
-                    key={seat.seatIndex}
-                    className={[
-                      'seat-token',
-                      !seat.alive && 'dead',
-                      guessChar && `type-${guessChar.type}`,
-                      isMe && 'notebook-my-token-border',
-                    ].filter(Boolean).join(' ')}
-                    style={{ left: `${cx}%`, top: `${cy}%` }}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setActiveGuess(seat.seatIndex); // Open seat editor popup
-                    }}
-                  >
-                    {/* Shroud if dead (synced from Storyteller Grimoire!) */}
-                    {!seat.alive && (
-                      <div className="seat-shroud">
-                        <span className="death-cause-badge">💀</span>
-                      </div>
-                    )}
-
-                    {/* Note indicator badge if player wrote notes */}
-                    {seatData.notes && (
-                      <div className="notebook-token-note-badge" title="已有笔记">📝</div>
-                    )}
-
-                    {/* Character Icon inside round token */}
-                    {guessChar ? (
-                      guessChar.icon ? (
-                        <img className="seat-char-img" src={guessChar.icon} alt={guessChar.name} style={{ width: 46, height: 46, borderRadius: '50%', objectFit: 'cover' }} />
-                      ) : (
-                        <span className="seat-char-icon" style={{ color: TYPE_COLORS[guessChar.type] }}>
-                          {guessChar.name?.charAt(0)}
-                        </span>
-                      )
-                    ) : (
-                      <span className="seat-empty" style={{ color: '#888', fontSize: '1.5rem', fontWeight: 'bold' }}>?</span>
-                    )}
-
-                    {/* Character Name inside token */}
-                    {guessChar && (
-                      <span className="seat-char-name" style={{ color: TYPE_COLORS[guessChar.type] }}>
-                        {guessChar.name}
-                      </span>
-                    )}
-
-                    {/* Label below token (INSIDE .seat-token so Grimoire bottom: -28px applies!) */}
-                    <div className="seat-label">
-                      <span className="seat-number">{seat.seatNumber}.</span>
-                      <span className="seat-player-name" style={{ fontWeight: isMe ? 700 : 500, color: isMe ? '#e8c864' : '#eee' }}>
-                        {seat.occupied ? seat.playerName : '空座'}
-                        {isMe && ' ⭐'}
-                      </span>
-                    </div>
+                <div
+                  className="notebook-circle-container"
+                  style={{
+                    '--seat-size': (() => {
+                      const isMobile = typeof window !== 'undefined' && window.innerWidth <= 700;
+                      if (total <= 10) return isMobile ? '76px' : '96px';
+                      if (total <= 13) return isMobile ? '62px' : '84px';
+                      return isMobile ? '56px' : '72px';
+                    })(),
+                    transform: `translate(-50%, -50%) translate(${pan.x}px, ${pan.y}px) scale(${scale})`,
+                  }}
+                >
+                  {/* Center decoration */}
+                  <div className="notebook-center-label">
+                    <div className="notebook-center-icon">🩸</div>
+                    <div className="notebook-center-text">血染钟楼</div>
                   </div>
-                );
-              })}
-            </div>
-          </div>
+
+                  {seats.map((seat, idx) => {
+                    const seatData = notebookData.seats[seat.seatIndex] || {};
+                    const isMe = seat.seatIndex === mySeatIndex;
+                    const guessCharId = seatData.charGuess;
+                    const guessChar = guessCharId ? allChars[guessCharId] : null;
+
+                    // Balanced 4:5 elliptical layout on mobile portrait for even 12-player distribution
+                    const isMobilePortrait = typeof window !== 'undefined' && window.innerHeight > window.innerWidth + 80 && window.innerWidth <= 700;
+                    const angle = (idx / total) * 2 * Math.PI - Math.PI / 2;
+                    const radiusX = isMobilePortrait ? (total <= 10 ? 38 : 40) : (total <= 10 ? 36 : total <= 13 ? 39 : 42);
+                    const radiusY = isMobilePortrait ? (total <= 10 ? 40 : 41) : (total <= 10 ? 36 : total <= 13 ? 39 : 42);
+                    const cx = 50 + radiusX * Math.cos(angle);
+                    const cy = 50 + radiusY * Math.sin(angle);
+
+                    return (
+                      <div
+                        key={seat.seatIndex}
+                        className={[
+                          'seat-token',
+                          !seat.alive && 'dead',
+                          guessChar && `type-${guessChar.type}`,
+                          isMe && 'notebook-my-token-border',
+                        ].filter(Boolean).join(' ')}
+                        style={{ left: `${cx}%`, top: `${cy}%` }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setActiveGuess(seat.seatIndex); // Open seat editor popup
+                        }}
+                      >
+                        {/* Shroud if dead (synced from Storyteller Grimoire!) */}
+                        {!seat.alive && (
+                          <div className="seat-shroud">
+                            <span className="death-cause-badge">💀</span>
+                          </div>
+                        )}
+
+                        {/* Note indicator badge if player wrote notes */}
+                        {seatData.notes && (
+                          <div className="notebook-token-note-badge" title="已有笔记">📝</div>
+                        )}
+
+                        {/* Character Icon inside round token */}
+                        {guessChar ? (
+                          guessChar.icon ? (
+                            <img className="seat-char-img" src={guessChar.icon} alt={guessChar.name} style={{ width: 46, height: 46, borderRadius: '50%', objectFit: 'cover' }} />
+                          ) : (
+                            <span className="seat-char-icon" style={{ color: TYPE_COLORS[guessChar.type] }}>
+                              {guessChar.name?.charAt(0)}
+                            </span>
+                          )
+                        ) : (
+                          <span className="seat-empty" style={{ color: '#888', fontSize: '1.5rem', fontWeight: 'bold' }}>?</span>
+                        )}
+
+                        {/* Character Name inside token */}
+                        {guessChar && (
+                          <span className="seat-char-name" style={{ color: TYPE_COLORS[guessChar.type] }}>
+                            {guessChar.name}
+                          </span>
+                        )}
+
+                        {/* Label below token (INSIDE .seat-token so Grimoire bottom: -28px applies!) */}
+                        <div className="seat-label">
+                          <span className="seat-number">{seat.seatNumber}.</span>
+                          <span className="seat-player-name" style={{ fontWeight: isMe ? 700 : 500, color: isMe ? '#e8c864' : '#eee' }}>
+                            {seat.occupied ? seat.playerName : '空座'}
+                            {isMe && ' ⭐'}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </Fragment>
           )}
 
           {/* ── Seat Editor Popup when a round token is tapped ── */}
