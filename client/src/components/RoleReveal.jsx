@@ -359,6 +359,12 @@ export default function RoleReveal({ onClose }) {
               🚶 起立
             </button>
           )}
+          <button
+            className="reveal-btn reveal-btn-notebook"
+            onClick={() => setShowNotebook(true)}
+          >
+            📓 笔记本
+          </button>
         </div>
       </div>
     );
@@ -861,9 +867,14 @@ export default function RoleReveal({ onClose }) {
             </div>
           </div>
 
-          <button className="reveal-btn reveal-btn-back" onClick={() => { setSession(null); setSelectedPlayer(null); setCustomName(''); }}>
-            ← 返回
-          </button>
+          <div className="reveal-btn-row" style={{ display: 'flex', gap: 10, marginTop: 16 }}>
+            <button className="reveal-btn reveal-btn-back" style={{ flex: 1, margin: 0 }} onClick={() => { setSession(null); setSelectedPlayer(null); setCustomName(''); }}>
+              ← 返回
+            </button>
+            <button className="reveal-btn reveal-btn-notebook" style={{ flex: 1, margin: 0 }} onClick={() => setShowNotebook(true)}>
+              📓 笔记本
+            </button>
+          </div>
         </div>
       </div>
     );

@@ -273,9 +273,10 @@ router.post('/:code/sync', (req, res) => {
 
   for (const s of seats) {
     if (s.seatIndex == null || s.seatIndex < 0 || s.seatIndex >= session.totalSeats) continue;
+    const isRealName = s.playerName && !s.playerName.startsWith('座位') && !s.playerName.startsWith('Player');
     if (session.seated[s.seatIndex]) {
-      if (s.playerName) session.seated[s.seatIndex].playerName = s.playerName;
-    } else if (s.playerName) {
+      if (isRealName) session.seated[s.seatIndex].playerName = s.playerName;
+    } else if (isRealName) {
       session.seated[s.seatIndex] = { playerName: s.playerName, playerId: s.playerId || null };
     }
     session.seatStatus[s.seatIndex] = {

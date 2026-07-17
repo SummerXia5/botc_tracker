@@ -447,56 +447,55 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
       try {
         const data = await getRevealSession(revealCode);
         setRevealSession(data);
-        // When all seated, update grimoire seats with player info
-        if (data.allSeated) {
-          // Collect unmatched player names to create
+        // Update grimoire seats in real time whenever any player sits down on their phone
+        if (data.seats && data.seats.length > 0) {
+          // Collect unmatched player names to create if allSeated
           const unmatchedNames = [];
           for (const seatInfo of data.seats) {
             if (!seatInfo?.playerName) continue;
             const name = seatInfo.playerName.trim();
+            if (name.startsWith('座位') || name.startsWith('Player')) continue;
             const match = localPlayers.find(p =>
               p.name === name || p.name.trim().toLowerCase() === name.toLowerCase()
             );
             if (!match) unmatchedNames.push(name);
           }
 
-          // Auto-create unmatched players in the database
+          // Auto-create unmatched players in the database when all seated
           const newPlayers = [];
-          for (const name of [...new Set(unmatchedNames)]) {
-            try {
-              const result = await createPlayer({ name, group_id: groupId });
-              newPlayers.push(result.player);
-            } catch (err) {
-              console.warn(`[Reveal] Failed to create player "${name}":`, err);
-              newPlayers.push({ id: null, name });
+          if (data.allSeated && unmatchedNames.length > 0) {
+            for (const name of [...new Set(unmatchedNames)]) {
+              try {
+                const result = await createPlayer({ name, group_id: groupId });
+                newPlayers.push(result.player);
+              } catch (err) {
+                console.warn(`[Reveal] Failed to create player "${name}":`, err);
+                newPlayers.push({ id: null, name });
+              }
+            }
+            if (newPlayers.length > 0) {
+              setLocalPlayers(prev => [...prev, ...newPlayers.filter(p => p.id)]);
             }
           }
-          if (newPlayers.length > 0) {
-            setLocalPlayers(prev => [...prev, ...newPlayers.filter(p => p.id)]);
-          }
 
-          // Now match all seats — both existing and newly created players
+          // Match all seats with existing/new players in real time
           const allPlayers = [...localPlayers, ...newPlayers.filter(p => p.id)];
           setSeats(prev => prev.map((seat, i) => {
             const seatInfo = data.seats[i];
-            if (seatInfo?.playerName && (!seat.player || seat.player.name !== seatInfo.playerName)) {
+            if (seatInfo?.playerName && !seatInfo.playerName.startsWith('座位') && !seatInfo.playerName.startsWith('Player')) {
               const name = seatInfo.playerName.trim();
-              const matched = allPlayers.find(p =>
-                p.name === name || p.name.trim().toLowerCase() === name.toLowerCase()
-              );
-              return {
-                ...seat,
-                player: matched || { id: null, name },
-              };
+              if (!seat.player || seat.player.name !== name) {
+                const matched = allPlayers.find(p =>
+                  p.name === name || p.name.trim().toLowerCase() === name.toLowerCase()
+                );
+                return {
+                  ...seat,
+                  player: matched || { id: null, name },
+                };
+              }
             }
             return seat;
           }));
-          addLog(`所有玩家已入座 (${data.seatedCount}/${data.totalSeats})`);
-          if (newPlayers.length > 0) {
-            addLog(`自动创建 ${newPlayers.filter(p => p.id).length} 名新玩家: ${newPlayers.filter(p => p.id).map(p => p.name).join('、')}`);
-          }
-          clearInterval(revealPollRef.current);
-          revealPollRef.current = null;
         }
       } catch (e) {
         // session expired
@@ -507,12 +506,12 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
     return () => { if (revealPollRef.current) clearInterval(revealPollRef.current); };
   }, [revealCode, phase]);
 
-  // Push live seat names and alive status to the server reveal session (never sending true character ID)
+  // Push live seat names and alive status to the server reveal session (never sending true character ID or placeholders)
   useEffect(() => {
     if (!revealCode || !seats || seats.length === 0) return;
     const payload = seats.map((s, i) => ({
       seatIndex: i,
-      playerName: s.player?.name || `座位${i + 1}`,
+      playerName: (s.player?.name && !s.player.name.startsWith('座位') && !s.player.name.startsWith('Player')) ? s.player.name : null,
       alive: s.alive !== false,
       deathDay: s.deathDay != null ? s.deathDay : null,
       deathCause: s.deathCause || null,
