@@ -44,6 +44,99 @@ export default function RoleReveal({ onClose }) {
 
   const allChars = { ...CHARACTERS, ...TRAVELLERS };
 
+  // ── Auto-restore session from localStorage across page refreshes / re-entries ──
+  useEffect(() => {
+    const restoreSession = async () => {
+      try {
+        const saved = localStorage.getItem('reveal_player_session');
+        if (!saved) return;
+        const data = JSON.parse(saved);
+        if (!data || !data.code) return;
+
+        // Dev mode restore
+        if (data.code === '0000' || data.code === '0012' || data.code === '0007') {
+          const is12 = data.code !== '0007';
+          const devNames = is12
+            ? ['Alice', 'Bob', 'Charlie', 'Diana', 'Eve', 'Frank', 'Grace', 'Henry', 'Ivy', 'Jack', 'Kelly', 'Leo']
+            : ['Alice', 'Bob', 'Charlie', 'Diana', 'Eve', 'Frank', 'Grace'];
+          const devChars = is12
+            ? ['washerwoman', 'librarian', 'investigator', 'chef', 'empath', 'fortune_teller', 'undertaker', 'monk', 'ravenkeeper', 'virgin', 'slayer', 'imp']
+            : ['washerwoman', 'librarian', 'investigator', 'chef', 'empath', 'imp', 'poisoner'];
+          const mockSession = {
+            scriptName: `暗流涌动 (Dev Mode ${is12 ? '12人' : '7人'})`,
+            totalSeats: devNames.length,
+            seatedCount: devNames.length,
+            allSeated: true,
+            seats: devNames.map((name, i) => ({
+              seatIndex: i,
+              seatNumber: i + 1,
+              occupied: true,
+              playerName: name,
+              alive: i !== 1 && i !== 4 && i !== 7 && i !== 10,
+              deathDay: i === 1 ? 1 : i === 4 ? 1 : i === 7 ? 2 : i === 10 ? 2 : null,
+              deathCause: i === 1 ? 'killed_night' : i === 4 ? 'executed' : i === 7 ? 'killed_night' : i === 10 ? 'executed' : null,
+            })),
+            availablePlayers: [],
+          };
+          setCode(data.code);
+          setSession(mockSession);
+          if (data.mySeatIndex !== null) setMySeatIndex(data.mySeatIndex);
+          if (data.myPlayerName) setMyPlayerName(data.myPlayerName);
+          if (data.revealedChar) setRevealedChar(data.revealedChar);
+          if (data.revealedInfo) setRevealedInfo(data.revealedInfo);
+          if (data.showingChar) setShowingChar(true);
+          if (data.showNotebook) setShowNotebook(true);
+          if (data.showDeathTable) setShowDeathTable(true);
+          return;
+        }
+
+        // Verify with server if session is still alive before Storyteller ended it
+        const serverData = await getRevealSession(data.code);
+        if (serverData) {
+          setCode(data.code);
+          setSession(serverData);
+          if (data.mySeatIndex !== null) {
+            const seatHeld = serverData.seats?.[data.mySeatIndex];
+            if (seatHeld?.occupied && seatHeld.playerName === data.myPlayerName) {
+              setMySeatIndex(data.mySeatIndex);
+              setMyPlayerName(data.myPlayerName);
+              if (data.revealedChar) setRevealedChar(data.revealedChar);
+              if (data.revealedInfo) setRevealedInfo(data.revealedInfo);
+              if (data.showingChar) setShowingChar(true);
+              if (data.showNotebook) setShowNotebook(true);
+              if (data.showDeathTable) setShowDeathTable(true);
+            } else if (data.showNotebook) {
+              setShowNotebook(true);
+            }
+          } else if (data.showNotebook) {
+            setShowNotebook(true);
+          }
+        }
+      } catch (e) {
+        // Session on server expired or ended — clean up local storage
+        try { localStorage.removeItem('reveal_player_session'); } catch (_) {}
+      }
+    };
+    restoreSession();
+  }, []);
+
+  // ── Auto-save active session state across refreshes ──
+  useEffect(() => {
+    if (!code || !session) return;
+    try {
+      localStorage.setItem('reveal_player_session', JSON.stringify({
+        code,
+        mySeatIndex,
+        myPlayerName,
+        revealedChar,
+        revealedInfo,
+        showingChar,
+        showNotebook,
+        showDeathTable,
+      }));
+    } catch (_) {}
+  }, [code, session, mySeatIndex, myPlayerName, revealedChar, revealedInfo, showingChar, showNotebook, showDeathTable]);
+
   // ── Load notebook from localStorage ──
   useEffect(() => {
     if (!code) return;
@@ -346,6 +439,7 @@ export default function RoleReveal({ onClose }) {
                 if (window.confirm('确定要起立吗？')) {
                   try {
                     await unseatRevealSeat(code, mySeatIndex);
+                    try { localStorage.removeItem('reveal_player_session'); } catch (_) {}
                     setMySeatIndex(null);
                     setMyPlayerName('');
                     setSelectedPlayer(null);
@@ -868,7 +962,7 @@ export default function RoleReveal({ onClose }) {
           </div>
 
           <div className="reveal-btn-row" style={{ display: 'flex', gap: 10, marginTop: 16 }}>
-            <button className="reveal-btn reveal-btn-back" style={{ flex: 1, margin: 0 }} onClick={() => { setSession(null); setSelectedPlayer(null); setCustomName(''); }}>
+            <button className="reveal-btn reveal-btn-back" style={{ flex: 1, margin: 0 }} onClick={() => { try { localStorage.removeItem('reveal_player_session'); } catch (_) {} setSession(null); setSelectedPlayer(null); setCustomName(''); }}>
               ← 返回
             </button>
             <button className="reveal-btn reveal-btn-notebook" style={{ flex: 1, margin: 0 }} onClick={() => setShowNotebook(true)}>
