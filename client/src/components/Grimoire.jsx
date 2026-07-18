@@ -1315,14 +1315,6 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
         </div>
       )}
       {/* ---- Floating controls (no topbar) ---- */}
-      {/* Close button — top-right corner */}
-      <button className="grimoire-float-close" onClick={() => {
-        closedRef.current = true;
-        localStorage.removeItem(STORAGE_KEY);
-        localStorage.removeItem(STORAGE_KEY + '_backup');
-        localStorage.removeItem(STORAGE_KEY + '_log');
-        onClose();
-      }}>✕</button>
 
       {/* Gear menu — top-right, next to close */}
       {phase !== 'setup' && (
@@ -1717,11 +1709,27 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
               🎫 {revealCode ? '查看抽取码' : '生成抽取码'}
             </button>
           )}
-          {allAssigned && (
-            <button className="bottombar-btn bottombar-start" onClick={handleStartFirstNight}>
-              🌙 开始游戏 {(!seats.every(s => s.player) && revealSession) ? `(${revealSession.seatedCount}/${seats.length} 已填名)` : ''}
-            </button>
-          )}
+          {allAssigned && (() => {
+            const allSeatedReady = revealSession
+              ? revealSession.allSeated
+              : seats.every(s => s.player && s.player.name && !s.player.name.startsWith('座位') && !s.player.name.startsWith('Player'));
+            const seatedNum = revealSession
+              ? revealSession.seatedCount
+              : seats.filter(s => s.player && s.player.name && !s.player.name.startsWith('座位') && !s.player.name.startsWith('Player')).length;
+            return (
+              <button
+                className="bottombar-btn bottombar-start"
+                disabled={!allSeatedReady}
+                style={{
+                  opacity: allSeatedReady ? 1 : 0.45,
+                  cursor: allSeatedReady ? 'pointer' : 'not-allowed',
+                }}
+                onClick={handleStartFirstNight}
+              >
+                🌙 开始游戏 {!allSeatedReady ? `(等候落座 ${seatedNum}/${seats.length})` : ''}
+              </button>
+            );
+          })()}
           <button className="bottombar-btn" onClick={() => setShowDemonBluffs(true)}>🎭 恶魔伪装</button>
           <button className="bottombar-btn" onClick={() => setShowNightOrder(!showNightOrder)}>🌃 夜晚顺序</button>
           <button className="bottombar-btn" onClick={() => {
