@@ -1216,11 +1216,14 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
       };
       onExportGame?.(gameData);
       clearSavedState();
+      if (revealCode) { try { deleteRevealSession(revealCode); } catch (_) {} }
+      closedRef.current = true;
+      setShowEndDialog(false);
+      onClose();
     } catch (e) {
       console.error('[Grimoire] handleEndGame error — state preserved:', e);
       // Don't clear saved state on error — data can be recovered
     }
-    setShowEndDialog(false);
   };
 
   // ================================================================
