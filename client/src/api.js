@@ -230,3 +230,9 @@ export async function syncRevealSession(code, seats) {
     body: JSON.stringify({ seats }),
   });
 }
+
+export async function deleteRevealSession(code) {
+  return request(`/api/reveal/${code}`, {
+    method: 'DELETE',
+  });
+}

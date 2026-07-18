@@ -257,20 +257,28 @@ export default function RoleReveal({ onClose }) {
   }, [showNotebook, code]);
 
   // Poll session every 3 seconds for real-time updates
-  // If seated but not revealed, also check for allSeated → auto fetch char
+  // If seated, poll session status in background; if Storyteller closes session (404), auto return to Enter Code
   useEffect(() => {
-    if (!session || revealedChar) return;
+    if (!session || !code || code === '0000' || code === '0012' || code === '0007') return;
     const poll = async () => {
       try {
         const data = await getRevealSession(code);
         setSession(data);
       } catch (e) {
-        // session expired
+        // Session expired or deleted by Storyteller!
+        try { localStorage.removeItem('reveal_player_session'); } catch (_) {}
+        setSession(null);
+        setCode('');
+        setMySeatIndex(null);
+        setMyPlayerName('');
+        setRevealedChar(null);
+        setShowingChar(false);
+        setShowNotebook(false);
       }
     };
-    pollRef.current = setInterval(poll, 3000);
+    pollRef.current = setInterval(poll, 3500);
     return () => clearInterval(pollRef.current);
-  }, [session, code, revealedChar, mySeatIndex, myPlayerName]);
+  }, [session, code]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -853,13 +861,11 @@ export default function RoleReveal({ onClose }) {
           </div>
           <div className="reveal-char-ability">{revealedChar.ability}</div>
 
-          <div className="reveal-btn-row">
-            <button className="reveal-btn" onClick={() => setShowingChar(false)}>🔒 隐藏</button>
-            <button
-              className="reveal-btn reveal-btn-notebook"
-              onClick={() => setShowNotebook(true)}
-            >
-              📓 笔记本
+          <div className="reveal-btn-row" style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            <button className="reveal-btn" style={{ flex: 1, margin: 0 }} onClick={() => setShowingChar(false)}>🔒 隐藏</button>
+            <button className="reveal-btn reveal-btn-notebook" style={{ flex: 1, margin: 0 }} onClick={() => setShowNotebook(true)}>📓 笔记本</button>
+            <button className="reveal-btn reveal-btn-back" style={{ width: '100%', margin: 0, marginTop: 4 }} onClick={() => { try { localStorage.removeItem('reveal_player_session'); } catch (_) {} setSession(null); setCode(''); setMySeatIndex(null); setMyPlayerName(''); setRevealedChar(null); setShowingChar(false); setShowNotebook(false); }}>
+              🚪 退出房间 / 输入新码
             </button>
           </div>
         </div>
@@ -936,8 +942,8 @@ export default function RoleReveal({ onClose }) {
           </div>
 
           <div className="reveal-btn-row" style={{ display: 'flex', gap: 10, marginTop: 16 }}>
-            <button className="reveal-btn reveal-btn-back" style={{ flex: 1, margin: 0 }} onClick={() => { try { localStorage.removeItem('reveal_player_session'); } catch (_) {} setSession(null); setSelectedPlayer(null); setCustomName(''); }}>
-              ← 返回
+            <button className="reveal-btn reveal-btn-back" style={{ flex: 1, margin: 0 }} onClick={() => { try { localStorage.removeItem('reveal_player_session'); } catch (_) {} setSession(null); setCode(''); setMySeatIndex(null); setMyPlayerName(''); setRevealedChar(null); setShowingChar(false); setShowNotebook(false); }}>
+              ← 退出 / 重新填码
             </button>
             <button className="reveal-btn reveal-btn-notebook" style={{ flex: 1, margin: 0 }} onClick={() => setShowNotebook(true)}>
               📓 笔记本

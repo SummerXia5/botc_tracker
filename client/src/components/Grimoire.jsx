@@ -2,7 +2,7 @@ import { useState, useMemo, useCallback, useRef, useEffect, Fragment } from 'rea
 
 import { CHARACTERS, TYPE_COLORS, TYPE_LABELS, SCRIPTS, TRAVELLERS } from '../data/characters';
 import PlayerSelector from './PlayerSelector';
-import { createPlayer, createRevealSession, getRevealSession, sitRevealSeat, unseatRevealSeat, syncRevealSession } from '../api';
+import { createPlayer, createRevealSession, getRevealSession, sitRevealSeat, unseatRevealSeat, syncRevealSession, deleteRevealSession } from '../api';
 import './Grimoire.css';
 
 const REMINDER_TOKENS = [
@@ -603,7 +603,7 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
       return null;
     };
 
-    return charIds.map(id => {
+    const mapped = charIds.map(id => {
       // 1. Direct match in local CHARACTERS database
       if (CHARACTERS[id]) return { ...CHARACTERS[id] };
 
@@ -648,6 +648,21 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
         _unknown: true,
       };
     });
+
+    // DEDUPLICATE: ensure each character ID and normalized character name only appears ONCE in the script pool
+    const seen = new Set();
+    const unique = [];
+    for (const ch of mapped) {
+      if (!ch || !ch.id) continue;
+      const normName = (ch.name || '').replace(/[&、/+\s]/g, '').toLowerCase();
+      const key = `${ch.id.toLowerCase()}::${normName}`;
+      if (seen.has(key) || seen.has(ch.id.toLowerCase()) || (normName && seen.has(normName))) continue;
+      seen.add(key);
+      seen.add(ch.id.toLowerCase());
+      if (normName) seen.add(normName);
+      unique.push(ch);
+    }
+    return unique;
   }, [selectedScript]);
 
   const charLookup = useMemo(() => {
@@ -1616,6 +1631,7 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
             onClick={() => {
               if (confirmExit) {
                 closedRef.current = true;
+                if (revealCode) { try { deleteRevealSession(revealCode); } catch (_) {} }
                 localStorage.removeItem(STORAGE_KEY);
                 localStorage.removeItem(STORAGE_KEY + '_backup');
                 localStorage.removeItem(STORAGE_KEY + '_log');
@@ -3535,6 +3551,7 @@ export default function Grimoire({ players, scripts, groupId, onExportGame, onCl
                 onClick={() => {
                   // Block auto-save from re-writing state
                   closedRef.current = true;
+                  if (revealCode) { try { deleteRevealSession(revealCode); } catch (_) {} }
                   // Clear ALL saved state so a new game can start fresh
                   localStorage.removeItem(STORAGE_KEY);
                   localStorage.removeItem(STORAGE_KEY + '_backup');

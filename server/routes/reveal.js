@@ -290,4 +290,10 @@ router.post('/:code/sync', (req, res) => {
   res.json({ message: 'synchronized successfully' });
 });
 
+router.delete('/:code', (req, res) => {
+  const { code } = req.params;
+  sessions.delete(code);
+  res.json({ success: true, message: `Session ${code} deleted.` });
+});
+
 export default router;
